@@ -15,6 +15,26 @@ import FocusTimerPage from './pages/FocusTimerPage';
 import AboutPage from './pages/AboutPage';
 import LegalPage from './pages/LegalPage';
 
+const DesktopOnly = ({ children }: { children: React.ReactNode }) => {
+  const isDesktop = window.innerWidth >= 1024; // tweak if needed
+
+  if (!isDesktop) {
+    return (
+      <div className="min-h-screen flex items-center justify-center mesh-bg text-center px-6">
+        <div>
+          <h1 className="text-2xl font-semibold mb-3">Desktop Only</h1>
+          <p className="text-sm opacity-60">
+            This app is designed for desktop use only.
+            Please switch to a larger screen.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -41,25 +61,27 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 export default function App() {
   return (
-    <Router>
-      <NotificationProvider>
-        <ToastStack />
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
-          <Route path="/courses/:id" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
-          <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-          <Route path="/tasks" element={<ProtectedRoute><TaskCenterPage /></ProtectedRoute>} />
-          <Route path="/focus" element={<ProtectedRoute><FocusTimerPage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/legal" element={<LegalPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </NotificationProvider>
-    </Router>
+    <DesktopOnly>
+      <Router>
+        <NotificationProvider>
+          <ToastStack />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
+            <Route path="/courses/:id" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
+            <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+            <Route path="/tasks" element={<ProtectedRoute><TaskCenterPage /></ProtectedRoute>} />
+            <Route path="/focus" element={<ProtectedRoute><FocusTimerPage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/legal" element={<LegalPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </NotificationProvider>
+      </Router>
+    </DesktopOnly>
   );
 }
