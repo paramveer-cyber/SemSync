@@ -208,7 +208,7 @@ function QuoteCard() {
 }
 
 function TimerArc({ progress, phase }: { progress: number; phase: TimerPhase }) {
-  const r = 130; 
+  const r = 130;
   const cx = 150;
   const cy = 150;
   const startAngle = -220;
@@ -253,8 +253,15 @@ export default function FocusTimerPage() {
   const [sessions, setSessions] = useState<FocusSession[]>(loadSessions);
   const [tasks] = useState<TimerTask[]>(loadTasks);
   const [linkedTask, setLinkedTask] = useState<TimerTask | null>(null);
+
+  // ── Committed task (shown in badge, used for logging) ──
   const [quickTitle, setQuickTitle] = useState('');
   const [quickCategory, setQuickCategory] = useState(CATEGORIES[0]);
+
+  // ── Draft task (bound to input while typing) ──
+  const [draftTitle, setDraftTitle] = useState('');
+  const [draftCategory, setDraftCategory] = useState(CATEGORIES[0]);
+
   const [showTaskPicker, setShowTaskPicker] = useState(false);
   const [showQuickTask, setShowQuickTask] = useState(false);
   const [taskError, setTaskError] = useState(false);
@@ -308,7 +315,7 @@ export default function FocusTimerPage() {
               const breakSecs = BREAK_MINUTES * 60;
               setTotalSeconds(breakSecs);
               setSecondsLeft(breakSecs);
-              
+
               if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('Focus Complete!', { body: 'Great work! Take a 5 minute break and Touch grass 🌱' });
               }
@@ -317,7 +324,7 @@ export default function FocusTimerPage() {
               setStatus('idle');
               setSecondsLeft(selectedMinutes * 60);
               setTotalSeconds(selectedMinutes * 60);
-              
+
               if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('Break Over!', { body: 'Ready to focus again?' });
               }
@@ -390,6 +397,24 @@ export default function FocusTimerPage() {
     setStatus('idle');
   };
 
+  // Commit draft → quickTitle/quickCategory
+  const commitQuickTask = () => {
+    if (draftTitle.trim()) {
+      setQuickTitle(draftTitle.trim());
+      setQuickCategory(draftCategory);
+      setShowQuickTask(false);
+      setTaskError(false);
+    }
+  };
+
+  // Clear committed quick task and reset drafts
+  const clearQuickTask = () => {
+    setQuickTitle('');
+    setQuickCategory(CATEGORIES[0]);
+    setDraftTitle('');
+    setDraftCategory(CATEGORIES[0]);
+  };
+
   const mins = Math.floor(secondsLeft / 60);
   const secs = secondsLeft % 60;
   const progress = totalSeconds > 0 ? secondsLeft / totalSeconds : 1;
@@ -416,14 +441,6 @@ export default function FocusTimerPage() {
               <QuoteCard />
 
               <div className="relative" style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.5)', padding: '32px', borderRadius: '5px' }}>
-                
-                {/* DEV Button
-                <button 
-                  onClick={() => setSecondsLeft(1)} 
-                  className="absolute top-4 right-4 text-[10px] uppercase tracking-widest font-bold px-2 py-1 bg-zinc-800 text-zinc-400 border border-zinc-600 rounded-[5px] hover:bg-zinc-700 hover:text-white transition-colors cursor-pointer"
-                >
-                  DEV: Speed Up
-                </button> */}
 
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3 mt-2">
@@ -534,6 +551,7 @@ export default function FocusTimerPage() {
                   {taskError && <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />}
                 </div>
 
+                {/* Committed task badges */}
                 {linkedTask ? (
                   <div className="mb-4 p-3 border border-green-500/40 bg-green-500/10 rounded-[5px]">
                     <div className="flex items-start justify-between gap-2">
@@ -553,13 +571,14 @@ export default function FocusTimerPage() {
                         <p className="text-xs font-black uppercase text-zinc-100 truncate">{quickTitle}</p>
                         <p className="text-[10px] font-mono mt-0.5 text-zinc-400">{quickCategory}</p>
                       </div>
-                      <button onClick={() => { setQuickTitle(''); setQuickCategory(CATEGORIES[0]); }} className="shrink-0 cursor-pointer text-zinc-400 hover:text-zinc-200">
+                      <button onClick={clearQuickTask} className="shrink-0 cursor-pointer text-zinc-400 hover:text-zinc-200">
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                 ) : null}
 
+                {/* Pickers — visible when no committed task */}
                 {!linkedTask && !quickTitle && (
                   <div className="space-y-2">
                     {tasks.length > 0 && (
@@ -593,19 +612,22 @@ export default function FocusTimerPage() {
                         <input
                           className="w-full px-3 py-2 text-xs placeholder:text-zinc-500 focus:outline-none border border-zinc-700 bg-zinc-900 text-zinc-200 rounded-[5px]"
                           placeholder="Task title..."
-                          value={quickTitle}
-                          onChange={e => setQuickTitle(e.target.value)}
+                          value={draftTitle}
+                          onChange={e => setDraftTitle(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') commitQuickTask();
+                          }}
                         />
                         <select
                           className="w-full px-3 py-2 text-xs focus:outline-none appearance-none border border-zinc-700 bg-zinc-900 text-zinc-200 rounded-[5px]"
-                          value={quickCategory}
-                          onChange={e => setQuickCategory(e.target.value)}
+                          value={draftCategory}
+                          onChange={e => setDraftCategory(e.target.value)}
                         >
                           {CATEGORIES.map(c => (
                             <option key={c} value={c} className="bg-[#0a0a0f]">{c}</option>
                           ))}
                         </select>
-                        <button onClick={() => { if (quickTitle.trim()) { setShowQuickTask(false); setTaskError(false); } }}
+                        <button type='button' onClick={commitQuickTask}
                           className="w-full py-2 text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-green-500 text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-black rounded-[5px]">
                           SET TASK
                         </button>
