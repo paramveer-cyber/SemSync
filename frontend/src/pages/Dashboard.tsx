@@ -1,0 +1,424 @@
+import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import AddCourseModal from '../components/modals/AddCourseModal';
+import { deleteCourse } from '../lib/api';
+import { fetchCourses, fetchUpcomingEvals, fetchCourse, invalidateAllCourseData } from '../lib/dataService';
+import { Plus, Clock, Trash2, AlertTriangle } from 'lucide-react';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const daysUntil = (d: string) =>
+    Math.ceil((new Date(d).getTime() - Date.now()) / 86_400_000);
+
+const fmtDate = (d: string) =>
+    new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+
+const getWeekLabel = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const week = Math.ceil(((now.getTime() - start.getTime()) / 86_400_000 + start.getDay() + 1) / 7);
+    const month = now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
+    return { week, month };
+};
+
+// Urgency badge — CRITICAL / OPERATIONAL / ROUTINE
+const urgencyMeta = (days: number) => {
+    if (days <= 2) return { label: 'CRITICAL', color: '#ffffff', bg: '#ef4444', border: '#ef4444' };
+    if (days <= 5) return { label: 'OPERATIONAL', color: '#22c55e', bg: 'transparent', border: '#22c55e' };
+    return { label: 'ROUTINE', color: '#a1a1aa', bg: 'rgba(161,161,170,0.12)', border: 'rgba(161,161,170,0.3)' };
+};
+
+// Status dot color based on grade vs target
+const statusColor = (current: number, target: number): string => {
+    const delta = current - target;
+    if (delta >= 0) return '#6BFFAC';
+    if (delta >= -10) return '#51C283';
+    return '#398F5F';
+};
+
+const TYPE_LABEL: Record<string, string> = {
+    midsem: 'MID SEM', endsem: 'END SEM', quiz: 'QUIZ',
+    assignment: 'ASSIGNMENT', lab: 'LAB', project: 'PROJECT',
+    viva: 'VIVA', other: 'OTHER',
+};
+
+const TYPE_ICON: Record<string, string> = {
+    midsem: '📋', endsem: '📋', quiz: '⚡',
+    assignment: '📝', lab: '🔬', project: '🗂️',
+    viva: '🎤', other: '📌',
+};
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface CourseWithStats {
+    id: string; name: string; credits?: number; targetGrade: number;
+    currentGrade: number; totalWeight: number; remainingWeight: number;
+    requiredAvg: number | null;
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+
+export default function Dashboard() {
+    const [courses, setCourses] = useState<CourseWithStats[]>([]);
+    const [upcoming, setUpcoming] = useState<any[]>([]);
+    const [showAdd, setShowAdd] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [deleting, setDeleting] = useState<string | null>(null);
+    const [error, setError] = useState('');
+
+    const load = useCallback(async () => {
+        setLoading(true); setError('');
+        try {
+            // Both calls use the session cache — only the very first
+            // page load in this session actually hits the network.
+            const [rawCourses, upcomingEvals] = await Promise.all([
+                fetchCourses(),
+                fetchUpcomingEvals(),
+            ]);
+
+            // Per-course stats are also cached after the first load
+            const withStats: CourseWithStats[] = await Promise.all(
+                rawCourses.map(async (c: any) => {
+                    try {
+                        const { stats } = await fetchCourse(c.id);
+                        return { ...c, ...stats };
+                    } catch {
+                        return { ...c, currentGrade: 0, totalWeight: 0, remainingWeight: 0, requiredAvg: null };
+                    }
+                })
+            );
+
+            setCourses(withStats);
+            setUpcoming(upcomingEvals);
+        } catch (err: any) { setError(err.message); }
+        finally { setLoading(false); }
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
+
+    const handleDelete = async (id: string, name: string) => {
+        if (!confirm(`Delete "${name}"? All evaluations will also be deleted.`)) return;
+        setDeleting(id);
+        try {
+            await deleteCourse(id);
+            invalidateAllCourseData(); // wipe cache so next load is fresh
+            setCourses(p => p.filter(c => c.id !== id));
+        } catch (err: any) { alert('Failed: ' + err.message); }
+        finally { setDeleting(null); }
+    };
+
+    // ── Upcoming filter: this week first, fallback to all ─────────────────────
+    const thisWeek = upcoming.filter(e => { const d = daysUntil(e.date); return d >= 0 && d <= 7; });
+    const displayUpcoming = thisWeek.length > 0 ? thisWeek : upcoming.slice(0, 6);
+    const isFallback = thisWeek.length === 0 && upcoming.length > 0;
+
+    const { week, month } = getWeekLabel();
+
+    // ── Skeleton ──────────────────────────────────────────────────────────────
+    if (loading) {
+        return (
+            <div className="flex min-h-screen bg-black">
+                <Sidebar />
+                <main className="grow p-8 space-y-14">
+                    <div>
+                        <div className="flex justify-between items-baseline mb-8">
+                            <div className="h-12 w-72 bg-zinc-900 animate-pulse" />
+                            <div className="h-4 w-40 bg-zinc-900 animate-pulse" />
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            {[0, 1, 2].map(i => <div key={i} className="h-52 bg-zinc-900 animate-pulse border border-zinc-800" />)}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="flex justify-between items-center mb-8">
+                            <div className="h-8 w-64 bg-zinc-900 animate-pulse" />
+                            <div className="h-9 w-32 bg-zinc-900 animate-pulse" />
+                        </div>
+                        <div className="grid grid-cols-4 gap-4">
+                            {[0, 1, 2, 3].map(i => <div key={i} className="h-44 bg-zinc-900 animate-pulse border border-zinc-800" />)}
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    // ── Main render ───────────────────────────────────────────────────────────
+    return (
+        <div className="flex min-h-screen bg-black">
+            <Sidebar />
+
+            <main className="grow flex flex-col overflow-y-auto">
+                <div className="p-8 space-y-14">
+
+                    {error && (
+                        <div className="border border-red-500/30 bg-red-500/5 px-6 py-4 flex items-center gap-3">
+                            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                            <span className="text-xs font-bold text-red-400 uppercase tracking-widest">{error}</span>
+                        </div>
+                    )}
+
+                    {/* ════════════════════════════════════════════
+              WEEKLY FOCUS
+          ════════════════════════════════════════════ */}
+                    <section>
+                        {/* Section header */}
+                        <div className="flex items-baseline justify-between mb-8">
+                            <h2 className="text-5xl font-extrabold tracking-tighter uppercase text-white">
+                                Weekly Focus
+                            </h2>
+                            <span className="text-sm font-mono tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                                WEEK {week} — {month}
+                            </span>
+                        </div>
+
+                        {displayUpcoming.length === 0 ? (
+                            <div className="border border-dashed border-zinc-800 p-16 text-center">
+                                <p className="text-xs font-bold tracking-[0.3em] text-zinc-600 uppercase">
+                                    No upcoming evaluations
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                {isFallback && (
+                                    <p className="text-[10px] font-bold tracking-[0.25em] text-zinc-600 uppercase mb-4">
+                                        Nothing this week — showing next upcoming
+                                    </p>
+                                )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {displayUpcoming.map(e => {
+                                        const days = daysUntil(e.date);
+                                        const urg = urgencyMeta(days);
+
+                                        const timeStr = days === 0 ? 'TODAY'
+                                            : days === 1 ? 'TOMORROW'
+                                                : `${days} DAYS`;
+
+                                        return (
+                                            <div
+                                                key={e.id}
+                                                className=" rounded-[var(--radius-card)] flex flex-col justify-between transition-colors duration-200 hover:bg-zinc-900"
+                                                style={{
+                                                    background: 'rgba(16,16,16,1)',
+                                                    border: '1px solid rgba(255,255,255,0.08)',
+                                                    padding: '24px',
+                                                    minHeight: '210px',
+                                                }}>
+
+                                                {/* Badge row */}
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <span
+                                                        className="text-[10px] font-black tracking-[0.2em] px-3 py-1 uppercase"
+                                                        style={{
+                                                            color: urg.color,
+                                                            background: urg.bg,
+                                                            border: `1px solid ${urg.border}`,
+                                                        }}>
+                                                        {urg.label}
+                                                    </span>
+                                                    <span className="text-xs font-mono tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                                                        {fmtDate(e.date)}
+                                                    </span>
+                                                </div>
+
+                                                {/* Title */}
+                                                <div className="grow  rounded-[var(--radius-card)] ">
+                                                    <h3 className="text-2xl font-extrabold tracking-tight text-white leading-snug uppercase mb-2">
+                                                        {e.title}
+                                                    </h3>
+                                                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                                                        {e.courseName}
+                                                    </p>
+                                                </div>
+
+                                                {/* Footer row */}
+                                                <div
+                                                    className="flex items-center justify-between mt-5 pt-4"
+                                                    style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                                                    <span
+                                                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"
+                                                        style={{ color: 'rgba(255,255,255,0.35)' }}>
+                                                        <span>{TYPE_ICON[e.type] ?? '📌'}</span>
+                                                        {TYPE_LABEL[e.type] ?? e.type.toUpperCase()}
+                                                    </span>
+                                                    <span
+                                                        className="flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase"
+                                                        style={{ color: urg.label === 'CRITICAL' ? '#22c55e' : 'rgba(255,255,255,0.3)' }}>
+                                                        <Clock className="w-3 h-3" />
+                                                        {timeStr}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </>
+                        )}
+                    </section>
+
+                    {/* ════════════════════════════════════════════
+              COURSE NODES
+          ════════════════════════════════════════════ */}
+                    <section>
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-baseline gap-4">
+                                <h2 className="text-2xl font-extrabold tracking-tight uppercase text-white">
+                                    Course Nodes
+                                </h2>
+                                <span className="text-xs font-mono tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                                    [ {String(courses.length).padStart(2, '0')} Nodes Active ]
+                                </span>
+                            </div>
+
+                            <button
+                                onClick={() => setShowAdd(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
+                                style={{ border: '1px solid rgba(34,197,94,0.4)', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
+                                onMouseEnter={e => {
+                                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.18)';
+                                    (e.currentTarget as HTMLButtonElement).style.borderColor = '#22c55e';
+                                    (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(34,197,94,0.22)';
+                                }}
+                                onMouseLeave={e => {
+                                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)';
+                                    (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(34,197,94,0.4)';
+                                    (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+                                }}>
+                                <Plus className="w-4 h-4" /> New Course
+                            </button>
+                        </div>
+
+                        {courses.length === 0 ? (
+                            <div className="border border-dashed border-zinc-800 p-16 flex flex-col items-center gap-4">
+                                <p className="text-xs font-bold tracking-[0.3em] text-zinc-600 uppercase">No courses initialized</p>
+                                <button
+                                    onClick={() => setShowAdd(true)}
+                                    className="px-8 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150"
+                                    style={{ border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#22c55e'; }}>
+                                    Initialize First Course
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {courses.map(course => {
+                                    const dot = statusColor(course.currentGrade, course.targetGrade);
+                                    const delta = parseFloat((course.currentGrade - course.targetGrade).toFixed(2));
+                                    // bar fills proportionally up to target; overshoot shown as full bar
+                                    const barPct = Math.min(100, course.targetGrade > 0
+                                        ? (course.currentGrade / course.targetGrade) * 100
+                                        : 0);
+                                    const isDeleting = deleting === course.id;
+
+                                    return (
+                                        <div
+                                            key={course.id}
+                                            className="relative group flex flex-col transition-colors duration-200"
+                                            style={{
+                                                background: 'rgba(14,14,14,1)',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                            }}>
+
+                                            {/* Deleting overlay */}
+                                            {isDeleting && (
+                                                <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-3 z-20">
+                                                    <div className="w-5 h-5 border border-red-500/30 border-t-red-500 animate-spin" />
+                                                    <span className="text-[9px] text-red-400 font-bold tracking-widest uppercase">Deleting…</span>
+                                                </div>
+                                            )}
+
+                                            {/* Full-card link with glitch hover */}
+                                            <Link
+                                                to={`/courses/${course.id}`}
+                                                className="block relative overflow-hidden flex-1 transition-all duration-150"
+                                                style={{ padding: '20px 20px 18px', cursor: 'pointer', textDecoration: 'none' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#000'; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                                            >
+                                                {/* Scan-line overlay */}
+                                                <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                                    style={{ background: 'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(34,197,94,0.025) 2px,rgba(34,197,94,0.025) 4px)' }} />
+                                                {/* Green left accent bar */}
+                                                <div className="absolute left-0 top-0 bottom-0 w-0.5 opacity-0 group-hover:opacity-100 transition-all duration-150"
+                                                    style={{ background: 'linear-gradient(180deg,#22c55e,rgba(34,197,94,0.15))' }} />
+
+                                                {/* Header row: name + status dot + delete btn */}
+                                                <div className="flex items-center justify-between mb-1 gap-2">
+                                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                        <p className="text-xs font-black tracking-[0.15em] uppercase text-white truncate group-hover:text-green-400 transition-colors">
+                                                            {course.name}
+                                                        </p>
+                                                        <div
+                                                            className="w-2 h-2 rounded-full shrink-0"
+                                                            style={{ background: dot, boxShadow: `0 0 5px ${dot}99` }}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={ev => { ev.preventDefault(); ev.stopPropagation(); handleDelete(course.id, course.name); }}
+                                                        disabled={!!deleting}
+                                                        title="Delete course"
+                                                        className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-6 h-6 rounded cursor-pointer transition-all duration-150 shrink-0 disabled:cursor-not-allowed"
+                                                        style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)', position: 'relative', zIndex: 10 }}
+                                                        onMouseEnter={el => { if (!deleting) { (el.currentTarget as HTMLButtonElement).style.background = '#ef4444'; (el.currentTarget as HTMLButtonElement).style.color = '#fff'; } }}
+                                                        onMouseLeave={el => { (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)'; (el.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}>
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+
+                                                {/* Progress label */}
+                                                <p className="text-[9px] font-bold tracking-[0.25em] uppercase mt-4 mb-1.5 group-hover:text-green-500 transition-colors" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                                                    Current Progress
+                                                </p>
+
+                                                {/* Big number */}
+                                                <p className="text-4xl font-extrabold leading-none text-white mb-4 tracking-tight group-hover:text-green-400 transition-colors">
+                                                    {course.currentGrade}
+                                                    <span className="text-xl" style={{ color: 'rgba(255,255,255,0.4)' }}>%</span>
+                                                </p>
+
+                                                {/* Progress bar */}
+                                                <div className="w-full mb-4 overflow-hidden"
+                                                    style={{ height: '2px', background: 'rgba(255,255,255,0.07)' }}>
+                                                    <div className="h-full transition-all duration-700"
+                                                        style={{ width: `${barPct}%`, background: dot }} />
+                                                </div>
+
+                                                {/* Footer */}
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[9px] font-mono transition-colors group-hover:text-green-500" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                                                        TARGET: {course.targetGrade}%
+                                                    </span>
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#22c55e' }}>
+                                                        → Open
+                                                    </span>
+                                                </div>
+                                            </Link>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </section>
+
+                </div>
+
+                <footer className="mt-auto px-8 py-6 flex justify-between items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">© 2026 SEMSYNC</span>
+                    <div className="flex gap-8">
+                        <a href="#" className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 hover:text-white cursor-pointer transition-colors">TERMS</a>
+                        <a href="#" className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 hover:text-white cursor-pointer transition-colors">PRIVACY</a>
+                    </div>
+                </footer>
+            </main>
+
+            {showAdd && (
+                <AddCourseModal
+                    onClose={() => setShowAdd(false)}
+                    onCreated={c => { invalidateAllCourseData(); setCourses(p => [...p, { ...c, currentGrade: 0, totalWeight: 0, remainingWeight: 0, requiredAvg: null }]); }}
+                />
+            )}
+        </div>
+    );
+}

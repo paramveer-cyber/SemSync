@@ -1,0 +1,318 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import AddEvalModal from '../components/modals/AddEvalModal';
+import EditEvalModal from '../components/modals/EditEvalModal';
+import { deleteEval, deleteCourse } from '../lib/api';
+import { fetchCourse, invalidateCourseDetail, invalidateAllCourseData } from '../lib/dataService';
+import { AlertTriangle, Plus, Pencil, Trash2 } from 'lucide-react';
+
+const TYPE_COLOR: Record<string, string> = {
+    midsem: 'text-tertiary border-tertiary',
+    endsem: 'text-tertiary border-tertiary',
+    quiz: 'text-secondary border-secondary',
+    assignment: 'text-zinc-400 border-zinc-700',
+    lab: 'text-secondary border-secondary',
+    project: 'text-zinc-400 border-zinc-700',
+    viva: 'text-zinc-400 border-zinc-700',
+    other: 'text-zinc-600 border-zinc-800',
+};
+const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+export default function CoursePage() {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const [course, setCourse] = useState<any>(null);
+    const [evals, setEvals] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [showAdd, setShowAdd] = useState(false);
+    const [editing, setEditing] = useState<any>(null);
+
+    const load = useCallback(async () => {
+        setLoading(true); setError('');
+        try {
+            const { course: c, evaluations: e } = await fetchCourse(id!);
+            setCourse(c); setEvals(e);
+        } catch (err: any) { setError(err.message); }
+        finally { setLoading(false); }
+    }, [id]);
+
+    // Compute stats from evals:
+    // - evaluatedWeight = sum of weightage for ALL evals (they have occurred / been added)
+    // - remaining       = 100 − evaluatedWeight  (regardless of what score was achieved)
+    // - earnedSoFar     = sum of (score/maxScore * weightage) for evals WITH a score
+    // - needToScore     = (target − earnedSoFar) / remaining * 100
+    const computedStats = course ? (() => {
+        const evaluatedWeight = evals.reduce((s, e) => {
+            if (e.score){
+                return s+e.weightage;
+            }
+            return s;
+        }, 0);
+        const earnedSoFar = evals.reduce((s, e) => {
+            if (e.score == null || !e.maxScore) return s;
+            return s + (e.score / e.maxScore) * e.weightage;
+        }, 0);
+        const remaining = Math.max(0, 100 - evaluatedWeight);
+        const needToScore = course.targetGrade-earnedSoFar;
+        return {
+            currentGrade: parseFloat(earnedSoFar.toFixed(2)),
+            totalWeight: 100,
+            remaining: parseFloat(remaining.toFixed(2)),
+            needToScore,
+        };
+    })() : null;
+
+    useEffect(() => { load(); }, [load]);
+
+    const handleDeleteEval = async (evalId: string) => {
+        if (!confirm('Delete this evaluation?')) return;
+        try {
+            await deleteEval(evalId);
+            invalidateCourseDetail(id!); // stale: this course's stats + upcoming evals
+            load();
+        }
+        catch (err: any) { alert('Failed: ' + err.message); }
+    };
+
+    const handleDeleteCourse = async () => {
+        if (!confirm(`Delete "${course?.name}"? All evaluations will be removed.`)) return;
+        try {
+            await deleteCourse(id!);
+            invalidateAllCourseData(); // courses list is now stale
+            navigate('/courses');
+        }
+        catch (err: any) { alert('Failed: ' + err.message); }
+    };
+
+    return (
+        <div className="flex min-h-screen bg-black">
+            <Sidebar />
+            <main className="grow flex flex-col">
+                <Header title={course?.name ?? 'Course'} subtitle="Track_Detail" />
+                <div className="p-8">
+                    <div className="mb-8">
+                        <Link to="/courses" className="text-[10px] font-bold tracking-[0.2em] text-zinc-600 hover:text-white uppercase transition-colors cursor-pointer">
+                            ← Back to Directory
+                        </Link>
+                    </div>
+
+                    {error && (
+                        <div className="border border-tertiary bg-tertiary/5 px-6 py-4 flex items-center space-x-3 mb-8">
+                            <AlertTriangle className="w-4 h-4 text-tertiary shrink-0" />
+                            <span className="text-[11px] font-bold text-tertiary uppercase tracking-widest">{error}</span>
+                        </div>
+                    )}
+
+                    {loading ? (
+                        <div className="flex items-center space-x-4 py-20">
+                            <div className="w-px h-8 bg-secondary animate-pulse" />
+                            <span className="text-[10px] font-bold tracking-[0.3em] text-zinc-500 uppercase">Loading track data…</span>
+                        </div>
+                    ) : course && (
+                        <>
+                            {/* Course header row */}
+                            <div className="flex items-start justify-between mb-10 border border-outline-variant p-6">
+                                <div className="flex items-center space-x-8">
+                                    {course.credits && (
+                                        <div>
+                                            <p className="text-[9px] font-bold text-zinc-600 tracking-[0.2em] uppercase mb-1">Credits</p>
+                                            <p className="text-2xl font-extrabold font-mono text-white">{course.credits}</p>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <p className="text-[9px] font-bold text-zinc-600 tracking-[0.2em] uppercase mb-1">Target</p>
+                                        <p className="text-2xl font-extrabold font-mono text-white">{course.targetGrade}%</p>
+                                    </div>
+                                </div>
+
+                                {/* Terminate — Anger → red */}
+                                <button
+                                    onClick={handleDeleteCourse}
+                                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
+                                    style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444', background: 'rgba(239,68,68,0.08)' }}
+                                    onMouseEnter={e => {
+                                        (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
+                                        (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+                                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
+                                        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(239,68,68,0.35)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)';
+                                        (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
+                                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.4)';
+                                        (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+                                    }}>
+                                    <Trash2 className="w-4 h-4" />
+                                    Terminate Course
+                                </button>
+                            </div>
+
+                            {/* Stats */}
+                            {computedStats && (
+                                <div className="grid grid-cols-2 md:grid-cols-4 border border-outline-variant mb-10">
+                                    {[
+                                        { label: 'Grade Earned', value: `${computedStats.currentGrade}%`, sub: `out of ${computedStats.totalWeight}% evaluated`, accent: true, warn: false },
+                                        { label: 'Total Weight', value: `${computedStats.totalWeight}%`, accent: false, warn: false },
+                                        { label: 'Remaining Weight', value: `${computedStats.remaining}%`, sub: `Yet to be assessed`, accent: false, warn: false },
+                                        {
+                                            label: 'Need to Score',
+                                            value: computedStats.needToScore !== null ? `${computedStats.needToScore}%` : '—',
+                                            sub: computedStats.needToScore !== null
+                                                ? computedStats.needToScore > 100
+                                                    ? 'Target unreachable — beyond 100%'
+                                                    : `Needed to complete target grade!`
+                                                : 'All weight evaluated',
+                                            accent: false,
+                                            warn: computedStats.needToScore !== null && computedStats.needToScore > 100,
+                                        },
+                                    ].map((s, i) => (
+                                        <div key={s.label} className={`p-6 ${i < 3 ? 'border-r border-outline-variant' : ''} ${s.accent ? 'bg-secondary/5' : ''}`}>
+                                            <p className="text-[9px] font-bold text-zinc-600 tracking-[0.2em] uppercase mb-2">{s.label}</p>
+                                            <p className={`text-3xl font-extrabold font-mono ${s.accent ? 'text-secondary' : s.warn ? 'text-tertiary' : 'text-white'}`}>{s.value}</p>
+                                            <p className="text-[12px] mt-1 leading-snug text-zinc-500">{s.sub}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Evaluations table */}
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-sm font-extrabold tracking-widest uppercase">Evaluations ({evals.length})</h3>
+
+                                {/* Add Evaluation — Anticipation → amber-green */}
+                                <button
+                                    onClick={() => setShowAdd(true)}
+                                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
+                                    style={{ border: '1px solid rgba(34,197,94,0.35)', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
+                                    onMouseEnter={e => {
+                                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.18)';
+                                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#22c55e';
+                                        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(34,197,94,0.22)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)';
+                                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(34,197,94,0.35)';
+                                        (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+                                    }}>
+                                    <Plus className="w-4 h-4" />
+                                    Add Evaluation
+                                </button>
+                            </div>
+
+                            {evals.length === 0 ? (
+                                <div className="border border-dashed border-outline-variant p-16 text-center">
+                                    <p className="text-[10px] font-bold tracking-[0.3em] text-zinc-600 uppercase mb-6">No evaluations logged</p>
+                                    <button
+                                        onClick={() => setShowAdd(true)}
+                                        className="px-8 py-3 text-sm font-black tracking-widest cursor-pointer transition-all duration-150 uppercase"
+                                        style={{ border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
+                                        onMouseEnter={e => {
+                                            (e.currentTarget as HTMLButtonElement).style.background = '#22c55e';
+                                            (e.currentTarget as HTMLButtonElement).style.color = '#000';
+                                        }}
+                                        onMouseLeave={e => {
+                                            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)';
+                                            (e.currentTarget as HTMLButtonElement).style.color = '#22c55e';
+                                        }}>
+                                        Log First Evaluation
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="border border-outline-variant overflow-hidden">
+                                    {/* Table header */}
+                                    <div className="grid grid-cols-12 border-b border-outline-variant bg-zinc-900/50 px-6 py-3">
+                                        {['Title', 'Type', 'Date', 'Weight', 'Score', 'Earned', ''].map((h, i) => (
+                                            <div key={h} className={`text-[9px] font-black tracking-[0.2em] uppercase text-zinc-600 ${i === 0 ? 'col-span-3' : i === 6 ? 'col-span-1 text-right' : 'col-span-2 text-right'
+                                                }`}>{h}</div>
+                                        ))}
+                                    </div>
+                                    {/* Rows */}
+                                    {evals.map(e => {
+                                        const earned = e.score !== null && e.score !== undefined
+                                            ? ((e.score / e.maxScore) * e.weightage).toFixed(2)
+                                            : null;
+                                        return (
+                                            <div key={e.id} className="grid grid-cols-12 border-b border-outline-variant px-6 py-4 hover:bg-zinc-900/30 transition-colors group items-center">
+                                                <div className="col-span-3">
+                                                    <p className="text-sm font-bold text-white uppercase tracking-tight">{e.title}</p>
+                                                </div>
+                                                <div className="col-span-2 text-right">
+                                                    <span className={`text-[9px] font-black tracking-widest border px-2 py-0.5 uppercase ${TYPE_COLOR[e.type] ?? TYPE_COLOR.other}`}>
+                                                        {e.type}
+                                                    </span>
+                                                </div>
+                                                <div className="col-span-2 text-right">
+                                                    <span className="text-[10px] text-zinc-500 font-mono">{fmtDate(e.date)}</span>
+                                                </div>
+                                                <div className="col-span-2 text-right">
+                                                    <span className="text-[10px] font-mono text-white">{e.weightage}%</span>
+                                                </div>
+                                                <div className="col-span-1 text-right">
+                                                    {e.score !== null && e.score !== undefined
+                                                        ? <span className="text-[10px] font-mono text-white">{e.score}/{e.maxScore}</span>
+                                                        : <span className="text-[10px] font-mono text-zinc-700">—</span>
+                                                    }
+                                                </div>
+                                                <div className="col-span-1 text-right">
+                                                    {earned !== null
+                                                        ? <span className="text-[10px] font-mono text-secondary font-bold">{earned}%</span>
+                                                        : <span className="text-[10px] font-mono text-zinc-700">—</span>
+                                                    }
+                                                </div>
+
+                                                {/* Row actions — always visible, colored */}
+                                                <div className="col-span-1 text-right flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {/* Edit — Trust → blue */}
+                                                    <button
+                                                        onClick={() => setEditing(e)}
+                                                        title="Edit evaluation"
+                                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150"
+                                                        style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)' }}
+                                                        onMouseEnter={el => {
+                                                            (el.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.25)';
+                                                            (el.currentTarget as HTMLButtonElement).style.borderColor = '#3b82f6';
+                                                        }}
+                                                        onMouseLeave={el => {
+                                                            (el.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.12)';
+                                                            (el.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(59,130,246,0.25)';
+                                                        }}>
+                                                        <Pencil className="w-3 h-3" />
+                                                        Edit
+                                                    </button>
+
+                                                    {/* Delete — Anger → red */}
+                                                    <button
+                                                        onClick={() => handleDeleteEval(e.id)}
+                                                        title="Delete evaluation"
+                                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150"
+                                                        style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
+                                                        onMouseEnter={el => {
+                                                            (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.22)';
+                                                            (el.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
+                                                        }}
+                                                        onMouseLeave={el => {
+                                                            (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
+                                                            (el.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
+                                                        }}>
+                                                        <Trash2 className="w-3 h-3" />
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </main>
+
+            {showAdd && <AddEvalModal courseId={id!} onClose={() => setShowAdd(false)} onCreated={() => { invalidateCourseDetail(id!); load(); }} />}
+            {editing && <EditEvalModal evaluation={editing} onClose={() => setEditing(null)} onUpdated={() => { invalidateCourseDetail(id!); load(); }} />}
+        </div>
+    );
+}
