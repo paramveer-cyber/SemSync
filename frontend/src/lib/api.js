@@ -1,4 +1,4 @@
-const BASE = 'https://semsync-10ie.onrender.com';
+const BASE = 'https://semsyncbackend.vercel.app';
 
 const getToken = () => localStorage.getItem('ct_token');
 
