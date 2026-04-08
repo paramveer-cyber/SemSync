@@ -183,7 +183,7 @@ export default function Dashboard() {
                             <>
                                 {isFallback && (
                                     <p className="text-[10px] font-bold tracking-[0.25em] text-zinc-600 uppercase mb-4">
-                                        Nothing this week — showing next upcoming
+                                        Nothing this week, showing next upcoming
                                     </p>
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
