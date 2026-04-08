@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:3000';
+const BASE = 'https://semsync-10ie.onrender.com';
 
 const getToken = () => localStorage.getItem('ct_token');
 
