@@ -433,7 +433,7 @@ export const THEMES: Theme[] = [
 ];
 
 const STORAGE_KEY = 'semsync_theme';
-const DEFAULT_THEME = 'dark-green';
+const DEFAULT_THEME = 'Default';
 
 interface ThemeCtx {
   theme: Theme;
