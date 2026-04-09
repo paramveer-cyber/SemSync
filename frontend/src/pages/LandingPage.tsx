@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import icon from "/favicon.ico";
 
 export default function LandingPage() {
   return (
@@ -7,8 +8,11 @@ export default function LandingPage() {
 
       <nav className="border-b border-[var(--color-glass-border)] px-6 py-4 flex justify-between items-center sticky top-0 z-50 backdrop-blur-md" style={{ background: "var(--color-sidebar-bg)" }}>
         <Link to="/">
-        
-          <div className="text-xl font-extrabold tracking-widest font-headline uppercase" style={{ color: "var(--color-text)" }}>SEMSYNC</div>
+          <div className="flex justify-center items-center">
+
+            <img src={icon} width={40} height={40} />
+            <div className="text-xl font-extrabold tracking-widest font-headline uppercase" style={{ color: "var(--color-text)" }}>SEMSYNC</div>
+          </div>
         </Link>
         <div className="hidden md:flex space-x-8">
           <a href="#features" className="text-[11px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-brand)] tracking-widest transition-colors">FEATURES</a>
