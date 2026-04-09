@@ -15,12 +15,12 @@ export default function Modal({ title, onClose, children }: { title: string; onC
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div
         className="w-full max-w-md animate-fade-up"
-        style={{ background: 'rgba(18,18,26,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', overflow: 'hidden' }}>
+        style={{ background: 'rgba(18,18,26,0.98)', border: '1px solid var(--color-glass-border)', borderRadius: '20px', overflow: 'hidden' }}>
         {/* Header */}
         <div
           className="flex items-center justify-between px-7 py-5"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <span className="text-sm font-semibold text-white font-headline">{title}</span>
+          style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
+          <span className="text-sm font-semibold text-[var(--color-text)] font-headline">{title}</span>
           <button
             onClick={onClose}
             title="Close"

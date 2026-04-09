@@ -18,13 +18,13 @@ const saveTasks  = (t: Task[]) => { try { localStorage.setItem(STORAGE_KEY, JSON
 const COLUMNS: { id: Status; label: string; tag: string; color: string; border: string; bg: string }[] = [
     { id: 'upcoming', label: 'Upcoming', tag: 'QUEUED',  color: '#3b82f6', border: 'rgba(59,130,246,0.35)',  bg: 'rgba(59,130,246,0.06)'  },
     { id: 'active',   label: 'Active',   tag: 'IN_PROG', color: '#f59e0b', border: 'rgba(245,158,11,0.35)',  bg: 'rgba(245,158,11,0.06)'  },
-    { id: 'done',     label: 'Done',     tag: 'CLOSED',  color: '#22c55e', border: 'rgba(34,197,94,0.35)',   bg: 'rgba(34,197,94,0.06)'   },
+    { id: 'done',     label: 'Done',     tag: 'CLOSED',  color: 'var(--color-brand)', border: 'rgba(34,197,94,0.35)',   bg: 'rgba(34,197,94,0.06)'   },
 ];
 
 const PRIORITY_META: Record<Priority, { label: string; color: string; Icon: React.FC<any> }> = {
     high:   { label: 'HIGH', color: '#ef4444', Icon: AlertCircle },
     medium: { label: 'MED',  color: '#f59e0b', Icon: Clock       },
-    low:    { label: 'LOW',  color: '#22c55e', Icon: Circle      },
+    low:    { label: 'LOW',  color: 'var(--color-brand)', Icon: Circle      },
 };
 
 function uid()    { return Math.random().toString(36).slice(2, 10); }
@@ -32,10 +32,10 @@ function fmtDate(d: string) { return new Date(d).toLocaleDateString('en-US', { m
 function daysUntil(d: string) { return Math.ceil((new Date(d).getTime() - Date.now()) / 86_400_000); }
 
 /* ── Shared field styles (matches app theme) ── */
-const fieldStyle = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: 'white' };
-const inputCls   = 'w-full px-4 py-3 text-sm placeholder:text-white/25 focus:outline-none transition-colors';
+const fieldStyle = { background: 'var(--color-glass)', border: '1px solid var(--color-glass-border)', color: 'white' };
+const inputCls   = 'w-full px-4 py-3 text-sm placeholder:text-[var(--color-text)]/25 focus:outline-none transition-colors';
 const labelCls   = 'block text-[10px] font-black tracking-[0.25em] uppercase mb-2';
-const labelStyle = { color: 'rgba(255,255,255,0.4)' };
+const labelStyle = { color: 'var(--color-text-muted)' };
 
 /* ── Task Card ─────────────────────────────────────────────────────────────── */
 function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: {
@@ -45,23 +45,23 @@ function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: 
     const days         = daysUntil(task.dueDate);
     const pm           = PRIORITY_META[task.priority];
     const PIc          = pm.Icon;
-    const urgencyColor = days <= 0 ? '#ef4444' : days <= 3 ? '#f59e0b' : 'rgba(255,255,255,0.45)';
+    const urgencyColor = days <= 0 ? '#ef4444' : days <= 3 ? '#f59e0b' : 'var(--color-text-muted)';
     const urgencyLabel = days === 0 ? 'TODAY' : days < 0 ? 'OVERDUE' : days === 1 ? 'TOMORROW' : `${days}D`;
 
     return (
         <div
             draggable onDragStart={onDragStart} onDragEnd={onDragEnd}
-            className={`group relative flex flex-col cursor-grab active:cursor-grabbing transition-all duration-200 select-none hover:bg-zinc-900 ${dragging ? 'opacity-40 scale-95' : ''}`}
-            style={{ background: 'rgba(14,14,14,1)', border: '1px solid rgba(255,255,255,0.08)', padding: '18px 20px 16px' }}>
+            className={`group relative flex flex-col cursor-grab active:cursor-grabbing transition-all duration-200 select-none hover:bg-[var(--color-surface-2)] ${dragging ? 'opacity-40 scale-95' : ''}`}
+            style={{ background: 'var(--color-surface-1)', border: '1px solid var(--color-glass-border)', padding: '18px 20px 16px' }}>
 
             {/* Top row: course + priority + actions */}
             <div className="flex items-center justify-between mb-4">
-                <span className="text-[9px] font-black tracking-[0.3em] uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <span className="text-[9px] font-black tracking-[0.3em] uppercase" style={{ color: 'var(--color-text-muted)' }}>
                     {task.course.toUpperCase()}
                 </span>
                 <div className="flex items-center gap-2">
                     {task.status === 'done'
-                        ? <CheckCircle2 className="w-3.5 h-3.5" style={{ color: '#22c55e' }} />
+                        ? <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'var(--color-brand)' }} />
                         : <span className="flex items-center gap-1 text-[9px] font-black tracking-widest uppercase px-2 py-0.5"
                             style={{ color: pm.color, border: `1px solid ${pm.color}33`, background: `${pm.color}12` }}>
                             <PIc className="w-2.5 h-2.5" />{pm.label}
@@ -90,17 +90,17 @@ function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: 
 
             {/* Title */}
             <p className="text-sm font-extrabold tracking-tight uppercase leading-snug mb-2"
-                style={{ color: task.status === 'done' ? 'rgba(255,255,255,0.45)' : 'white', textDecoration: task.status === 'done' ? 'line-through' : 'none' }}>
+                style={{ color: task.status === 'done' ? 'var(--color-text-muted)' : 'white', textDecoration: task.status === 'done' ? 'line-through' : 'none' }}>
                 {task.title}
             </p>
             {task.description && (
-                <p className="text-[11px] leading-relaxed mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>{task.description}</p>
+                <p className="text-[11px] leading-relaxed mb-3" style={{ color: 'var(--color-text-muted)' }}>{task.description}</p>
             )}
 
             {/* Footer */}
-            <div className="mt-auto pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+            <div className="mt-auto pt-3" style={{ borderTop: '1px solid var(--color-glass-border)' }}>
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                    <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-faint)' }}>
                         <Calendar className="w-3 h-3" />
                         <span className="text-[10px] font-mono">{fmtDate(task.dueDate)}</span>
                     </div>
@@ -168,25 +168,25 @@ function TaskModal({
             style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
             onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
 
-            <div className="w-full max-w-md overflow-hidden" style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="w-full max-w-md overflow-hidden" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-glass-border)' }}>
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-8 py-6"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                    style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
                     <div>
                         <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-1"
-                            style={{ color: isEdit ? '#3b82f6' : '#22c55e' }}>
+                            style={{ color: isEdit ? '#3b82f6' : 'var(--color-brand)' }}>
                             {isEdit ? '// EDIT_TASK' : '// TASK_CENTER'}
                         </span>
-                        <h3 className="text-xl font-extrabold tracking-tighter uppercase text-white">
+                        <h3 className="text-xl font-extrabold tracking-tighter uppercase text-[var(--color-text)]">
                             {isEdit ? 'Edit Task' : 'New Task'}
                         </h3>
                     </div>
                     <button onClick={onClose}
                         className="w-8 h-8 flex items-center justify-center cursor-pointer transition-colors"
-                        style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)' }}
+                        style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-glass)', color: 'var(--color-text-muted)' }}
                         onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'white'}
-                        onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.4)'}>
+                        onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-muted)'}>
                         <X className="w-4 h-4" />
                     </button>
                 </div>
@@ -238,9 +238,9 @@ function TaskModal({
                     <div className="flex gap-3 pt-2">
                         <button onClick={onClose}
                             className="flex-1 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150"
-                            style={{ background: 'transparent', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)' }}
-                            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.25)'}
-                            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)'}>
+                            style={{ background: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-glass-border)' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-outline-variant)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-glass-border)'}>
                             Cancel
                         </button>
                         <button
@@ -249,11 +249,11 @@ function TaskModal({
                             className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
                             style={isEdit
                                 ? { border: '1px solid #3b82f6', color: '#3b82f6', background: 'rgba(59,130,246,0.08)' }
-                                : { border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
+                                : { border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
                             onMouseEnter={e => {
                                 if (form.title.trim()) {
                                     const el = e.currentTarget as HTMLButtonElement;
-                                    el.style.background = isEdit ? '#3b82f6' : '#22c55e';
+                                    el.style.background = isEdit ? '#3b82f6' : 'var(--color-brand)';
                                     el.style.color = '#000';
                                     el.style.boxShadow = isEdit ? '0 4px 18px rgba(59,130,246,0.35)' : '0 4px 18px rgba(34,197,94,0.35)';
                                 }
@@ -261,7 +261,7 @@ function TaskModal({
                             onMouseLeave={e => {
                                 const el = e.currentTarget as HTMLButtonElement;
                                 el.style.background = isEdit ? 'rgba(59,130,246,0.08)' : 'rgba(34,197,94,0.08)';
-                                el.style.color = isEdit ? '#3b82f6' : '#22c55e';
+                                el.style.color = isEdit ? '#3b82f6' : 'var(--color-brand)';
                                 el.style.boxShadow = 'none';
                             }}>
                             {isEdit ? <><Save className="w-4 h-4" /> Save Changes</> : <><Plus className="w-4 h-4" /> Initialize Task</>}
@@ -305,7 +305,7 @@ export default function TaskCenterPage() {
     }, []);
 
     return (
-        <div className="flex min-h-screen bg-black">
+        <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
             <Sidebar />
             <main className="grow flex flex-col overflow-hidden">
                 <Header title="Task Center" subtitle="Ops_Board_V1" />
@@ -315,35 +315,35 @@ export default function TaskCenterPage() {
                     {/* Page header */}
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 shrink-0">
                         <div>
-                            <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-2" style={{ color: '#22c55e' }}>// OPS_BOARD_V1</span>
-                            <h2 className="text-7xl font-extrabold tracking-tighter uppercase leading-none text-white">Task Center</h2>
+                            <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-2" style={{ color: 'var(--color-brand)' }}>// OPS_BOARD_V1</span>
+                            <h2 className="text-7xl font-extrabold tracking-tighter uppercase leading-none text-[var(--color-text)]">Task Center</h2>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-4 px-5 py-3" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div className="flex items-center gap-4 px-5 py-3" style={{ border: '1px solid var(--color-glass-border)', borderRadius: 8 }}>
                                 <div className="w-2 h-2 bg-green-500 animate-pulse" />
-                                <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">{tasks.length} TASK NODE${
+                                <span className="text-[10px] font-bold tracking-widest text-[var(--color-text-muted)] uppercase">{tasks.length} TASK NODE${
                                 (tasks.length > 1) ? "S" : ""}</span>
                             </div>
                             <button onClick={() => setShowNew(true)}
                                 className="flex items-center gap-2 px-6 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150"
-                                style={{ border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
-                                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(34,197,94,0.35)'; }}
-                                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'; }}>
+                                style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(34,197,94,0.35)'; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'; }}>
                                 <Plus className="w-4 h-4" />New Task
                             </button>
                         </div>
                     </div>
 
                     {/* Column summary strip */}
-                    <div className="flex items-center shrink-0" style={{ border: '1px solid rgba(255,255,255,0.15)' }}>
+                    <div className="flex items-center shrink-0" style={{ border: '1px solid var(--color-glass-border)', borderRadius: 8 }}>
                         {COLUMNS.map((col, i) => {
                             const count = tasks.filter(t => t.status === col.id).length;
                             return (
                                 <div key={col.id} className="flex-1 flex items-center justify-between px-6 py-3"
-                                    style={{ borderRight: i < COLUMNS.length - 1 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
+                                    style={{ borderRight: i < COLUMNS.length - 1 ? '1px solid var(--color-glass-border)' : 'none' }}>
                                     <div className="flex items-center gap-3">
                                         <div className="w-1.5 h-1.5" style={{ background: col.color }} />
-                                        <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>{col.label}</span>
+                                        <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-text-muted)' }}>{col.label}</span>
                                     </div>
                                     <span className="text-[10px] font-black font-mono tracking-widest" style={{ color: col.color }}>{String(count).padStart(2, '0')}</span>
                                 </div>
@@ -359,19 +359,19 @@ export default function TaskCenterPage() {
                             return (
                                 <div key={col.id}
                                     className="flex flex-col overflow-hidden transition-all duration-200"
-                                    style={{ border: isOver ? `1px solid ${col.color}` : '1px solid rgba(255,255,255,0.08)', background: isOver ? col.bg : 'transparent', transform: isOver ? 'scale(1.01)' : 'scale(1)' }}
+                                    style={{ border: isOver ? `1px solid ${col.color}` : '1px solid var(--color-glass-border)', background: isOver ? col.bg : 'transparent', transform: isOver ? 'scale(1.01)' : 'scale(1)' }}
                                     onDragOver={e => { e.preventDefault(); setDragOverCol(col.id); }}
                                     onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverCol(null); }}
                                     onDrop={() => onDrop(col.id)}>
 
                                     {/* Column header */}
                                     <div className="flex items-center justify-between px-5 py-4 shrink-0"
-                                        style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+                                        style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
                                         <div className="flex items-center gap-3">
                                             <div className="w-1.5 h-6" style={{ background: col.color }} />
                                             <div>
-                                                <p className="text-xs font-extrabold tracking-widest uppercase text-white">{col.label}</p>
-                                                <p className="text-[9px] font-mono tracking-[0.2em]" style={{ color: 'rgba(255,255,255,0.45)' }}>{col.tag}</p>
+                                                <p className="text-xs font-extrabold tracking-widest uppercase text-[var(--color-text)]">{col.label}</p>
+                                                <p className="text-[9px] font-mono tracking-[0.2em]" style={{ color: 'var(--color-text-muted)' }}>{col.tag}</p>
                                             </div>
                                         </div>
                                         <span className="text-[10px] font-black font-mono px-3 py-1"
@@ -383,9 +383,9 @@ export default function TaskCenterPage() {
                                     {/* Tasks */}
                                     <div className="grow overflow-y-auto p-3 space-y-2">
                                         {colTasks.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center h-28 border border-dashed" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
-                                                <p className="text-[9px] font-bold tracking-[0.25em] uppercase" style={{ color: 'rgba(255,255,255,0.18)' }}>No tasks</p>
-                                                <p className="text-[9px] font-mono mt-1" style={{ color: 'rgba(255,255,255,0.12)' }}>Drag here or add new</p>
+                                            <div className="flex flex-col items-center justify-center h-28 border border-dashed" style={{ borderColor: 'var(--color-glass-border)' }}>
+                                                <p className="text-[9px] font-bold tracking-[0.25em] uppercase" style={{ color: 'var(--color-text-faint)' }}>No tasks</p>
+                                                <p className="text-[9px] font-mono mt-1" style={{ color: 'var(--color-glass-border)' }}>Drag here or add new</p>
                                             </div>
                                         ) : colTasks.map(task => (
                                             <TaskCard key={task.id} task={task}

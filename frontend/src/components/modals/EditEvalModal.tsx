@@ -34,10 +34,10 @@ export default function EditEvalModal({ evaluation, onClose, onUpdated }: { eval
     finally { setLoading(false); }
   };
 
-  const iCls = "w-full px-4 py-2.5 rounded-xl text-sm text-white focus:outline-none transition-colors duration-150";
-  const iSty = { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' };
+  const iCls = "w-full px-4 py-2.5 rounded-xl text-sm text-[var(--color-text)] focus:outline-none transition-colors duration-150";
+  const iSty = { background: 'var(--color-glass-border)', border: '1px solid var(--color-glass-border)' };
   const lCls = "block text-xs font-medium mb-1.5";
-  const lSty = { color: 'rgba(255,255,255,0.45)' };
+  const lSty = { color: 'var(--color-text-muted)' };
 
   return (
     <Modal title="Edit Evaluation" onClose={onClose}>
@@ -49,8 +49,8 @@ export default function EditEvalModal({ evaluation, onClose, onUpdated }: { eval
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={lCls} style={lSty}>Type</label>
-            <select className={iCls} style={{ ...iSty, background: 'rgba(255,255,255,0.06)', cursor: 'pointer' }} value={form.type} onChange={set('type')}>
-              {TYPES.map(t => <option key={t} value={t} className="bg-zinc-900">{t.toUpperCase()}</option>)}
+            <select className={iCls} style={{ ...iSty, background: 'var(--color-glass-border)', cursor: 'pointer' }} value={form.type} onChange={set('type')}>
+              {TYPES.map(t => <option key={t} value={t} className="bg-[var(--color-surface-2)]">{t.toUpperCase()}</option>)}
             </select>
           </div>
           <div>
@@ -81,14 +81,14 @@ export default function EditEvalModal({ evaluation, onClose, onUpdated }: { eval
             type="button"
             onClick={onClose}
             className="flex-1 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-150"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}
+            style={{ background: 'var(--color-glass-border)', border: '1px solid var(--color-glass-border)', color: 'var(--color-text-muted)' }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.10)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.85)';
+              (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-glass-border)';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)';
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)';
+              (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-glass-border)';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-muted)';
             }}>
             Cancel
           </button>

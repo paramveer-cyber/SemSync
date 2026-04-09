@@ -87,12 +87,12 @@ function ContributionChart({ sessions }: { sessions: FocusSession[] }) {
   const maxMinutes = Math.max(...cells.map(c => c.minutes), 1);
 
   function getColor(minutes: number) {
-    if (minutes === 0) return 'rgba(255,255,255,0.1)';
+    if (minutes === 0) return 'var(--color-glass-border)';
     const intensity = minutes / maxMinutes;
-    if (intensity < 0.25) return 'rgba(34,197,94,0.4)';
-    if (intensity < 0.5) return 'rgba(34,197,94,0.6)';
-    if (intensity < 0.75) return 'rgba(34,197,94,0.8)';
-    return '#22c55e';
+    if (intensity < 0.25) return 'var(--color-brand-glow)';
+    if (intensity < 0.5) return 'color-mix(in srgb, var(--color-brand) 60%, transparent)';
+    if (intensity < 0.75) return 'color-mix(in srgb, var(--color-brand) 80%, transparent)';
+    return 'var(--color-brand)';
   }
 
   const grid: typeof cells[] = [];
@@ -116,11 +116,11 @@ function ContributionChart({ sessions }: { sessions: FocusSession[] }) {
   const [hovered, setHovered] = useState<{ date: string; minutes: number } | null>(null);
 
   return (
-    <div style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.5)', padding: '24px', borderRadius: '5px' }}>
+    <div style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: 8 }}>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <span className="text-[10px] font-black tracking-[0.25em] uppercase block mb-1" style={{ color: '#22c55e' }}>// FOCUS_LOG</span>
-          <h3 className="text-base font-extrabold tracking-tighter uppercase text-zinc-200">Contribution Chart</h3>
+          <span className="text-[10px] font-black tracking-[0.25em] uppercase block mb-1" style={{ color: 'var(--color-brand)' }}>// FOCUS_LOG</span>
+          <h3 className="text-base font-extrabold tracking-tighter uppercase" style={{ color: 'var(--color-text)' }}>Contribution Chart</h3>
         </div>
         <div className="flex items-center gap-6">
           {[
@@ -129,8 +129,8 @@ function ContributionChart({ sessions }: { sessions: FocusSession[] }) {
             { label: 'DAY STREAK', value: streak },
           ].map(m => (
             <div key={m.label} className="text-right">
-              <p className="text-lg font-black font-mono" style={{ color: '#22c55e' }}>{m.value}</p>
-              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-zinc-400">{m.label}</p>
+              <p className="text-lg font-black font-mono" style={{ color: 'var(--color-brand)' }}>{m.value}</p>
+              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-[var(--color-text-muted)]">{m.label}</p>
             </div>
           ))}
         </div>
@@ -147,7 +147,7 @@ function ContributionChart({ sessions }: { sessions: FocusSession[] }) {
           {dayLabels.map((d, i) => (
             <div key={d} className="h-3 flex items-center">
               {i % 2 === 0 && (
-                <span className="text-[8px] font-mono text-zinc-400" style={{ width: '24px' }}>{d}</span>
+                <span className="text-[8px] font-mono text-[var(--color-text-muted)]" style={{ width: '24px' }}>{d}</span>
               )}
             </div>
           ))}
@@ -173,18 +173,18 @@ function ContributionChart({ sessions }: { sessions: FocusSession[] }) {
 
       <div className="flex items-center justify-between mt-3">
         {hovered ? (
-          <span className="text-[10px] font-mono" style={{ color: '#22c55e' }}>
+          <span className="text-[10px] font-mono" style={{ color: 'var(--color-brand)' }}>
             {hovered.date} — {hovered.minutes > 0 ? `${Math.round(hovered.minutes / 60 * 10) / 10}h focused` : 'no sessions'}
           </span>
         ) : (
-          <span className="text-[10px] font-mono text-zinc-400">hover to inspect</span>
+          <span className="text-[10px] font-mono text-[var(--color-text-muted)]">hover to inspect</span>
         )}
         <div className="flex items-center gap-1.5">
-          <span className="text-[9px] font-mono text-zinc-400">less</span>
-          {['rgba(255,255,255,0.1)', 'rgba(34,197,94,0.4)', 'rgba(34,197,94,0.6)', 'rgba(34,197,94,0.8)', '#22c55e'].map((c, i) => (
+          <span className="text-[9px] font-mono text-[var(--color-text-muted)]">less</span>
+          {['var(--color-glass-border)', 'var(--color-brand-glow)', 'color-mix(in srgb, var(--color-brand) 60%, transparent)', 'color-mix(in srgb, var(--color-brand) 80%, transparent)', 'var(--color-brand)'].map((c, i) => (
             <div key={i} className="rounded-[2px]" style={{ width: 10, height: 10, background: c }} />
           ))}
-          <span className="text-[9px] font-mono text-zinc-400">more</span>
+          <span className="text-[9px] font-mono text-[var(--color-text-muted)]">more</span>
         </div>
       </div>
     </div>
@@ -195,14 +195,14 @@ function QuoteCard() {
   const [idx] = useState(() => Math.floor(Math.random() * QUOTES.length));
   const q = QUOTES[idx];
   return (
-    <div className="flex flex-col justify-between rounded-[5px]"
-      style={{ border: '1px solid rgba(34,197,94,0.4)', background: 'rgba(34,197,94,0.08)', padding: '20px 24px' }}>
+    <div className="flex flex-col justify-between rounded-lg"
+      style={{ border: '1px solid var(--color-brand)', background: 'var(--color-active-bg)', padding: '20px 24px' }}>
       <div className="flex items-start gap-3 mb-3">
-        <Zap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#22c55e' }} />
-        <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: '#22c55e' }}>FOCUS PROTOCOL</span>
+        <Zap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-brand)' }} />
+        <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-brand)' }}>FOCUS PROTOCOL</span>
       </div>
-      <p className="text-sm font-bold leading-relaxed text-zinc-200 mb-3 italic">"{q.text}"</p>
-      <p className="text-[10px] font-mono tracking-widest uppercase text-zinc-400">— {q.author}</p>
+      <p className="text-sm font-bold leading-relaxed text-[var(--color-text)] mb-3 italic">"{q.text}"</p>
+      <p className="text-[10px] font-mono tracking-widest uppercase text-[var(--color-text-muted)]">— {q.author}</p>
     </div>
   );
 }
@@ -228,11 +228,11 @@ function TimerArc({ progress, phase }: { progress: number; phase: TimerPhase }) 
   }
 
   const fillAngle = startAngle + totalAngle * (1 - progress);
-  const color = phase === 'break' ? '#3b82f6' : '#22c55e';
+  const color = phase === 'break' ? '#3b82f6' : 'var(--color-brand)';
 
   return (
     <svg width="300" height="300" viewBox="0 0 300 300" fill="none">
-      <path d={describeArc(startAngle, endAngle)} stroke="rgba(255,255,255,0.15)" strokeWidth="12" fill="none" strokeLinecap="round" />
+      <path d={describeArc(startAngle, endAngle)} stroke="var(--color-glass-border)" strokeWidth="12" fill="none" strokeLinecap="round" />
       {progress > 0 && (
         <path d={describeArc(startAngle, fillAngle)} stroke={color} strokeWidth="12" fill="none" strokeLinecap="round"
           style={{ filter: `drop-shadow(0 0 8px ${color}88)`, transition: 'all 1s linear' }} />
@@ -419,28 +419,28 @@ export default function FocusTimerPage() {
   const secs = secondsLeft % 60;
   const progress = totalSeconds > 0 ? secondsLeft / totalSeconds : 1;
 
-  const phaseColor = phase === 'break' ? '#3b82f6' : '#22c55e';
+  const phaseColor = phase === 'break' ? '#3b82f6' : 'var(--color-brand)';
   const phaseLabel = phase === 'idle' ? 'STANDBY' : phase === 'break' ? 'BREAK' : 'DEEP_FOCUS';
 
   const taskLabel = linkedTask ? linkedTask.title : quickTitle || null;
 
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
       <Sidebar />
       <main className="grow flex flex-col overflow-hidden">
         <Header title="Focus Timer" subtitle="Focus_Protocol_V1" />
 
         <div className="grow overflow-y-auto p-8">
           <div className="mb-8">
-            <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-2" style={{ color: '#22c55e' }}>// FOCUS_PROTOCOL_V1</span>
-            <h2 className="text-7xl font-extrabold tracking-tighter uppercase leading-none text-white">Focus Timer</h2>
+            <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-2" style={{ color: 'var(--color-brand)' }}>// FOCUS_PROTOCOL_V1</span>
+            <h2 className="text-7xl font-extrabold tracking-tighter uppercase leading-none text-[var(--color-text)]">Focus Timer</h2>
           </div>
 
           <div className="grid grid-cols-[1fr_320px] gap-6">
             <div className="flex flex-col gap-5">
               <QuoteCard />
 
-              <div className="relative" style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.5)', padding: '32px', borderRadius: '5px' }}>
+              <div className="relative" style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '32px', borderRadius: 8 }}>
 
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3 mt-2">
@@ -448,12 +448,12 @@ export default function FocusTimerPage() {
                     <span className="text-[10px] font-black tracking-[0.3em] uppercase" style={{ color: phaseColor }}>{phaseLabel}</span>
                   </div>
                   {phase === 'break' && (
-                    <span className="text-[10px] font-mono px-3 py-1 text-blue-400 border border-blue-500/40 bg-blue-500/10 rounded-[5px]">
+                    <span className="text-[10px] font-mono px-3 py-1 text-blue-400 border border-blue-500/40 bg-blue-500/10 rounded-lg">
                       <Coffee className="w-3 h-3 inline mr-1" />TOUCH GRASS 🌱
                     </span>
                   )}
                   {phase === 'focus' && taskLabel && (
-                    <span className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1 truncate max-w-xs text-green-400 border border-green-500/40 bg-green-500/10 rounded-[5px]">
+                    <span className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1 truncate max-w-xs text-green-400 border border-green-500/40 bg-green-500/10 rounded-lg">
                       <Link2 className="w-3 h-3 shrink-0" />{taskLabel}
                     </span>
                   )}
@@ -463,12 +463,12 @@ export default function FocusTimerPage() {
                   <div className="relative w-[300px] h-[300px]">
                     <TimerArc progress={progress} phase={phase} />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-[10px] font-mono tracking-[0.2em] uppercase mb-1 text-zinc-400">CYCLE TIME</span>
-                      <span className="text-7xl font-black font-mono tracking-tighter text-white" style={{ textShadow: `0 0 30px ${phaseColor}44` }}>
+                      <span className="text-[10px] font-mono tracking-[0.2em] uppercase mb-1 text-[var(--color-text-muted)]">CYCLE TIME</span>
+                      <span className="text-7xl font-black font-mono tracking-tighter text-[var(--color-text)]" style={{ textShadow: `0 0 30px ${phaseColor}44` }}>
                         {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
                       </span>
                       {phase === 'focus' && (
-                        <span className="text-[10px] font-mono tracking-widest mt-2 text-zinc-400">
+                        <span className="text-[10px] font-mono tracking-widest mt-2 text-[var(--color-text-muted)]">
                           {Math.round((1 - progress) * 100)}% COMPLETE
                         </span>
                       )}
@@ -480,10 +480,10 @@ export default function FocusTimerPage() {
                   <div className="flex items-center justify-center gap-3 mb-8">
                     {FOCUS_CHIPS.map(m => (
                       <button key={m} onClick={() => selectChip(m)}
-                        className="px-5 py-2 rounded-[5px] text-sm font-black tracking-widest uppercase transition-all duration-150 cursor-pointer"
+                        className="px-5 py-2 rounded-lg text-sm font-black tracking-widest uppercase transition-all duration-150 cursor-pointer"
                         style={selectedMinutes === m
-                          ? { border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.15)' }
-                          : { border: '1px solid rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.7)', background: 'transparent' }}>
+                          ? { border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'rgba(34,197,94,0.15)' }
+                          : { border: '1px solid var(--color-glass-border)', color: 'var(--color-text)', background: 'transparent' }}>
                         {m}m
                       </button>
                     ))}
@@ -493,39 +493,39 @@ export default function FocusTimerPage() {
                 <div className="flex items-center justify-center gap-3">
                   {status !== 'running' && phase !== 'break' ? (
                     <button onClick={start}
-                      className="flex items-center gap-2 px-8 py-3 rounded-[5px] font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150"
-                      style={{ border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.12)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = '#22c55e'; }}>
+                      className="flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150"
+                      style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)'; }}>
                       <Play className="w-4 h-4" />
                       {status === 'paused' ? 'RESUME' : 'INITIATE'}
                     </button>
                   ) : phase === 'break' ? (
-                    <button disabled className="flex items-center gap-2 px-8 py-3 rounded-[5px] font-black tracking-widest uppercase text-sm opacity-50 cursor-not-allowed text-blue-400 border border-blue-500/40 bg-blue-500/10">
+                    <button disabled className="flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm opacity-50 cursor-not-allowed text-blue-400 border border-blue-500/40 bg-blue-500/10">
                       <Coffee className="w-4 h-4" />MANDATORY 5M DELAY
                     </button>
                   ) : (
                     <button onClick={pause}
-                      className="flex items-center gap-2 px-8 py-3 rounded-[5px] font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-zinc-200 border border-zinc-500 bg-zinc-800/50 hover:bg-zinc-700/50">
+                      className="flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-[var(--color-text)] border border-[var(--color-glass-border)] bg-[var(--color-surface-3)]/50 hover:bg-[var(--color-surface-3)]/50">
                       <Pause className="w-4 h-4" />SUSPEND
                     </button>
                   )}
 
                   {phase === 'focus' && (
                     <button onClick={extend}
-                      className="flex items-center gap-1.5 px-4 py-3 rounded-[5px] font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-amber-500 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20">
+                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-amber-500 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20">
                       <Plus className="w-4 h-4" />5M
                     </button>
                   )}
 
                   {phase === 'focus' ? (
                     <button onClick={dismiss}
-                      className="flex items-center gap-1.5 px-4 py-3 rounded-[5px] font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-red-500 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20">
+                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-red-500 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20">
                       <X className="w-4 h-4" />ABORT
                     </button>
                   ) : phase === 'idle' ? (
                     <button onClick={reset}
-                      className="flex items-center gap-1.5 px-4 py-3 rounded-[5px] font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-zinc-400 border border-zinc-600 hover:bg-zinc-800/50">
+                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-[var(--color-text-muted)] border border-[var(--color-glass-border)] hover:bg-[var(--color-surface-3)]/50">
                       <RotateCcw className="w-4 h-4" />RESET
                     </button>
                   ) : null}
@@ -537,41 +537,41 @@ export default function FocusTimerPage() {
 
             <div className="flex flex-col gap-5">
               <div style={{
-                border: taskError ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.2)',
-                background: 'rgba(0,0,0,0.5)',
+                border: taskError ? '1px solid #ef4444' : '1px solid var(--color-glass-border)',
+                background: 'var(--color-surface-1)',
                 padding: '24px',
                 borderRadius: '5px',
                 transition: 'border-color 0.3s ease'
               }}>
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4" style={{ color: '#22c55e' }} />
-                    <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: '#22c55e' }}>LINK TASK</span>
+                    <Target className="w-4 h-4" style={{ color: 'var(--color-brand)' }} />
+                    <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-brand)' }}>LINK TASK</span>
                   </div>
                   {taskError && <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />}
                 </div>
 
                 {/* Committed task badges */}
                 {linkedTask ? (
-                  <div className="mb-4 p-3 border border-green-500/40 bg-green-500/10 rounded-[5px]">
+                  <div className="mb-4 p-3 border border-green-500/40 bg-green-500/10 rounded-lg">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-xs font-black uppercase text-zinc-100 truncate">{linkedTask.title}</p>
-                        <p className="text-[10px] font-mono mt-0.5 text-zinc-400">{linkedTask.category}</p>
+                        <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{linkedTask.title}</p>
+                        <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{linkedTask.category}</p>
                       </div>
-                      <button onClick={() => setLinkedTask(null)} className="shrink-0 cursor-pointer text-zinc-400 hover:text-zinc-200">
+                      <button onClick={() => setLinkedTask(null)} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                 ) : quickTitle ? (
-                  <div className="mb-4 p-3 border border-blue-500/40 bg-blue-500/10 rounded-[5px]">
+                  <div className="mb-4 p-3 border border-blue-500/40 bg-blue-500/10 rounded-lg">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-xs font-black uppercase text-zinc-100 truncate">{quickTitle}</p>
-                        <p className="text-[10px] font-mono mt-0.5 text-zinc-400">{quickCategory}</p>
+                        <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{quickTitle}</p>
+                        <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{quickCategory}</p>
                       </div>
-                      <button onClick={clearQuickTask} className="shrink-0 cursor-pointer text-zinc-400 hover:text-zinc-200">
+                      <button onClick={clearQuickTask} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -583,17 +583,17 @@ export default function FocusTimerPage() {
                   <div className="space-y-2">
                     {tasks.length > 0 && (
                       <button onClick={() => { setShowTaskPicker(p => !p); setShowQuickTask(false); }}
-                        className="w-full flex items-center justify-between px-4 py-3 rounded-[5px] text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-zinc-700 text-zinc-300 hover:border-zinc-500">
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:border-[var(--color-glass-border)]">
                         <span className="flex items-center gap-2"><Link2 className="w-3.5 h-3.5" />Link Task</span>
                         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showTaskPicker ? 'rotate-180' : ''}`} />
                       </button>
                     )}
 
                     {showTaskPicker && (
-                      <div className="overflow-y-auto max-h-48 space-y-1 border border-zinc-800 bg-[#0a0a0f] rounded-[5px]">
+                      <div className="overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
                         {tasks.map(t => (
                           <button key={t.id} onClick={() => { setLinkedTask(t); setShowTaskPicker(false); setTaskError(false); }}
-                            className="w-full text-left px-4 py-3 text-xs cursor-pointer transition-all border-b border-zinc-800 text-zinc-400 hover:bg-green-500/10 hover:text-zinc-200 last:border-0">
+                            className="w-full text-left px-4 py-3 text-xs cursor-pointer transition-all border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-green-500/10 hover:text-[var(--color-text)] last:border-0">
                             <p className="font-bold uppercase truncate">{t.title}</p>
                             <p className="text-[10px] font-mono mt-0.5">{t.category}</p>
                           </button>
@@ -602,15 +602,15 @@ export default function FocusTimerPage() {
                     )}
 
                     <button onClick={() => { setShowQuickTask(p => !p); setShowTaskPicker(false); }}
-                      className="w-full flex items-center justify-between px-4 py-3 rounded-[5px] text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-zinc-700 text-zinc-300 hover:border-zinc-500">
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:border-[var(--color-glass-border)]">
                       <span className="flex items-center gap-2"><Plus className="w-3.5 h-3.5" />Quick Task</span>
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showQuickTask ? 'rotate-180' : ''}`} />
                     </button>
 
                     {showQuickTask && (
-                      <div className="p-3 space-y-2 border border-zinc-800 bg-[#0a0a0f] rounded-[5px]">
+                      <div className="p-3 space-y-2 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
                         <input
-                          className="w-full px-3 py-2 text-xs placeholder:text-zinc-500 focus:outline-none border border-zinc-700 bg-zinc-900 text-zinc-200 rounded-[5px]"
+                          className="w-full px-3 py-2 text-xs placeholder:text-[var(--color-text-faint)] focus:outline-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg"
                           placeholder="Task title..."
                           value={draftTitle}
                           onChange={e => setDraftTitle(e.target.value)}
@@ -619,16 +619,16 @@ export default function FocusTimerPage() {
                           }}
                         />
                         <select
-                          className="w-full px-3 py-2 text-xs focus:outline-none appearance-none border border-zinc-700 bg-zinc-900 text-zinc-200 rounded-[5px]"
+                          className="w-full px-3 py-2 text-xs focus:outline-none appearance-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg"
                           value={draftCategory}
                           onChange={e => setDraftCategory(e.target.value)}
                         >
                           {CATEGORIES.map(c => (
-                            <option key={c} value={c} className="bg-[#0a0a0f]">{c}</option>
+                            <option key={c} value={c} style={{ background: "var(--color-surface-1)" }}>{c}</option>
                           ))}
                         </select>
                         <button type='button' onClick={commitQuickTask}
-                          className="w-full py-2 text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-green-500 text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-black rounded-[5px]">
+                          className="w-full py-2 text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-green-500 text-green-500 bg-green-500/10 hover:bg-green-500 hover: rounded-lg">
                           SET TASK
                         </button>
                       </div>
@@ -643,26 +643,26 @@ export default function FocusTimerPage() {
                 )}
 
                 {(linkedTask || quickTitle) && (
-                  <p className="text-[10px] font-mono mt-3 text-zinc-400">Session will be logged under this task</p>
+                  <p className="text-[10px] font-mono mt-3 text-[var(--color-text-muted)]">Session will be logged under this task</p>
                 )}
               </div>
 
-              <div style={{ border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.5)', padding: '24px', borderRadius: '5px' }}>
-                <span className="text-[10px] font-black tracking-[0.25em] uppercase block mb-4 text-zinc-400">// RECENT SESSIONS</span>
+              <div style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: 8 }}>
+                <span className="text-[10px] font-black tracking-[0.25em] uppercase block mb-4 text-[var(--color-text-muted)]">// RECENT SESSIONS</span>
                 {sessions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 border border-dashed border-zinc-700 rounded-[5px]">
-                    <Timer className="w-8 h-8 mb-2 text-zinc-600" />
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">No sessions yet</p>
+                  <div className="flex flex-col items-center justify-center py-8 border border-dashed border-[var(--color-glass-border)] rounded-lg">
+                    <Timer className="w-8 h-8 mb-2 text-[var(--color-text-faint)]" />
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--color-text-faint)]">No sessions yet</p>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                     {sessions.slice(0, 20).map(s => (
-                      <div key={s.id} className="flex items-center justify-between px-3 py-2.5 border border-zinc-800 bg-zinc-900/50 rounded-[5px]">
+                      <div key={s.id} className="flex items-center justify-between px-3 py-2.5 border border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 rounded-lg">
                         <div className="min-w-0">
-                          <p className="text-xs font-bold uppercase text-zinc-200 truncate">
+                          <p className="text-xs font-bold uppercase text-[var(--color-text)] truncate">
                             {s.taskTitle || 'Free Focus'}
                           </p>
-                          <p className="text-[10px] font-mono mt-0.5 text-zinc-400">
+                          <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">
                             {s.date} · {s.taskCategory || '—'}
                           </p>
                         </div>
@@ -682,13 +682,13 @@ export default function FocusTimerPage() {
                 const todayMins = todaySessions.reduce((a, s) => a + s.durationMinutes, 0);
                 if (todaySessions.length === 0) return null;
                 return (
-                  <div className="px-5 py-4 flex items-center justify-between border border-green-500/20 bg-green-500/10 rounded-[5px]">
+                  <div className="px-5 py-4 flex items-center justify-between border border-green-500/20 bg-green-500/10 rounded-lg">
                     <div>
-                      <p className="text-[10px] font-black tracking-[0.25em] uppercase mb-1 text-zinc-400">TODAY'S OUTPUT</p>
+                      <p className="text-[10px] font-black tracking-[0.25em] uppercase mb-1 text-[var(--color-text-muted)]">TODAY'S OUTPUT</p>
                       <p className="text-2xl font-black font-mono text-green-500">{Math.round(todayMins / 60 * 10) / 10}h</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-black tracking-[0.25em] uppercase mb-1 text-zinc-400">CYCLES</p>
+                      <p className="text-[10px] font-black tracking-[0.25em] uppercase mb-1 text-[var(--color-text-muted)]">CYCLES</p>
                       <p className="text-2xl font-black font-mono text-green-500">{todaySessions.length}</p>
                     </div>
                   </div>

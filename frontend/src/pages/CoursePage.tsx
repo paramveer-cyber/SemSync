@@ -9,14 +9,14 @@ import { fetchCourse, invalidateCourseDetail, invalidateAllCourseData } from '..
 import { AlertTriangle, Plus, Pencil, Trash2 } from 'lucide-react';
 
 const TYPE_COLOR: Record<string, string> = {
-    midsem: 'text-tertiary border-tertiary',
-    endsem: 'text-tertiary border-tertiary',
-    quiz: 'text-secondary border-secondary',
-    assignment: 'text-zinc-400 border-zinc-700',
-    lab: 'text-secondary border-secondary',
-    project: 'text-zinc-400 border-zinc-700',
-    viva: 'text-zinc-400 border-zinc-700',
-    other: 'text-zinc-600 border-zinc-800',
+    midsem: 'text-[var(--color-danger)] border-[var(--color-danger)]',
+    endsem: 'text-[var(--color-danger)] border-[var(--color-danger)]',
+    quiz: 'text-[var(--color-brand)] border-[var(--color-brand)]',
+    assignment: 'text-[var(--color-text-muted)] border-[var(--color-glass-border)]',
+    lab: 'text-[var(--color-brand)] border-[var(--color-brand)]',
+    project: 'text-[var(--color-text-muted)] border-[var(--color-glass-border)]',
+    viva: 'text-[var(--color-text-muted)] border-[var(--color-glass-border)]',
+    other: 'text-[var(--color-text-faint)] border-[var(--color-glass-border)]',
 };
 const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -88,43 +88,43 @@ export default function CoursePage() {
     };
 
     return (
-        <div className="flex min-h-screen bg-black">
+        <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
             <Sidebar />
             <main className="grow flex flex-col">
                 <Header title={course?.name ?? 'Course'} subtitle="Track_Detail" />
                 <div className="p-8">
                     <div className="mb-8">
-                        <Link to="/courses" className="text-[10px] font-bold tracking-[0.2em] text-zinc-600 hover:text-white uppercase transition-colors cursor-pointer">
+                        <Link to="/courses" className="text-[10px] font-bold tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] uppercase transition-colors cursor-pointer">
                             ← Back to Directory
                         </Link>
                     </div>
 
                     {error && (
-                        <div className="border border-tertiary bg-tertiary/5 px-6 py-4 flex items-center space-x-3 mb-8">
-                            <AlertTriangle className="w-4 h-4 text-tertiary shrink-0" />
-                            <span className="text-[11px] font-bold text-tertiary uppercase tracking-widest">{error}</span>
+                        <div className="border border-[var(--color-danger)] bg-[rgba(239,68,68,0.05)] px-6 py-4 flex items-center space-x-3 mb-8">
+                            <AlertTriangle className="w-4 h-4 text-[var(--color-danger)] shrink-0" />
+                            <span className="text-[11px] font-bold text-[var(--color-danger)] uppercase tracking-widest">{error}</span>
                         </div>
                     )}
 
                     {loading ? (
                         <div className="flex items-center space-x-4 py-20">
-                            <div className="w-px h-8 bg-secondary animate-pulse" />
-                            <span className="text-[10px] font-bold tracking-[0.3em] text-zinc-500 uppercase">Loading track data…</span>
+                            <div className="w-px h-8 bg-[var(--color-brand)] animate-pulse" />
+                            <span className="text-[10px] font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase">Loading track data…</span>
                         </div>
                     ) : course && (
                         <>
                             {/* Course header row */}
-                            <div className="flex items-start justify-between mb-10 border border-outline-variant p-6">
+                            <div className="flex items-start justify-between mb-10 border border-[var(--color-glass-border)] p-6">
                                 <div className="flex items-center space-x-8">
                                     {course.credits && (
                                         <div>
-                                            <p className="text-[9px] font-bold text-zinc-600 tracking-[0.2em] uppercase mb-1">Credits</p>
-                                            <p className="text-2xl font-extrabold font-mono text-white">{course.credits}</p>
+                                            <p className="text-[9px] font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1">Credits</p>
+                                            <p className="text-2xl font-extrabold font-mono text-[var(--color-text)]">{course.credits}</p>
                                         </div>
                                     )}
                                     <div>
-                                        <p className="text-[9px] font-bold text-zinc-600 tracking-[0.2em] uppercase mb-1">Target</p>
-                                        <p className="text-2xl font-extrabold font-mono text-white">{course.targetGrade}%</p>
+                                        <p className="text-[9px] font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1">Target</p>
+                                        <p className="text-2xl font-extrabold font-mono text-[var(--color-text)]">{course.targetGrade}%</p>
                                     </div>
                                 </div>
 
@@ -152,7 +152,7 @@ export default function CoursePage() {
 
                             {/* Stats */}
                             {computedStats && (
-                                <div className="grid grid-cols-2 md:grid-cols-4 border border-outline-variant mb-10">
+                                <div className="grid grid-cols-2 md:grid-cols-4 border border-[var(--color-glass-border)] mb-10">
                                     {[
                                         { label: 'Grade Earned', value: `${computedStats.currentGrade}%`, sub: `out of ${computedStats.totalWeight}% evaluated`, accent: true, warn: false },
                                         { label: 'Total Weight', value: `${computedStats.totalWeight}%`, accent: false, warn: false },
@@ -169,10 +169,10 @@ export default function CoursePage() {
                                             warn: computedStats.needToScore !== null && computedStats.needToScore > 100,
                                         },
                                     ].map((s, i) => (
-                                        <div key={s.label} className={`p-6 ${i < 3 ? 'border-r border-outline-variant' : ''} ${s.accent ? 'bg-secondary/5' : ''}`}>
-                                            <p className="text-[9px] font-bold text-zinc-600 tracking-[0.2em] uppercase mb-2">{s.label}</p>
-                                            <p className={`text-3xl font-extrabold font-mono ${s.accent ? 'text-secondary' : s.warn ? 'text-tertiary' : 'text-white'}`}>{s.value}</p>
-                                            <p className="text-[12px] mt-1 leading-snug text-zinc-500">{s.sub}</p>
+                                        <div key={s.label} className={`p-6 ${i < 3 ? 'border-r border-[var(--color-glass-border)]' : ''} ${s.accent ? 'bg-[var(--color-brand-glow)]' : ''}`}>
+                                            <p className="text-[9px] font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-2">{s.label}</p>
+                                            <p className={`text-3xl font-extrabold font-mono ${s.accent ? 'text-[var(--color-brand)]' : s.warn ? 'text-[var(--color-danger)]' : 'text-[var(--color-text)]'}`}>{s.value}</p>
+                                            <p className="text-[12px] mt-1 leading-snug text-[var(--color-text-faint)]">{s.sub}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -186,10 +186,10 @@ export default function CoursePage() {
                                 <button
                                     onClick={() => setShowAdd(true)}
                                     className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
-                                    style={{ border: '1px solid rgba(34,197,94,0.35)', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
+                                    style={{ border: '1px solid rgba(34,197,94,0.35)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
                                     onMouseEnter={e => {
                                         (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.18)';
-                                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#22c55e';
+                                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-brand)';
                                         (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(34,197,94,0.22)';
                                     }}
                                     onMouseLeave={e => {
@@ -203,29 +203,29 @@ export default function CoursePage() {
                             </div>
 
                             {evals.length === 0 ? (
-                                <div className="border border-dashed border-outline-variant p-16 text-center">
-                                    <p className="text-[10px] font-bold tracking-[0.3em] text-zinc-600 uppercase mb-6">No evaluations logged</p>
+                                <div className="border border-dashed border-[var(--color-glass-border)] p-16 text-center">
+                                    <p className="text-[10px] font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase mb-6">No evaluations logged</p>
                                     <button
                                         onClick={() => setShowAdd(true)}
                                         className="px-8 py-3 text-sm font-black tracking-widest cursor-pointer transition-all duration-150 uppercase"
-                                        style={{ border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
+                                        style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
                                         onMouseEnter={e => {
-                                            (e.currentTarget as HTMLButtonElement).style.background = '#22c55e';
+                                            (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)';
                                             (e.currentTarget as HTMLButtonElement).style.color = '#000';
                                         }}
                                         onMouseLeave={e => {
                                             (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)';
-                                            (e.currentTarget as HTMLButtonElement).style.color = '#22c55e';
+                                            (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)';
                                         }}>
                                         Log First Evaluation
                                     </button>
                                 </div>
                             ) : (
-                                <div className="border border-outline-variant overflow-hidden">
+                                <div className="border border-[var(--color-glass-border)] overflow-hidden">
                                     {/* Table header */}
-                                    <div className="grid grid-cols-12 border-b border-outline-variant bg-zinc-900/50 px-6 py-3">
+                                    <div className="grid grid-cols-12 border-b border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 px-6 py-3">
                                         {['Title', 'Type', 'Date', 'Weight', 'Score', 'Earned', ''].map((h, i) => (
-                                            <div key={h} className={`text-[9px] font-black tracking-[0.2em] uppercase text-zinc-600 ${i === 0 ? 'col-span-3' : i === 6 ? 'col-span-1 text-right' : 'col-span-2 text-right'
+                                            <div key={h} className={`text-[9px] font-black tracking-[0.2em] uppercase text-[var(--color-text-faint)] ${i === 0 ? 'col-span-3' : i === 6 ? 'col-span-1 text-right' : 'col-span-2 text-right'
                                                 }`}>{h}</div>
                                         ))}
                                     </div>
@@ -235,9 +235,9 @@ export default function CoursePage() {
                                             ? ((e.score / e.maxScore) * e.weightage).toFixed(2)
                                             : null;
                                         return (
-                                            <div key={e.id} className="grid grid-cols-12 border-b border-outline-variant px-6 py-4 hover:bg-zinc-900/30 transition-colors group items-center">
+                                            <div key={e.id} className="grid grid-cols-12 border-b border-[var(--color-glass-border)] px-6 py-4 hover:bg-[var(--color-surface-2)]/30 transition-colors group items-center">
                                                 <div className="col-span-3">
-                                                    <p className="text-sm font-bold text-white uppercase tracking-tight">{e.title}</p>
+                                                    <p className="text-sm font-bold text-[var(--color-text)] uppercase tracking-tight">{e.title}</p>
                                                 </div>
                                                 <div className="col-span-2 text-right">
                                                     <span className={`text-[9px] font-black tracking-widest border px-2 py-0.5 uppercase ${TYPE_COLOR[e.type] ?? TYPE_COLOR.other}`}>
@@ -245,21 +245,21 @@ export default function CoursePage() {
                                                     </span>
                                                 </div>
                                                 <div className="col-span-2 text-right">
-                                                    <span className="text-[10px] text-zinc-500 font-mono">{fmtDate(e.date)}</span>
+                                                    <span className="text-[10px] text-[var(--color-text-faint)] font-mono">{fmtDate(e.date)}</span>
                                                 </div>
                                                 <div className="col-span-2 text-right">
-                                                    <span className="text-[10px] font-mono text-white">{e.weightage}%</span>
+                                                    <span className="text-[10px] font-mono text-[var(--color-text)]">{e.weightage}%</span>
                                                 </div>
                                                 <div className="col-span-1 text-right">
                                                     {e.score !== null && e.score !== undefined
-                                                        ? <span className="text-[10px] font-mono text-white">{e.score}/{e.maxScore}</span>
-                                                        : <span className="text-[10px] font-mono text-zinc-700">—</span>
+                                                        ? <span className="text-[10px] font-mono text-[var(--color-text)]">{e.score}/{e.maxScore}</span>
+                                                        : <span className="text-[10px] font-mono text-[var(--color-text-faint)]">—</span>
                                                     }
                                                 </div>
                                                 <div className="col-span-1 text-right">
                                                     {earned !== null
-                                                        ? <span className="text-[10px] font-mono text-secondary font-bold">{earned}%</span>
-                                                        : <span className="text-[10px] font-mono text-zinc-700">—</span>
+                                                        ? <span className="text-[10px] font-mono text-[var(--color-brand)] font-bold">{earned}%</span>
+                                                        : <span className="text-[10px] font-mono text-[var(--color-text-faint)]">—</span>
                                                     }
                                                 </div>
 

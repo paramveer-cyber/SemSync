@@ -13,9 +13,9 @@ export function TopLoadingBar() {
     <div className="fixed top-0 left-0 right-0 z-[9999] h-[2px] pointer-events-none">
       <div className="h-full transition-all ease-out" style={{
         width: `${w}%`,
-        background: 'linear-gradient(90deg, #22c55e, #4ade80)',
+        background: 'linear-gradient(90deg, var(--color-brand), var(--color-brand-dim))',
         transitionDuration: w === 30 ? '200ms' : '700ms',
-        boxShadow: '0 0 8px #22c55e88',
+        boxShadow: '0 0 8px var(--color-brand-glow)',
       }} />
     </div>
   );
@@ -24,9 +24,9 @@ export function TopLoadingBar() {
 export function Skeleton({ className = '' }: { className?: string }) {
   return (
     <div className={`relative overflow-hidden rounded-lg ${className}`}
-      style={{ background: 'rgba(255,255,255,0.05)' }}>
+      style={{ background: 'var(--color-glass-border)' }}>
       <div className="absolute inset-0 -translate-x-full animate-shimmer"
-        style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)' }} />
+        style={{ background: 'linear-gradient(90deg,transparent,var(--color-text-faint),transparent)' }} />
     </div>
   );
 }
@@ -40,13 +40,13 @@ export function PageSpinner({ message = 'Loading…' }: { message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-28 space-y-5">
       <div className="relative w-11 h-11">
-        <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(255,255,255,0.08)' }} />
+        <div className="absolute inset-0 rounded-full" style={{ border: '2px solid var(--color-glass)' }} />
         <div className="absolute inset-0 rounded-full animate-spin"
-          style={{ border: '2px solid transparent', borderTopColor: '#22c55e', animationDuration: '700ms' }} />
+          style={{ border: '2px solid transparent', borderTopColor: 'var(--color-brand)', animationDuration: '700ms' }} />
         <div className="absolute inset-[4px] rounded-full animate-spin"
-          style={{ border: '2px solid transparent', borderTopColor: 'rgba(34,197,94,0.35)', animationDuration: '1100ms', animationDirection: 'reverse' }} />
+          style={{ border: '2px solid transparent', borderTopColor: 'rgba(var(--color-brand-raw,34,197,94),0.35)', animationDuration: '1100ms', animationDirection: 'reverse' }} />
       </div>
-      <p className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>{message}{dots}</p>
+      <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>{message}{dots}</p>
     </div>
   );
 }

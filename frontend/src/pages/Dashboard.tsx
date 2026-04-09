@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import AddCourseModal from '../components/modals/AddCourseModal';
+import OnboardingTutorial, { hasSeenTutorial, markTutorialSeen } from '../components/OnboardingTutorial';
 import { deleteCourse } from '../lib/api';
 import { fetchCourses, fetchUpcomingEvals, fetchCourse, invalidateAllCourseData } from '../lib/dataService';
 import { Plus, Clock, Trash2, AlertTriangle } from 'lucide-react';
@@ -25,7 +26,7 @@ const getWeekLabel = () => {
 // Urgency badge — CRITICAL / OPERATIONAL / ROUTINE
 const urgencyMeta = (days: number) => {
     if (days <= 2) return { label: 'CRITICAL', color: '#ffffff', bg: '#ef4444', border: '#ef4444' };
-    if (days <= 5) return { label: 'OPERATIONAL', color: '#22c55e', bg: 'transparent', border: '#22c55e' };
+    if (days <= 5) return { label: 'OPERATIONAL', color: 'var(--color-brand)', bg: 'transparent', border: 'var(--color-brand)' };
     return { label: 'ROUTINE', color: '#a1a1aa', bg: 'rgba(161,161,170,0.12)', border: 'rgba(161,161,170,0.3)' };
 };
 
@@ -66,6 +67,14 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState<string | null>(null);
     const [error, setError] = useState('');
+    const [showTutorial, setShowTutorial] = useState(false);
+
+    // Show tutorial on first-ever dashboard load
+    useEffect(() => {
+        if (!hasSeenTutorial()) {
+            setShowTutorial(true);
+        }
+    }, []);
 
     const load = useCallback(async () => {
         setLoading(true); setError('');
@@ -118,25 +127,25 @@ export default function Dashboard() {
     // ── Skeleton ──────────────────────────────────────────────────────────────
     if (loading) {
         return (
-            <div className="flex min-h-screen bg-black">
+            <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
                 <Sidebar />
                 <main className="grow p-8 space-y-14">
                     <div>
                         <div className="flex justify-between items-baseline mb-8">
-                            <div className="h-12 w-72 bg-zinc-900 animate-pulse" />
-                            <div className="h-4 w-40 bg-zinc-900 animate-pulse" />
+                            <div className="h-12 w-72 bg-[var(--color-surface-2)] animate-pulse" />
+                            <div className="h-4 w-40 bg-[var(--color-surface-2)] animate-pulse" />
                         </div>
                         <div className="grid grid-cols-3 gap-4">
-                            {[0, 1, 2].map(i => <div key={i} className="h-52 bg-zinc-900 animate-pulse border border-zinc-800" />)}
+                            {[0, 1, 2].map(i => <div key={i} className="h-52 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]" />)}
                         </div>
                     </div>
                     <div>
                         <div className="flex justify-between items-center mb-8">
-                            <div className="h-8 w-64 bg-zinc-900 animate-pulse" />
-                            <div className="h-9 w-32 bg-zinc-900 animate-pulse" />
+                            <div className="h-8 w-64 bg-[var(--color-surface-2)] animate-pulse" />
+                            <div className="h-9 w-32 bg-[var(--color-surface-2)] animate-pulse" />
                         </div>
                         <div className="grid grid-cols-4 gap-4">
-                            {[0, 1, 2, 3].map(i => <div key={i} className="h-44 bg-zinc-900 animate-pulse border border-zinc-800" />)}
+                            {[0, 1, 2, 3].map(i => <div key={i} className="h-44 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]" />)}
                         </div>
                     </div>
                 </main>
@@ -146,14 +155,14 @@ export default function Dashboard() {
 
     // ── Main render ───────────────────────────────────────────────────────────
     return (
-        <div className="flex min-h-screen bg-black">
+        <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
             <Sidebar />
 
             <main className="grow flex flex-col overflow-y-auto">
                 <div className="p-8 space-y-14">
 
                     {error && (
-                        <div className="border border-red-500/30 bg-red-500/5 px-6 py-4 flex items-center gap-3">
+                        <div className="border border-red-500/30 bg-red-500/5 px-6 py-4 flex items-center gap-3 rounded-lg">
                             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
                             <span className="text-xs font-bold text-red-400 uppercase tracking-widest">{error}</span>
                         </div>
@@ -165,24 +174,24 @@ export default function Dashboard() {
                     <section>
                         {/* Section header */}
                         <div className="flex items-baseline justify-between mb-8">
-                            <h2 className="text-5xl font-extrabold tracking-tighter uppercase text-white">
+                            <h2 className="text-5xl font-extrabold tracking-tighter uppercase text-[var(--color-text)]">
                                 Weekly Focus
                             </h2>
-                            <span className="text-sm font-mono tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                            <span className="text-sm font-mono tracking-[0.15em]" style={{ color: 'var(--color-text-faint)' }}>
                                 WEEK {week} — {month}
                             </span>
                         </div>
 
                         {displayUpcoming.length === 0 ? (
-                            <div className="border border-dashed border-zinc-800 p-16 text-center">
-                                <p className="text-xs font-bold tracking-[0.3em] text-zinc-600 uppercase">
+                            <div className="border border-dashed border-[var(--color-glass-border)] p-16 text-center rounded-lg">
+                                <p className="text-xs font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase">
                                     No upcoming evaluations
                                 </p>
                             </div>
                         ) : (
                             <>
                                 {isFallback && (
-                                    <p className="text-[10px] font-bold tracking-[0.25em] text-zinc-600 uppercase mb-4">
+                                    <p className="text-[10px] font-bold tracking-[0.25em] text-[var(--color-text-faint)] uppercase mb-4">
                                         Nothing this week, showing next upcoming
                                     </p>
                                 )}
@@ -198,12 +207,13 @@ export default function Dashboard() {
                                         return (
                                             <div
                                                 key={e.id}
-                                                className=" rounded-[var(--radius-card)] flex flex-col justify-between transition-colors duration-200 hover:bg-zinc-900"
+                                                className=" rounded-[var(--radius-card)] flex flex-col justify-between transition-colors duration-200 hover:bg-[var(--color-surface-2)]"
                                                 style={{
-                                                    background: 'rgba(16,16,16,1)',
-                                                    border: '1px solid rgba(255,255,255,0.08)',
+                                                    background: 'var(--color-surface-1)',
+                                                    border: '1px solid var(--color-glass-border)',
                                                     padding: '24px',
                                                     minHeight: '210px',
+                                                    borderRadius: 8,
                                                 }}>
 
                                                 {/* Badge row */}
@@ -217,17 +227,17 @@ export default function Dashboard() {
                                                         }}>
                                                         {urg.label}
                                                     </span>
-                                                    <span className="text-xs font-mono tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                                                    <span className="text-xs font-mono tracking-widest" style={{ color: 'var(--color-text-faint)' }}>
                                                         {fmtDate(e.date)}
                                                     </span>
                                                 </div>
 
                                                 {/* Title */}
                                                 <div className="grow  rounded-[var(--radius-card)] ">
-                                                    <h3 className="text-2xl font-extrabold tracking-tight text-white leading-snug uppercase mb-2">
+                                                    <h3 className="text-2xl font-extrabold tracking-tight text-[var(--color-text)] leading-snug uppercase mb-2">
                                                         {e.title}
                                                     </h3>
-                                                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                                                    <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                                                         {e.courseName}
                                                     </p>
                                                 </div>
@@ -235,16 +245,16 @@ export default function Dashboard() {
                                                 {/* Footer row */}
                                                 <div
                                                     className="flex items-center justify-between mt-5 pt-4"
-                                                    style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                                                    style={{ borderTop: '1px solid var(--color-glass-border)' }}>
                                                     <span
                                                         className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"
-                                                        style={{ color: 'rgba(255,255,255,0.35)' }}>
+                                                        style={{ color: 'var(--color-text-muted)' }}>
                                                         <span>{TYPE_ICON[e.type] ?? '📌'}</span>
                                                         {TYPE_LABEL[e.type] ?? e.type.toUpperCase()}
                                                     </span>
                                                     <span
                                                         className="flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase"
-                                                        style={{ color: urg.label === 'CRITICAL' ? '#22c55e' : 'rgba(255,255,255,0.3)' }}>
+                                                        style={{ color: urg.label === 'CRITICAL' ? 'var(--color-brand)' : 'var(--color-text-faint)' }}>
                                                         <Clock className="w-3 h-3" />
                                                         {timeStr}
                                                     </span>
@@ -263,10 +273,10 @@ export default function Dashboard() {
                     <section>
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-baseline gap-4">
-                                <h2 className="text-2xl font-extrabold tracking-tight uppercase text-white">
+                                <h2 className="text-2xl font-extrabold tracking-tight uppercase text-[var(--color-text)]">
                                     Course Nodes
                                 </h2>
-                                <span className="text-xs font-mono tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                                <span className="text-xs font-mono tracking-widest" style={{ color: 'var(--color-text-faint)' }}>
                                     [ {String(courses.length).padStart(2, '0')} Nodes Active ]
                                 </span>
                             </div>
@@ -274,15 +284,15 @@ export default function Dashboard() {
                             <button
                                 onClick={() => setShowAdd(true)}
                                 className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
-                                style={{ border: '1px solid rgba(34,197,94,0.4)', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
+                                style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
                                 onMouseEnter={e => {
-                                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.18)';
-                                    (e.currentTarget as HTMLButtonElement).style.borderColor = '#22c55e';
+                                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand-glow)';
+                                    (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-brand)';
                                     (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(34,197,94,0.22)';
                                 }}
                                 onMouseLeave={e => {
-                                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)';
-                                    (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(34,197,94,0.4)';
+                                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-active-bg)';
+                                    (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-brand)';
                                     (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
                                 }}>
                                 <Plus className="w-4 h-4" /> New Course
@@ -290,14 +300,14 @@ export default function Dashboard() {
                         </div>
 
                         {courses.length === 0 ? (
-                            <div className="border border-dashed border-zinc-800 p-16 flex flex-col items-center gap-4">
-                                <p className="text-xs font-bold tracking-[0.3em] text-zinc-600 uppercase">No courses initialized</p>
+                            <div className="border border-dashed border-[var(--color-glass-border)] p-16 flex flex-col items-center gap-4 rounded-lg">
+                                <p className="text-xs font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase">No courses initialized</p>
                                 <button
                                     onClick={() => setShowAdd(true)}
                                     className="px-8 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150"
-                                    style={{ border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
-                                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; }}
-                                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#22c55e'; }}>
+                                    style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-surface)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-active-bg)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)'; }}>
                                     Initialize First Course
                                 </button>
                             </div>
@@ -317,13 +327,13 @@ export default function Dashboard() {
                                             key={course.id}
                                             className="relative group flex flex-col transition-colors duration-200"
                                             style={{
-                                                background: 'rgba(14,14,14,1)',
-                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                background: 'var(--color-surface-1)',
+                                                border: '1px solid var(--color-glass-border)',
                                             }}>
 
                                             {/* Deleting overlay */}
                                             {isDeleting && (
-                                                <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-3 z-20">
+                                                <div className="absolute inset-0 bg-[var(--color-surface)]/80 flex flex-col items-center justify-center gap-3 z-20">
                                                     <div className="w-5 h-5 border border-red-500/30 border-t-red-500 animate-spin" />
                                                     <span className="text-[9px] text-red-400 font-bold tracking-widest uppercase">Deleting…</span>
                                                 </div>
@@ -334,20 +344,20 @@ export default function Dashboard() {
                                                 to={`/courses/${course.id}`}
                                                 className="block relative overflow-hidden flex-1 transition-all duration-150"
                                                 style={{ padding: '20px 20px 18px', cursor: 'pointer', textDecoration: 'none' }}
-                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#000'; }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-surface)'; }}
                                                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                                             >
                                                 {/* Scan-line overlay */}
                                                 <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                                    style={{ background: 'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(34,197,94,0.025) 2px,rgba(34,197,94,0.025) 4px)' }} />
+                                                    style={{ background: 'repeating-linear-gradient(0deg,transparent,transparent 2px,var(--color-brand-glow) 2px,var(--color-brand-glow) 4px)' }} />
                                                 {/* Green left accent bar */}
                                                 <div className="absolute left-0 top-0 bottom-0 w-0.5 opacity-0 group-hover:opacity-100 transition-all duration-150"
-                                                    style={{ background: 'linear-gradient(180deg,#22c55e,rgba(34,197,94,0.15))' }} />
+                                                    style={{ background: 'linear-gradient(180deg,var(--color-brand),var(--color-brand-glow))' }} />
 
                                                 {/* Header row: name + status dot + delete btn */}
                                                 <div className="flex items-center justify-between mb-1 gap-2">
                                                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                                                        <p className="text-xs font-black tracking-[0.15em] uppercase text-white truncate group-hover:text-green-400 transition-colors">
+                                                        <p className="text-xs font-black tracking-[0.15em] uppercase text-[var(--color-text)] truncate group-hover:text-[var(--color-brand)] transition-colors">
                                                             {course.name}
                                                         </p>
                                                         <div
@@ -368,29 +378,29 @@ export default function Dashboard() {
                                                 </div>
 
                                                 {/* Progress label */}
-                                                <p className="text-[9px] font-bold tracking-[0.25em] uppercase mt-4 mb-1.5 group-hover:text-green-500 transition-colors" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                                                <p className="text-[9px] font-bold tracking-[0.25em] uppercase mt-4 mb-1.5 group-hover:text-[var(--color-brand)] transition-colors" style={{ color: 'var(--color-text-faint)' }}>
                                                     Current Progress
                                                 </p>
 
                                                 {/* Big number */}
-                                                <p className="text-4xl font-extrabold leading-none text-white mb-4 tracking-tight group-hover:text-green-400 transition-colors">
+                                                <p className="text-4xl font-extrabold leading-none text-[var(--color-text)] mb-4 tracking-tight group-hover:text-[var(--color-brand)] transition-colors">
                                                     {course.currentGrade}
-                                                    <span className="text-xl" style={{ color: 'rgba(255,255,255,0.4)' }}>%</span>
+                                                    <span className="text-xl" style={{ color: 'var(--color-text-muted)' }}>%</span>
                                                 </p>
 
                                                 {/* Progress bar */}
                                                 <div className="w-full mb-4 overflow-hidden"
-                                                    style={{ height: '2px', background: 'rgba(255,255,255,0.07)' }}>
+                                                    style={{ height: '2px', background: 'var(--color-glass-border)' }}>
                                                     <div className="h-full transition-all duration-700"
                                                         style={{ width: `${barPct}%`, background: dot }} />
                                                 </div>
 
                                                 {/* Footer */}
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[9px] font-mono transition-colors group-hover:text-green-500" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                                                    <span className="text-[9px] font-mono transition-colors group-hover:text-[var(--color-brand)]" style={{ color: 'var(--color-text-faint)' }}>
                                                         TARGET: {course.targetGrade}%
                                                     </span>
-                                                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#22c55e' }}>
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--color-brand)' }}>
                                                         → Open
                                                     </span>
                                                 </div>
@@ -404,11 +414,11 @@ export default function Dashboard() {
 
                 </div>
 
-                <footer className="mt-auto px-8 py-6 flex justify-between items-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-600">© 2026 SEMSYNC</span>
+                <footer className="mt-auto px-8 py-6 flex justify-between items-center" style={{ borderTop: '1px solid var(--color-glass-border)' }}>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-faint)]">© 2026 SEMSYNC</span>
                     <div className="flex gap-8">
-                        <a href="#" className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 hover:text-white cursor-pointer transition-colors">TERMS</a>
-                        <a href="#" className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 hover:text-white cursor-pointer transition-colors">PRIVACY</a>
+                        <a href="#" className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] cursor-pointer transition-colors">TERMS</a>
+                        <a href="#" className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] cursor-pointer transition-colors">PRIVACY</a>
                     </div>
                 </footer>
             </main>
@@ -418,6 +428,10 @@ export default function Dashboard() {
                     onClose={() => setShowAdd(false)}
                     onCreated={c => { invalidateAllCourseData(); setCourses(p => [...p, { ...c, currentGrade: 0, totalWeight: 0, remainingWeight: 0, requiredAvg: null }]); }}
                 />
+            )}
+
+            {showTutorial && (
+                <OnboardingTutorial onClose={() => setShowTutorial(false)} />
             )}
         </div>
     );

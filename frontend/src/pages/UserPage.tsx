@@ -34,8 +34,8 @@ export default function UserPage() {
           <div
             className="rounded-xl p-6 flex items-center gap-4"
             style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)'
+              background: 'var(--color-glass)',
+              border: '1px solid var(--color-glass-border)'
             }}>
             
             {user?.avatarUrl ? (
@@ -48,15 +48,14 @@ export default function UserPage() {
               <div
                 className="w-14 h-14 rounded-xl flex items-center justify-center text-sm font-semibold"
                 style={{
-                  background: '#22c55e', // GREEN = primary
-                  color: '#fff'
+                  background: 'var(--color-brand)', color: 'var(--color-surface)'
                 }}>
                 {initials}
               </div>
             )}
 
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--color-text)' }}>
                 {user?.name ?? '—'}
               </h2>
 
@@ -73,7 +72,7 @@ export default function UserPage() {
           <div
             className="rounded-xl overflow-hidden"
             style={{
-              border: '1px solid rgba(255,255,255,0.06)'
+              border: '1px solid var(--color-glass-border)'
             }}>
             {[
               { icon: Mail, label: 'Email', value: user?.email ?? '—' },
@@ -83,16 +82,16 @@ export default function UserPage() {
                 key={row.label}
                 className="flex items-center gap-3 px-5 py-4 hover:bg-white/3 transition-colors"
                 style={{
-                  borderBottom: i < 1 ? '1px solid rgba(255,255,255,0.05)' : 'none'
+                  borderBottom: i < 1 ? '1px solid var(--color-glass-border)' : 'none'
                 }}>
                 
-                <row.icon className="w-4 h-4 text-white/40" />
+                <row.icon className="w-4 h-4" style={{ color: 'var(--color-text-faint)' }} />
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] text-white/40">
+                  <p className="text-[11px] text-[var(--color-text)]/40">
                     {row.label}
                   </p>
-                  <p className={`text-sm truncate ${row.accent ? 'text-green-400' : 'text-white'}`}>
+                  <p className={`text-sm truncate ${row.accent ? 'text-green-400' : 'text-[var(--color-text)]'}`}>
                     {row.value}
                   </p>
                 </div>
@@ -131,15 +130,15 @@ export default function UserPage() {
           <div
             className="rounded-xl p-5 space-y-3"
             style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.05)'
+              background: 'var(--color-glass)',
+              border: '1px solid var(--color-glass-border)'
             }}>
             
-            <p className="text-xs text-white/40">
+            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               Legal & Privacy
             </p>
 
-            <div className="space-y-3 text-xs leading-relaxed text-white/30">
+            <div className="space-y-3 text-xs leading-relaxed text-[var(--color-text)]/30">
               <p>
                 Architect Academic Tracker is a personal productivity tool. Your data is stored securely and is never
                 sold or shared with third parties. Authentication is handled via Google OAuth 2.0 and we only access
@@ -156,7 +155,7 @@ export default function UserPage() {
                   <a
                     key={l}
                     href="#"
-                    className="flex items-center gap-1 underline underline-offset-2 hover:text-white transition-colors">
+                    className="flex items-center gap-1 underline underline-offset-2 hover:text-[var(--color-text)] transition-colors">
                     {l}
                     <ExternalLink className="w-2.5 h-2.5" />
                   </a>
@@ -165,7 +164,7 @@ export default function UserPage() {
             </div>
           </div>
 
-          <p className="text-[11px] text-center text-white/20">
+          <p className="text-[11px] text-center" style={{ color: "var(--color-text-faint)" }}>
             © 2025 Architect System. All rights reserved.
           </p>
         </div>

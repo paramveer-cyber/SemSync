@@ -33,17 +33,17 @@ export default function LoginPage() {
       {loading && <TopLoadingBar />}
 
       {/* Nav */}
-      <nav className="px-8 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <nav className="px-8 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg,#22c55e,#15803d)' }}>
-            <span className="text-black font-bold text-sm">S</span>
+            style={{ background: 'linear-gradient(135deg, var(--color-brand), var(--color-brand-dim))' }}>
+            <span className="font-bold text-sm" style={{ color: 'var(--color-surface)' }}>S</span>
           </div>
-          <span className="font-bold text-white font-headline tracking-wide">SEMSYNC</span>
+          <span className="font-bold text-[var(--color-text)] font-headline tracking-wide">SEMSYNC</span>
         </div>
         <div className="flex gap-6">
-          <a href="/" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.45)' }}>Features</a>
-          <a href="/" className="text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.45)' }}>About</a>
+          <a href="/" className="text-sm transition-colors" style={{ color: 'var(--color-text-muted)' }}>Features</a>
+          <a href="/" className="text-sm transition-colors" style={{ color: 'var(--color-text-muted)' }}>About</a>
         </div>
       </nav>
 
@@ -59,10 +59,10 @@ export default function LoginPage() {
         <div className="relative z-10 w-full max-w-105 animate-fade-up">
           {/* Card */}
           <div className="rounded-3xl p-8"
-            style={{ background: 'rgba(16,16,24,0.85)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(24px)' }}>
+            style={{ background: 'var(--color-glass)', border: '1px solid var(--color-glass-border)', backdropFilter: 'blur(24px)' }}>
 
-            <h1 className="text-3xl font-bold text-white mb-2 font-headline">Welcome back</h1>
-            <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.45)' }}>
+            <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2 font-headline">Welcome back</h1>
+            <p className="text-sm mb-8" style={{ color: 'var(--color-text-muted)' }}>
               Sign in with your institutional Google account to continue.
             </p>
 
@@ -70,11 +70,11 @@ export default function LoginPage() {
             {loading ? (
               <div className="flex flex-col items-center py-8 gap-4">
                 <div className="relative w-12 h-12">
-                  <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(255,255,255,0.07)' }} />
+                  <div className="absolute inset-0 rounded-full" style={{ border: '2px solid var(--color-glass-border)' }} />
                   <div className="absolute inset-0 rounded-full animate-spin"
-                    style={{ border: '2px solid transparent', borderTopColor: '#22c55e', animationDuration: '700ms' }} />
+                    style={{ border: '2px solid transparent', borderTopColor: 'var(--color-brand)', animationDuration: '700ms' }} />
                 </div>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Authenticating…</p>
+                <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Authenticating…</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -97,16 +97,16 @@ export default function LoginPage() {
 
             {/* Footer links */}
             <div className="mt-8 pt-6 flex items-center justify-between text-xs"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
+              style={{ borderTop: '1px solid var(--color-glass-border)', color: 'var(--color-text-muted)' }}>
               <span className="flex items-center gap-1.5">Hope you enjoy! :)</span>
             </div>
           </div>
 
-          <p className="text-center text-xs mt-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <p className="text-center text-xs mt-6" style={{ color: 'var(--color-text-muted)' }}>
             © 2026 SemSync. By signing in you agree to our{' '}
-            <a href="legal" className="underline underline-offset-2 hover:text-white transition-colors">Terms of Service</a>{' '}
+            <a href="legal" className="underline underline-offset-2 hover:text-[var(--color-text)] transition-colors">Terms of Service</a>{' '}
             and{' '}
-            <a href="legal" className="underline underline-offset-2 hover:text-white transition-colors">Privacy Policy</a>.
+            <a href="legal" className="underline underline-offset-2 hover:text-[var(--color-text)] transition-colors">Privacy Policy</a>.
           </p>
         </div>
         

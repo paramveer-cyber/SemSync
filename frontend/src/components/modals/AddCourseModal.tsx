@@ -28,13 +28,13 @@ function uid() { return Math.random().toString(36).slice(2, 9); }
 
 /* ── Shared styles (matches app theme) ── */
 const fieldStyle = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.09)',
+  background: 'var(--color-glass)',
+  border: '1px solid var(--color-glass-border)',
   color: 'white',
 };
-const inputCls = 'w-full px-4 py-3 text-sm placeholder:text-white/25 focus:outline-none transition-colors bg-transparent';
+const inputCls = 'w-full px-4 py-3 text-sm placeholder:text-[var(--color-text)]/25 focus:outline-none transition-colors bg-transparent';
 const labelCls = 'block text-[10px] font-black tracking-[0.25em] uppercase mb-2';
-const labelStyle = { color: 'rgba(255,255,255,0.4)' };
+const labelStyle = { color: 'var(--color-text-muted)' };
 
 export default function AddCourseModal({
   onClose,
@@ -106,7 +106,7 @@ export default function AddCourseModal({
       for (const row of rows) {
         const count   = Math.max(1, parseInt(row.count) || 1);
         const weight  = parseFloat(row.weight) || 0;
-        const perEval = parseFloat((weight / count).toFixed(2));
+        const perEval = parseFloat((weight / count).toFixed(1));
 
         for (let i = 1; i <= count; i++) {
           const title = count === 1 ? row.label.trim() || EVAL_TYPES.find(t => t.value === row.type)?.label || row.type
@@ -142,7 +142,7 @@ export default function AddCourseModal({
   }));
 
   const SEG_COLORS: Record<string, string> = {
-    midsem: '#f59e0b', endsem: '#ef4444', quiz: '#22c55e',
+    midsem: '#f59e0b', endsem: '#ef4444', quiz: 'var(--color-brand)',
     assignment: '#3b82f6', lab: '#8b5cf6', project: '#06b6d4',
     viva: '#ec4899', other: '#6b7280',
   };
@@ -157,19 +157,19 @@ export default function AddCourseModal({
         className="w-full overflow-hidden"
         style={{
           maxWidth: step === 2 ? '680px' : '480px',
-          background: '#0a0a0f',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-glass-border)',
           transition: 'max-width 0.25s ease',
         }}>
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-8 py-6"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
           <div>
-            <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-1" style={{ color: '#22c55e' }}>
+            <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-1" style={{ color: 'var(--color-brand)' }}>
               // NEW_COURSE_NODE
             </span>
-            <h3 className="text-xl font-extrabold tracking-tighter uppercase text-white">
+            <h3 className="text-xl font-extrabold tracking-tighter uppercase text-[var(--color-text)]">
               {step === 1 ? 'Course Info' : 'Course Structure'}
             </h3>
           </div>
@@ -180,21 +180,21 @@ export default function AddCourseModal({
                 <div key={s} className="flex items-center gap-2">
                   <div className="w-6 h-6 flex items-center justify-center text-[10px] font-black"
                     style={{
-                      border: `1px solid ${step >= s ? '#22c55e' : 'rgba(255,255,255,0.15)'}`,
-                      color: step >= s ? '#22c55e' : 'rgba(255,255,255,0.3)',
-                      background: step === s ? 'rgba(34,197,94,0.1)' : 'transparent',
+                      border: `1px solid ${step >= s ? 'var(--color-brand)' : 'var(--color-glass-border)'}`,
+                      color: step >= s ? 'var(--color-brand)' : 'var(--color-text-faint)',
+                      background: step === s ? 'rgba(var(--color-brand-raw,34,197,94),0.1)' : 'transparent',
                     }}>
                     {s}
                   </div>
-                  {s < 2 && <div className="w-4 h-px" style={{ background: step > s ? '#22c55e' : 'rgba(255,255,255,0.12)' }} />}
+                  {s < 2 && <div className="w-4 h-px" style={{ background: step > s ? 'var(--color-brand)' : 'var(--color-glass-border)' }} />}
                 </div>
               ))}
             </div>
             <button onClick={onClose}
               className="w-8 h-8 flex items-center justify-center cursor-pointer transition-all duration-150"
-              style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)' }}
+              style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-glass)', color: 'var(--color-text-muted)' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'white'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.4)'; }}>
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-muted)'; }}>
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -236,16 +236,16 @@ export default function AddCourseModal({
             <div className="flex gap-3 pt-2">
               <button onClick={onClose}
                 className="flex-1 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150"
-                style={{ background: 'transparent', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)' }}
-                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.25)'}
-                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)'}>
+                style={{ background: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-glass-border)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-outline-variant)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-glass-border)'}>
                 Cancel
               </button>
               <button onClick={goToStep2}
                 className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150"
-                style={{ border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(34,197,94,0.35)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'; }}>
+                style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(34,197,94,0.35)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--color-brand-raw,34,197,94),0.08)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'; }}>
                 Next <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -258,29 +258,29 @@ export default function AddCourseModal({
 
             {/* Course name recap */}
             <div className="flex items-center justify-between mb-6 pb-5"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
               <div>
-                <p className="text-[9px] font-black tracking-[0.3em] uppercase mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Configuring</p>
-                <p className="text-base font-extrabold tracking-tight uppercase text-white">{form.name}</p>
+                <p className="text-[9px] font-black tracking-[0.3em] uppercase mb-1" style={{ color: 'var(--color-text-faint)' }}>Configuring</p>
+                <p className="text-base font-extrabold tracking-tight uppercase text-[var(--color-text)]">{form.name}</p>
               </div>
               <div className="text-right">
-                <p className="text-[9px] font-black tracking-widest uppercase mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Target</p>
-                <p className="text-base font-extrabold font-mono text-white">{form.targetGrade}%</p>
+                <p className="text-[9px] font-black tracking-widest uppercase mb-1" style={{ color: 'var(--color-text-faint)' }}>Target</p>
+                <p className="text-base font-extrabold font-mono text-[var(--color-text)]">{form.targetGrade}%</p>
               </div>
             </div>
 
             {/* Weight bar */}
             <div className="mb-2">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-black tracking-[0.25em] uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <span className="text-[9px] font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-text-muted)' }}>
                   Weight Distribution
                 </span>
                 <span className="text-[11px] font-black font-mono"
-                  style={{ color: weightOk ? '#22c55e' : totalWeight > 100 ? '#ef4444' : '#f59e0b' }}>
+                  style={{ color: weightOk ? 'var(--color-brand)' : totalWeight > 100 ? '#ef4444' : '#f59e0b' }}>
                   {totalWeight.toFixed(1)}% / 100%
                 </span>
               </div>
-              <div className="h-2 w-full flex overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
+              <div className="h-2 w-full flex overflow-hidden" style={{ background: 'var(--color-glass-border)' }}>
                 {segments.map((seg, i) => (
                   <div key={i} className="h-full transition-all duration-300"
                     style={{ width: `${Math.min(seg.pct, 100 - segments.slice(0, i).reduce((s, x) => s + x.pct, 0))}%`, background: SEG_COLORS[seg.type] ?? '#6b7280' }} />
@@ -291,7 +291,7 @@ export default function AddCourseModal({
                 {rows.filter(r => parseFloat(r.weight) > 0).map(r => (
                   <div key={r.id} className="flex items-center gap-1.5">
                     <div className="w-2 h-2" style={{ background: SEG_COLORS[r.type] ?? '#6b7280' }} />
-                    <span className="text-[9px] font-mono" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <span className="text-[9px] font-mono" style={{ color: 'var(--color-text-muted)' }}>
                       {r.label || r.type} {r.weight}%
                     </span>
                   </div>
@@ -302,7 +302,7 @@ export default function AddCourseModal({
             {/* Column headers */}
             <div className="grid gap-3 mt-5 mb-2" style={{ gridTemplateColumns: '1fr 140px 80px 64px 32px' }}>
               {['Label', 'Type', 'Weight %', 'Count', ''].map(h => (
-                <span key={h} className="text-[9px] font-black tracking-[0.2em] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>{h}</span>
+                <span key={h} className="text-[9px] font-black tracking-[0.2em] uppercase" style={{ color: 'var(--color-text-faint)' }}>{h}</span>
               ))}
             </div>
 
@@ -312,7 +312,7 @@ export default function AddCourseModal({
                 <div key={row.id} className="grid gap-3 items-center" style={{ gridTemplateColumns: '1fr 140px 80px 64px 32px' }}>
                   {/* Label */}
                   <input
-                    className="w-full px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/20 focus:outline-none transition-colors"
                     style={fieldStyle}
                     placeholder="e.g. Midsem Exam"
                     value={row.label}
@@ -320,17 +320,17 @@ export default function AddCourseModal({
                   />
                   {/* Type */}
                   <select
-                    className="w-full px-3 py-2 text-sm text-white focus:outline-none cursor-pointer"
+                    className="w-full px-3 py-2 text-sm text-[var(--color-text)] focus:outline-none cursor-pointer"
                     style={fieldStyle}
                     value={row.type}
                     onChange={e => updateRow(row.id, 'type', e.target.value)}>
                     {EVAL_TYPES.map(t => (
-                      <option key={t.value} value={t.value} className="bg-zinc-900">{t.label}</option>
+                      <option key={t.value} value={t.value} className="bg-[var(--color-surface-2)]">{t.label}</option>
                     ))}
                   </select>
                   {/* Weight */}
                   <input
-                    className="w-full px-3 py-2 text-sm text-white text-right focus:outline-none transition-colors font-mono"
+                    className="w-full px-3 py-2 text-sm text-[var(--color-text)] text-right focus:outline-none transition-colors font-mono"
                     style={fieldStyle}
                     type="number" min="0" max="100" step="0.5"
                     placeholder="0"
@@ -339,7 +339,7 @@ export default function AddCourseModal({
                   />
                   {/* Count */}
                   <input
-                    className="w-full px-3 py-2 text-sm text-white text-center focus:outline-none transition-colors font-mono"
+                    className="w-full px-3 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none transition-colors font-mono"
                     style={fieldStyle}
                     type="number" min="1" max="20" step="1"
                     placeholder="1"
@@ -363,14 +363,14 @@ export default function AddCourseModal({
             <button
               onClick={addRow}
               className="flex items-center gap-2 px-4 py-2.5 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 mb-6 w-full justify-center"
-              style={{ border: '1px dashed rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.35)', background: 'transparent' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.3)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.6)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.15)'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)'; }}>
+              style={{ border: '1px dashed var(--color-glass-border)', color: 'var(--color-text-muted)', background: 'transparent' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-text-faint)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-muted)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-glass-border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-muted)'; }}>
               <Plus className="w-3.5 h-3.5" /> Add Component
             </button>
 
             {/* Skip hint */}
-            <p className="text-[9px] font-mono text-center mb-4" style={{ color: 'rgba(255,255,255,0.2)' }}>
+            <p className="text-[9px] font-mono text-center mb-4" style={{ color: 'var(--color-text-faint)' }}>
               Structure is optional — you can add evaluations manually later.
             </p>
 
@@ -385,9 +385,9 @@ export default function AddCourseModal({
             <div className="flex gap-3">
               <button onClick={() => setStep(1)}
                 className="flex items-center gap-2 px-6 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150"
-                style={{ background: 'transparent', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)' }}
-                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.25)'}
-                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)'}>
+                style={{ background: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-glass-border)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-outline-variant)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-glass-border)'}>
                 <ChevronLeft className="w-4 h-4" /> Back
               </button>
 
@@ -402,9 +402,9 @@ export default function AddCourseModal({
                 }}
                 disabled={loading}
                 className="px-6 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 disabled:opacity-40"
-                style={{ background: 'transparent', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)' }}
-                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.25)'}
-                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)'}>
+                style={{ background: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-glass-border)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-outline-variant)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-glass-border)'}>
                 Skip
               </button>
 
@@ -412,9 +412,9 @@ export default function AddCourseModal({
                 onClick={handleSubmit}
                 disabled={loading || !weightOk}
                 className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ border: '1px solid #22c55e', color: '#22c55e', background: 'rgba(34,197,94,0.08)' }}
-                onMouseEnter={e => { if (!loading && weightOk) { (e.currentTarget as HTMLButtonElement).style.background = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(34,197,94,0.35)'; } }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#22c55e'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'; }}>
+                style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
+                onMouseEnter={e => { if (!loading && weightOk) { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(34,197,94,0.35)'; } }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--color-brand-raw,34,197,94),0.08)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'; }}>
                 {loading ? 'Creating…' : <><Plus className="w-4 h-4" /> Initialize Course</>}
               </button>
             </div>
