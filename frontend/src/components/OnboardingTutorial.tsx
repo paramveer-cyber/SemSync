@@ -31,13 +31,13 @@ const STEPS = [
     title: 'Set Your Zoom to 80%',
     tagline: 'DISPLAY / ZOOM',
     description:
-      'SemSync is crafted for 80% browser zoom. At 100% things can feel a little cramped — at 80% every panel breathes and the dashboard grid lines up perfectly.',
+      'SemSync is crafted for 80% browser zoom. At 100% things can feel a little cramped. But at 80% every panel breathes and the dashboard grid lines up perfectly.',
     details: [
-      { icon: '⌨️', heading: 'Windows / Linux', body: 'Hold Ctrl and press – (minus) until your browser shows 80% in the address bar.' },
-      { icon: '⌘', heading: 'macOS', body: 'Hold Cmd and press – (minus) until the zoom level reaches 80%.' },
+      { icon: '⌨️', heading: 'Windows / Linux', body: 'Hold Ctrl and press  (minus) until your browser shows 80% in the address bar.' },
+      { icon: '⌘', heading: 'macOS', body: 'Hold Cmd and press  (minus) until the zoom level reaches 80%.' },
       { icon: '⚙️', heading: 'Browser Menu', body: 'Click the ⋮ menu → Zoom → set to 80%. This persists across visits to the site.' },
     ],
-    tip: 'Your browser will remember this zoom level for the site — you only need to do it once.',
+    tip: 'Your browser will remember this zoom level for the site, you only need to do it once.',
   },
   {
     id: 'dashboard',
@@ -49,10 +49,10 @@ const STEPS = [
     title: 'Your Command Center',
     tagline: 'WEEKLY FOCUS',
     description:
-      "The Dashboard is the first thing you see every day. It gives you an instant read on what's coming up — evaluations sorted by urgency, and a live grid of all your active courses.",
+      "The Dashboard is the first thing you see every day. It gives you an instant read on what's coming up, evaluations sorted by urgency, and a live grid of all your active courses.",
     details: [
-      { icon: '🔴', heading: 'CRITICAL', body: 'Due within 2 days. Shown in red — means drop everything and prep now.' },
-      { icon: '🟡', heading: 'OPERATIONAL', body: 'Due within 5 days. Highlighted in your brand color — time to start.' },
+      { icon: '🔴', heading: 'CRITICAL', body: 'Due within 2 days. Shown in red : means drop everything and prep now.' },
+      { icon: '🟡', heading: 'OPERATIONAL', body: 'Due within 5 days. Highlighted in your brand color : time to start.' },
       { icon: '⚪', heading: 'ROUTINE', body: 'More than 5 days out. Low urgency, but do not ignore it.' },
     ],
     tip: 'The weekly focus section resets every Monday, pulling in whichever evaluations fall within the next 7 days.',
@@ -67,10 +67,10 @@ const STEPS = [
     title: 'Track Every Course',
     tagline: 'COURSE NODES',
     description:
-      'Add each of your subjects as a Course Node. Set a target grade and log evaluations as they happen — SemSync calculates your current grade and tells you exactly what average you need on remaining work.',
+      'Add each of your subjects as a Course Node. Set a target grade and log evaluations as they happen. SemSync calculates your current grade and tells you exactly what average you need on remaining work.',
     details: [
       { icon: '➕', heading: 'Add a Course', body: 'Hit "New Course" on the Dashboard, enter the name, credits, and your target grade.' },
-      { icon: '📊', heading: 'Live Grade Tracking', body: 'Each evaluation you log — quiz, assignment, mid-sem — updates your current grade instantly.' },
+      { icon: '📊', heading: 'Live Grade Tracking', body: 'Each evaluation you log: quiz, assignment, mid-sem. It updates your current grade instantly.' },
       { icon: '🎯', heading: 'Required Average', body: 'SemSync tells you what average you need across remaining evaluations to hit your target.' },
     ],
     tip: "The green/red status dot on each course card shows whether you're above or below your target grade at a glance.",
@@ -87,8 +87,8 @@ const STEPS = [
     description:
       'The Calendar maps every evaluation across the semester on a month grid. See where deadlines cluster, spot dangerous weeks, and plan study sessions around your actual schedule.',
     details: [
-      { icon: '📅', heading: 'Month Overview', body: 'Every evaluation is plotted with a colour-coded dot — each course has its own colour.' },
-      { icon: '⚠️', heading: 'Clash Detection', body: 'Weeks with multiple deadlines are visually dense — immediately obvious when to start earlier.' },
+      { icon: '📅', heading: 'Month Overview', body: 'Every evaluation is plotted with a colour-coded dot. Each course has its own colour.' },
+      { icon: '⚠️', heading: 'Clash Detection', body: 'Weeks with multiple deadlines are visually dense, immediately obvious when to start earlier.' },
       { icon: '🔗', heading: 'Quick Navigation', body: "Click any evaluation dot to jump straight to that course's detail page." },
     ],
     tip: 'Use the Calendar at the start of each month to plan which weeks need the heaviest study blocks.',
@@ -107,7 +107,7 @@ const STEPS = [
     details: [
       { icon: '✅', heading: 'Create Tasks', body: 'Add tasks like "Revise Chapter 4" or "Complete practice problems" and link them to a course.' },
       { icon: '🏷️', heading: 'Course Linking', body: 'Every task can be pinned to a specific course so your workload is always organised by subject.' },
-      { icon: '📁', heading: 'Auto Archive', body: 'Completed tasks are automatically archived — your history is always accessible, never cluttering your view.' },
+      { icon: '📁', heading: 'Auto Archive', body: 'Completed tasks are automatically archived your history is always accessible, never cluttering your view.' },
     ],
     tip: "The most effective strategy: create tasks for each evaluation the day it's announced, then chip away daily.",
   },
@@ -121,13 +121,13 @@ const STEPS = [
     title: 'Lock In Deep Work',
     tagline: 'POMODORO ENGINE',
     description:
-      'The Focus Timer is a built-in Pomodoro engine. Set your work interval, set your break, start the clock. No tab-switching, no distractions — just focused blocks of study with earned rests.',
+      'The Focus Timer is a built-in Pomodoro engine. Set your work interval, set your break, start the clock. No tab-switching, no distractions. Just focused blocks of study with earned rests.',
     details: [
-      { icon: '⏱️', heading: 'Custom Intervals', body: 'Default is 25 min work / 5 min break. Adjust to whatever rhythm works for you — 50/10, 90/15, anything.' },
+      { icon: '⏱️', heading: 'Custom Intervals', body: 'Default is 25 min work / 5 min break. Adjust to whatever rhythm works for you: 60/5, 90/5, anything.' },
       { icon: '🔔', heading: 'Session Alerts', body: 'Audio and visual alerts fire when your work block ends and when your break is over.' },
       { icon: '📈', heading: 'Session Stats', body: 'Every completed session is logged so you can see total focus time per day and per week.' },
     ],
-    tip: 'Pair the Focus Timer with a Task Center task — start a session, work on one task, mark it done when the timer rings.',
+    tip: 'Pair the Focus Timer with a Task Center task. Start a session, work on one task, mark it done when the timer rings.',
   },
 ];
 
