@@ -1,7 +1,7 @@
 import image from "/favicon.svg";
 import { useState } from 'react';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { Lock, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -35,12 +35,15 @@ export default function LoginPage() {
 
       {/* Nav */}
       <nav className="px-8 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-            <img src={image} />
+        <Link to="/">
+        
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+              <img src={image} />
+            </div>
+            <span className="font-bold text-[var(--color-text)] font-headline tracking-wide">SEMSYNC</span>
           </div>
-          <span className="font-bold text-[var(--color-text)] font-headline tracking-wide">SEMSYNC</span>
-        </div>
+        </Link>
         <div className="flex gap-6">
           <a href="/" className="text-sm transition-colors" style={{ color: 'var(--color-text-muted)' }}>Features</a>
           <a href="/" className="text-sm transition-colors" style={{ color: 'var(--color-text-muted)' }}>About</a>
