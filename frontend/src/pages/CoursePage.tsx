@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import AddEvalModal from '../components/modals/AddEvalModal';
+import AddEvalModal from  '../components/modals/AddEvalModal';
 import EditEvalModal from '../components/modals/EditEvalModal';
 import { deleteEval, deleteCourse } from '../lib/api';
 import { fetchCourse, invalidateCourseDetail, invalidateAllCourseData } from '../lib/dataService';
@@ -39,28 +39,41 @@ export default function CoursePage() {
         finally { setLoading(false); }
     }, [id]);
 
-    // Compute stats from evals:
-    // - evaluatedWeight = sum of weightage for ALL evals (they have occurred / been added)
-    // - remaining       = 100 − evaluatedWeight  (regardless of what score was achieved)
-    // - earnedSoFar     = sum of (score/maxScore * weightage) for evals WITH a score
-    // - needToScore     = (target − earnedSoFar) / remaining * 100
     const computedStats = course ? (() => {
-        const evaluatedWeight = evals.reduce((s, e) => {
-            if (e.score){
-                return s+e.weightage;
+        // Step 1: round each weightage to 1dp
+        // Step 2: sum them — may be e.g. 100.1 due to rounding
+        // Step 3: if sum > 100, subtract 0.1 from evals that have a decimal (6.7 -> 6.6)
+        //         until total == 100. Never touch whole numbers like 5.0, 25.0.
+        const normalizeWeights = (es: any[]): number[] => {
+            const ws = es.map(e => Math.round(e.weightage * 10) / 10);
+            let sum = Math.round(ws.reduce((s, w) => s + w, 0) * 10) / 10;
+            let excess = Math.round((sum - 100) * 10); // in units of 0.1
+            if (excess > 0) {
+                for (let i = 0; i < ws.length && excess > 0; i++) {
+                    if (ws[i] % 1 !== 0) { // has decimal
+                        ws[i] = Math.round((ws[i] - 0.1) * 10) / 10;
+                        excess--;
+                    }
+                }
             }
-            return s;
-        }, 0);
-        const earnedSoFar = evals.reduce((s, e) => {
+            return ws;
+        };
+        const weights = normalizeWeights(evals);
+        const totalAllocated = Math.round(weights.reduce((s, w) => s + w, 0) * 10) / 10;
+        const evaluatedWeight = Math.round(
+            evals.reduce((s, e, i) => e.score ? s + weights[i] : s, 0) * 10
+        ) / 10;
+        const earnedSoFar = Math.round(evals.reduce((s, e, i) => {
             if (e.score == null || !e.maxScore) return s;
-            return s + (e.score / e.maxScore) * e.weightage;
-        }, 0);
-        const remaining = Math.max(0, 100 - evaluatedWeight);
-        const needToScore = course.targetGrade-earnedSoFar;
+            return s + (e.score / e.maxScore) * weights[i];
+        }, 0) * 10) / 10;
+        const remaining = Math.max(0, Math.round((100 - evaluatedWeight) * 10) / 10);
+        const needToScore = Math.round((course.targetGrade - earnedSoFar) * 10) / 10;
         return {
-            currentGrade: parseFloat(earnedSoFar.toFixed(2)),
+            currentGrade: earnedSoFar,
             totalWeight: 100,
-            remaining: parseFloat(remaining.toFixed(2)),
+            totalAllocated,
+            remaining,
             needToScore,
         };
     })() : null;
@@ -154,19 +167,17 @@ export default function CoursePage() {
                             {computedStats && (
                                 <div className="grid grid-cols-2 md:grid-cols-4 border border-[var(--color-glass-border)] mb-10">
                                     {[
-                                        { label: 'Grade Earned', value: `${computedStats.currentGrade}%`, sub: `out of ${computedStats.totalWeight}% evaluated`, accent: true, warn: false },
-                                        { label: 'Total Weight', value: `${computedStats.totalWeight}%`, accent: false, warn: false },
-                                        { label: 'Remaining Weight', value: `${computedStats.remaining}%`, sub: `Yet to be assessed`, accent: false, warn: false },
+                                        { label: 'Grade Earned', value: `${computedStats.currentGrade}%`, sub: `out of ${computedStats.totalWeight}% total`, accent: true, warn: false },
+                                        { label: 'Weight Allocated', value: `${computedStats.totalAllocated}%`, sub: `across ${evals.length} evaluation${evals.length !== 1 ? 's' : ''}`, accent: false, warn: false },
+                                        { label: 'Remaining Weight', value: `${computedStats.remaining}%`, sub: 'Yet to be assessed', accent: false, warn: false },
                                         {
                                             label: 'Need to Score',
-                                            value: computedStats.needToScore !== null ? `${computedStats.needToScore}%` : '—',
-                                            sub: computedStats.needToScore !== null
-                                                ? computedStats.needToScore > 100
-                                                    ? 'Target unreachable — beyond 100%'
-                                                    : `Needed to complete target grade!`
-                                                : 'All weight evaluated',
+                                            value: `${parseFloat(computedStats.needToScore.toFixed(2))}%`,
+                                            sub: computedStats.needToScore > 100
+                                                ? 'Target unreachable — beyond 100%'
+                                                : 'Needed to complete target grade!',
                                             accent: false,
-                                            warn: computedStats.needToScore !== null && computedStats.needToScore > 100,
+                                            warn: computedStats.needToScore > 100,
                                         },
                                     ].map((s, i) => (
                                         <div key={s.label} className={`p-6 ${i < 3 ? 'border-r border-[var(--color-glass-border)]' : ''} ${s.accent ? 'bg-[var(--color-brand-glow)]' : ''}`}>
@@ -311,8 +322,8 @@ export default function CoursePage() {
                 </div>
             </main>
 
-            {showAdd && <AddEvalModal courseId={id!} onClose={() => setShowAdd(false)} onCreated={() => { invalidateCourseDetail(id!); load(); }} />}
-            {editing && <EditEvalModal evaluation={editing} onClose={() => setEditing(null)} onUpdated={() => { invalidateCourseDetail(id!); load(); }} />}
+            {showAdd && <AddEvalModal courseId={id!} onClose={() => setShowAdd(false)} onCreated={() => { invalidateCourseDetail(id!); load(); }} existingWeight={computedStats?.totalAllocated ?? 0} />}
+            {editing && <EditEvalModal evaluation={editing} onClose={() => setEditing(null)} onUpdated={() => { invalidateCourseDetail(id!); load(); }} existingWeight={computedStats?.totalAllocated ?? 0} />}
         </div>
     );
 }

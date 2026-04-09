@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import { fetchUpcomingEvals } from '../lib/dataService';
 import {
   Timer, Play, Pause, RotateCcw, X, Plus, Zap, Coffee,
-  ChevronDown, CheckCircle2, Link2, Target, AlertCircle
+  ChevronDown, CheckCircle2, Link2, Target, AlertCircle, BookOpen
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -23,6 +24,15 @@ interface TimerTask {
   id: string;
   title: string;
   category: string;
+}
+
+interface EvalItem {
+  id: string;
+  title: string;
+  courseName?: string;
+  type?: string;
+  date?: string;
+  weightage?: number;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -252,7 +262,9 @@ export default function FocusTimerPage() {
 
   const [sessions, setSessions] = useState<FocusSession[]>(loadSessions);
   const [tasks] = useState<TimerTask[]>(loadTasks);
+  const [evals, setEvals] = useState<EvalItem[]>([]);
   const [linkedTask, setLinkedTask] = useState<TimerTask | null>(null);
+  const [linkedEval, setLinkedEval] = useState<EvalItem | null>(null);
 
   // ── Committed task (shown in badge, used for logging) ──
   const [quickTitle, setQuickTitle] = useState('');
@@ -263,6 +275,7 @@ export default function FocusTimerPage() {
   const [draftCategory, setDraftCategory] = useState(CATEGORIES[0]);
 
   const [showTaskPicker, setShowTaskPicker] = useState(false);
+  const [showEvalPicker, setShowEvalPicker] = useState(false);
   const [showQuickTask, setShowQuickTask] = useState(false);
   const [taskError, setTaskError] = useState(false);
 
@@ -283,6 +296,11 @@ export default function FocusTimerPage() {
     }
   }, []);
 
+  // Fetch upcoming evals for linking
+  useEffect(() => {
+    fetchUpcomingEvals().then(data => setEvals(data)).catch(() => {});
+  }, []);
+
   const clearTimer = () => { if (intervalRef.current) clearInterval(intervalRef.current); };
 
   const commitSession = useCallback((minutes: number) => {
@@ -291,8 +309,8 @@ export default function FocusTimerPage() {
       id: Math.random().toString(36).slice(2),
       date: toDateStr(Date.now()),
       durationMinutes: minutes,
-      taskTitle: linkedTask?.title ?? (quickTitle || undefined),
-      taskCategory: linkedTask?.category ?? (quickCategory || undefined),
+      taskTitle: linkedEval?.title ?? linkedTask?.title ?? (quickTitle || undefined),
+      taskCategory: linkedEval?.courseName ?? linkedTask?.category ?? (quickCategory || undefined),
       completedAt: Date.now(),
     };
     setSessions(prev => {
@@ -300,7 +318,7 @@ export default function FocusTimerPage() {
       saveSessions(updated);
       return updated;
     });
-  }, [linkedTask, quickTitle, quickCategory]);
+  }, [linkedEval, linkedTask, quickTitle, quickCategory]);
 
   useEffect(() => {
     if (status === 'running') {
@@ -339,7 +357,7 @@ export default function FocusTimerPage() {
   }, [status, phase, selectedMinutes, totalSeconds, sessionStartMinutes, commitSession]);
 
   const start = () => {
-    if (!linkedTask && !quickTitle.trim()) {
+    if (!linkedEval && !linkedTask && !quickTitle.trim()) {
       setTaskError(true);
       setTimeout(() => setTaskError(false), 3000);
       return;
@@ -422,7 +440,7 @@ export default function FocusTimerPage() {
   const phaseColor = phase === 'break' ? '#3b82f6' : 'var(--color-brand)';
   const phaseLabel = phase === 'idle' ? 'STANDBY' : phase === 'break' ? 'BREAK' : 'DEEP_FOCUS';
 
-  const taskLabel = linkedTask ? linkedTask.title : quickTitle || null;
+  const taskLabel = linkedEval ? linkedEval.title : linkedTask ? linkedTask.title : quickTitle || null;
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
@@ -552,7 +570,24 @@ export default function FocusTimerPage() {
                 </div>
 
                 {/* Committed task badges */}
-                {linkedTask ? (
+                {linkedEval ? (
+                  <div className="mb-4 p-3 border border-[var(--color-brand)]/40 bg-[var(--color-brand-glow)] rounded-lg">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ background: 'var(--color-active-bg)', color: 'var(--color-brand)', border: '1px solid var(--color-brand)' }}>
+                            {linkedEval.type ?? 'eval'}
+                          </span>
+                        </div>
+                        <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{linkedEval.title}</p>
+                        <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{linkedEval.courseName ?? '—'}{linkedEval.weightage != null ? ` · ${linkedEval.weightage}%` : ''}</p>
+                      </div>
+                      <button onClick={() => setLinkedEval(null)} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : linkedTask ? (
                   <div className="mb-4 p-3 border border-green-500/40 bg-green-500/10 rounded-lg">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -578,11 +613,37 @@ export default function FocusTimerPage() {
                   </div>
                 ) : null}
 
-                {/* Pickers — visible when no committed task */}
-                {!linkedTask && !quickTitle && (
+                {/* Pickers — visible when no committed link */}
+                {!linkedEval && !linkedTask && !quickTitle && (
                   <div className="space-y-2">
+                    {evals.length > 0 && (
+                      <>
+                        <button onClick={() => { setShowEvalPicker(p => !p); setShowTaskPicker(false); setShowQuickTask(false); }}
+                          className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:border-[var(--color-glass-border)]">
+                          <span className="flex items-center gap-2"><BookOpen className="w-3.5 h-3.5" />Link Eval</span>
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showEvalPicker ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showEvalPicker && (
+                          <div className="overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
+                            {evals.map(ev => (
+                              <button key={ev.id} onClick={() => { setLinkedEval(ev); setShowEvalPicker(false); setTaskError(false); }}
+                                className="w-full text-left px-4 py-3 text-xs cursor-pointer transition-all border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-active-bg)] hover:text-[var(--color-text)] last:border-0">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  <span className="text-[8px] font-bold uppercase px-1 py-0.5 rounded" style={{ background: 'var(--color-active-bg)', color: 'var(--color-brand)' }}>{ev.type ?? 'eval'}</span>
+                                  {ev.weightage != null && <span className="text-[8px] font-mono text-[var(--color-text-faint)]">{ev.weightage}%</span>}
+                                </div>
+                                <p className="font-bold uppercase truncate">{ev.title}</p>
+                                <p className="text-[10px] font-mono mt-0.5">{ev.courseName ?? '—'}</p>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+
                     {tasks.length > 0 && (
-                      <button onClick={() => { setShowTaskPicker(p => !p); setShowQuickTask(false); }}
+                      <button onClick={() => { setShowTaskPicker(p => !p); setShowEvalPicker(false); setShowQuickTask(false); }}
                         className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:border-[var(--color-glass-border)]">
                         <span className="flex items-center gap-2"><Link2 className="w-3.5 h-3.5" />Link Task</span>
                         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showTaskPicker ? 'rotate-180' : ''}`} />
@@ -601,7 +662,7 @@ export default function FocusTimerPage() {
                       </div>
                     )}
 
-                    <button onClick={() => { setShowQuickTask(p => !p); setShowTaskPicker(false); }}
+                    <button onClick={() => { setShowQuickTask(p => !p); setShowTaskPicker(false); setShowEvalPicker(false); }}
                       className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:border-[var(--color-glass-border)]">
                       <span className="flex items-center gap-2"><Plus className="w-3.5 h-3.5" />Quick Task</span>
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showQuickTask ? 'rotate-180' : ''}`} />
@@ -642,8 +703,8 @@ export default function FocusTimerPage() {
                   </p>
                 )}
 
-                {(linkedTask || quickTitle) && (
-                  <p className="text-[10px] font-mono mt-3 text-[var(--color-text-muted)]">Session will be logged under this task</p>
+                {(linkedEval || linkedTask || quickTitle) && (
+                  <p className="text-[10px] font-mono mt-3 text-[var(--color-text-muted)]">Session will be logged under this {linkedEval ? 'eval' : 'task'}</p>
                 )}
               </div>
 

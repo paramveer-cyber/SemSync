@@ -33,8 +33,9 @@ const STEPS = [
     description:
       'SemSync is crafted for 80% browser zoom. At 100% things can feel a little cramped. But at 80% every panel breathes and the dashboard grid lines up perfectly.',
     details: [
-      { icon: '⌨️', heading: 'Windows / Linux', body: 'Hold Ctrl and press  (minus) until your browser shows 80% in the address bar.' },
+      { icon: '⌨️', heading: 'Windows', body: 'Hold Ctrl and press (minus) until your browser shows 80% in the address bar.' },
       { icon: '⌘', heading: 'macOS', body: 'Hold Cmd and press  (minus) until the zoom level reaches 80%.' },
+      { icon: '🐧', heading: 'Linux', body: 'If you have your dekstop zoom at 100%, the site should work fine, else maybe adjust the display setting in your own linux distro / adjust the zoom level in chrome to 80%.' },
       { icon: '⚙️', heading: 'Browser Menu', body: 'Click the ⋮ menu → Zoom → set to 80%. This persists across visits to the site.' },
     ],
     tip: 'Your browser will remember this zoom level for the site, you only need to do it once.',

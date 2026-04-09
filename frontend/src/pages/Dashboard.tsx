@@ -90,8 +90,24 @@ export default function Dashboard() {
             const withStats: CourseWithStats[] = await Promise.all(
                 rawCourses.map(async (c: any) => {
                     try {
-                        const { stats } = await fetchCourse(c.id);
-                        return { ...c, ...stats };
+                        const { stats, evaluations } = await fetchCourse(c.id);
+                        // Normalize weights same way as CoursePage to keep grades consistent
+                        const normalizeWeights = (es: any[]): number[] => {
+                            const ws = es.map((e: any) => Math.round(e.weightage * 10) / 10);
+                            let excess = Math.round((ws.reduce((s: number, w: number) => s + w, 0) - 100) * 10);
+                            if (excess > 0) {
+                                for (let i = 0; i < ws.length && excess > 0; i++) {
+                                    if (ws[i] % 1 !== 0) { ws[i] = Math.round((ws[i] - 0.1) * 10) / 10; excess--; }
+                                }
+                            }
+                            return ws;
+                        };
+                        const weights = normalizeWeights(evaluations);
+                        const currentGrade = Math.round(evaluations.reduce((s: number, e: any, i: number) => {
+                            if (e.score == null || !e.maxScore) return s;
+                            return s + (e.score / e.maxScore) * weights[i];
+                        }, 0) * 100) / 100;
+                        return { ...c, ...stats, currentGrade };
                     } catch {
                         return { ...c, currentGrade: 0, totalWeight: 0, remainingWeight: 0, requiredAvg: null };
                     }
@@ -384,7 +400,7 @@ export default function Dashboard() {
 
                                                 {/* Big number */}
                                                 <p className="text-4xl font-extrabold leading-none text-[var(--color-text)] mb-4 tracking-tight group-hover:text-[var(--color-brand)] transition-colors">
-                                                    {course.currentGrade}
+                                                    {course.currentGrade.toFixed(1)}
                                                     <span className="text-xl" style={{ color: 'var(--color-text-muted)' }}>%</span>
                                                 </p>
 

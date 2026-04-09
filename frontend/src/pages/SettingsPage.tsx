@@ -50,9 +50,9 @@ function ThemeSwatch({ name, dark, vars, selected, onClick, custom, onEdit, onDe
   themeId: string; name: string; dark: boolean; vars: Record<string, string>; selected: boolean; onClick: () => void;
   custom?: boolean; onEdit?: () => void; onDelete?: () => void;
 }) {
-  const brand   = vars['--color-brand'];
+  const brand = vars['--color-brand'];
   const surface = vars['--color-surface'];
-  const text    = vars['--color-text'];
+  const text = vars['--color-text'];
 
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -78,7 +78,7 @@ function ThemeSwatch({ name, dark, vars, selected, onClick, custom, onEdit, onDe
         }}>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 9, background: brand, opacity: 0.85 }} />
           <div style={{ position: 'absolute', top: 5, left: 4, width: 10, height: 2, borderRadius: 2, background: text, opacity: 0.5 }} />
-          <div style={{ position: 'absolute', top: 9, left: 4, width: 7,  height: 2, borderRadius: 2, background: text, opacity: 0.3 }} />
+          <div style={{ position: 'absolute', top: 9, left: 4, width: 7, height: 2, borderRadius: 2, background: text, opacity: 0.3 }} />
         </div>
 
         <div style={{ textAlign: 'left', flex: 1 }}>
@@ -147,18 +147,18 @@ interface ThemeBuilderProps {
 }
 
 function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
-  const [name, setName]         = useState(editing?.name ?? '');
+  const [name, setName] = useState(editing?.name ?? '');
   const [brandHex, setBrandHex] = useState(editing?.brandHex ?? '#6366f1');
-  const [dark, setDark]         = useState(editing?.dark ?? true);
+  const [dark, setDark] = useState(editing?.dark ?? true);
 
   // Derive live preview vars
   const previewVars = buildCustomThemeVars(brandHex, dark);
-  const brand   = previewVars['--color-brand'];
+  const brand = previewVars['--color-brand'];
   const surface = previewVars['--color-surface'];
-  const surf1   = previewVars['--color-surface-1'];
-  const text    = previewVars['--color-text'];
+  const surf1 = previewVars['--color-surface-1'];
+  const text = previewVars['--color-text'];
   const textMut = previewVars['--color-text-muted'];
-  const border  = previewVars['--color-glass-border'];
+  const border = previewVars['--color-glass-border'];
   const activeBg = previewVars['--color-active-bg'];
 
   const isValid = /^#[0-9a-fA-F]{6}$/.test(brandHex);
@@ -347,9 +347,9 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
 export default function SettingsPage() {
   const { settings, updateSettings, permission, requestPermission } = useNotifications();
   const { theme, setTheme, customThemes, addCustomTheme, updateCustomTheme, deleteCustomTheme } = useTheme();
-  const [showTutorial, setShowTutorial]   = useState(false);
-  const [builderMode, setBuilderMode]     = useState<'create' | 'edit' | null>(null);
-  const [editingTheme, setEditingTheme]   = useState<{ id: string; name: string; brandHex: string; dark: boolean } | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [builderMode, setBuilderMode] = useState<'create' | 'edit' | null>(null);
+  const [editingTheme, setEditingTheme] = useState<{ id: string; name: string; brandHex: string; dark: boolean } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const handleReplayTutorial = () => {
@@ -357,10 +357,10 @@ export default function SettingsPage() {
     setShowTutorial(true);
   };
 
-  const darkThemes   = THEMES.filter(t => t.dark);
-  const lightThemes  = THEMES.filter(t => !t.dark);
-  const customDark   = customThemes.filter(t => t.dark);
-  const customLight  = customThemes.filter(t => !t.dark);
+  const darkThemes = THEMES.filter(t => t.dark);
+  const lightThemes = THEMES.filter(t => !t.dark);
+  const customDark = customThemes.filter(t => t.dark);
+  const customLight = customThemes.filter(t => !t.dark);
 
   const handleSaveTheme = (name: string, brandHex: string, dark: boolean) => {
     if (builderMode === 'create') {
@@ -447,7 +447,12 @@ export default function SettingsPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Pencil className="w-3 h-3" style={{ color: 'var(--color-brand)' }} />
-                    <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-brand)' }}>Custom</p>
+                    <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-brand)' }}>
+                      Custom
+                    </p>
+                    <p className="text-xs font-semibold tracking-normal" style={{ color: 'var(--color-brand-dim)' }}>
+                      [All Colors are not configured, some might break!]
+                    </p>
                   </div>
                   <div className="space-y-1.5">
                     {customThemes.map(t => (
@@ -553,10 +558,10 @@ export default function SettingsPage() {
                 style={{ opacity: settings.enabled ? 1 : 0.4, pointerEvents: settings.enabled ? 'auto' : 'none', transition: 'opacity 0.2s' }}
               >
                 {([
-                  { key: 'at6h',  label: 'Remind 6 hours before',  sub: 'Tight deadline alert — fires ~6h out' },
-                  { key: 'at12h', label: 'Remind 12 hours before', sub: 'Half-day warning before deadline'     },
+                  { key: 'at6h', label: 'Remind 6 hours before', sub: 'Tight deadline alert — fires ~6h out' },
+                  { key: 'at12h', label: 'Remind 12 hours before', sub: 'Half-day warning before deadline' },
                   { key: 'at24h', label: 'Remind 24 hours before', sub: 'Day-before nudge to start preparing' },
-                  { key: 'at48h', label: 'Remind 48 hours before', sub: 'Two-day heads-up for bigger tasks'   },
+                  { key: 'at48h', label: 'Remind 48 hours before', sub: 'Two-day heads-up for bigger tasks' },
                 ] as const).map(w => (
                   <div
                     key={w.key}

@@ -5,7 +5,7 @@ import { Save } from 'lucide-react';
 
 const TYPES = ['quiz','midsem','endsem','assignment','lab','project','viva','other'];
 
-export default function EditEvalModal({ evaluation, onClose, onUpdated }: { evaluation: any; onClose: () => void; onUpdated: () => void }) {
+export default function EditEvalModal({ evaluation, onClose, onUpdated, existingWeight = 0 }: { evaluation: any; onClose: () => void; onUpdated: () => void; existingWeight?: number }) {
   const [form, setForm] = useState({
     title:     evaluation.title,
     type:      evaluation.type,
@@ -18,8 +18,18 @@ export default function EditEvalModal({ evaluation, onClose, onUpdated }: { eval
   const [loading, setLoading] = useState(false);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
 
+  const r1 = (n: number) => Math.round(n * 10) / 10;
+  // Available = 100 - existing weight + this eval's current weight (since we're replacing it)
+  const availableWeight = r1(100 - r1(existingWeight) + r1(evaluation.weightage));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setError(''); setLoading(true);
+    const newWeight = parseFloat(form.weightage);
+    if (isNaN(newWeight) || newWeight <= 0) { setLoading(false); return setError('Weightage must be greater than 0'); }
+    if (r1(newWeight) > availableWeight) { setLoading(false); return setError(`Weightage exceeds available weight. Max allowed: ${availableWeight}%.`); }
+    const score = form.score !== '' ? parseFloat(form.score) : null;
+    const maxScore = parseFloat(form.maxScore);
+    if (score !== null && score > maxScore) { setLoading(false); return setError('Score cannot exceed Max Score'); }
     try {
       await updateEval(evaluation.id, {
         title:     form.title.trim(),
@@ -60,8 +70,8 @@ export default function EditEvalModal({ evaluation, onClose, onUpdated }: { eval
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className={lCls} style={lSty}>Weight %</label>
-            <input className={iCls} style={iSty} type="number" min="0.1" max="100" step="0.1" value={form.weightage} onChange={set('weightage')} />
+            <label className={lCls} style={lSty}>Weight % <span style={{ color: availableWeight <= 10 ? '#ef4444' : 'var(--color-text-faint)', fontWeight: 'normal' }}>(max {availableWeight}%)</span></label>
+            <input className={iCls} style={iSty} type="number" min="0.1" max={availableWeight} step="0.1" value={form.weightage} onChange={set('weightage')} />
           </div>
           <div>
             <label className={lCls} style={lSty}>Max Score</label>
