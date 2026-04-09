@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { authLogout } from '../lib/api';
 import { useState } from 'react';
-import icon from "/favicon.ico";
 
 const navItems = [
   { name: 'Dashboard',   icon: LayoutDashboard, path: '/dashboard' },
@@ -37,17 +36,16 @@ export default function Sidebar() {
 
       {/* Logo + bell */}
       <div className="px-8 pt-8 pb-6 flex items-center justify-between">
-        <Link to="/">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 flex items-center justify-center">
-              <img src={icon} alt="Icon..." />
-            </div>
-            <div>
-              <p className="font-bold text-base tracking-wide font-headline" style={{ color: 'var(--color-text)' }}>SEMSYNC</p>
-              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Academic Tracker</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, var(--color-brand), var(--color-brand-dim))', borderRadius: 8 }}>
+            <span style={{ color: 'var(--color-surface)', fontWeight: 'bold', fontSize: 14 }} className="font-headline">S</span>
           </div>
-        </Link>
+          <div>
+            <p className="font-bold text-base tracking-wide font-headline" style={{ color: 'var(--color-text)' }}>SEMSYNC</p>
+            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Academic Tracker</p>
+          </div>
+        </div>
 
         {/* Notification bell */}
         <Link to="/settings"

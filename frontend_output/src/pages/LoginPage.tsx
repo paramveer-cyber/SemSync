@@ -1,4 +1,3 @@
-import image from "/favicon.svg";
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -36,8 +35,9 @@ export default function LoginPage() {
       {/* Nav */}
       <nav className="px-8 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-            <img src={image} />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, var(--color-brand), var(--color-brand-dim))' }}>
+            <span className="font-bold text-sm" style={{ color: 'var(--color-surface)' }}>S</span>
           </div>
           <span className="font-bold text-[var(--color-text)] font-headline tracking-wide">SEMSYNC</span>
         </div>

@@ -4,17 +4,13 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Nav */}
-
       <nav className="border-b border-[var(--color-glass-border)] px-6 py-4 flex justify-between items-center sticky top-0 z-50 backdrop-blur-md" style={{ background: "var(--color-sidebar-bg)" }}>
-        <Link to="/">
-        
-          <div className="text-xl font-extrabold tracking-widest font-headline uppercase" style={{ color: "var(--color-text)" }}>SEMSYNC</div>
-        </Link>
+        <div className="text-xl font-extrabold tracking-widest font-headline uppercase" style={{ color: "var(--color-text)" }}>SEMSYNC</div>
         <div className="hidden md:flex space-x-8">
           <a href="#features" className="text-[11px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-brand)] tracking-widest transition-colors">FEATURES</a>
           <a href="about" className="text-[11px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-brand)] tracking-widest transition-colors">ABOUT</a>
         </div>
-        <Link to="/login" className="px-6 py-2 bg-white text-black  text-[11px] font-bold tracking-widest hover:bg-[var(--color-surface)] hover:text-[var(--color-text)] border border-white transition-all">
+        <Link to="/login" className="px-6 py-2 bg-white  text-[11px] font-bold tracking-widest hover:bg-[var(--color-surface)] hover:text-[var(--color-text)] border border-white transition-all">
           LOGIN
         </Link>
       </nav>

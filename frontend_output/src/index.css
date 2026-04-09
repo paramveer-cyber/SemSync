@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Movement";
+  src: url("/Movement-DirectBlack.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Cascadia Code", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Movement", sans-serif;
+
+  --color-brand:           var(--color-brand);
+  --color-brand-dim:       var(--color-brand-dim);
+  --color-brand-glow:      rgba(34,197,94,0.18);
+  --color-danger:          #ef4444;
+  --color-warn:            #f59e0b;
+  --color-info:            #3b82f6;
+  --color-done:            #8b5cf6;
+
+  --color-surface:         #0a0a0f;
+  --color-surface-1:       #111118;
+  --color-surface-2:       #18181f;
+  --color-surface-3:       #1e1e28;
+  --color-glass:           var(--color-glass);
+  --color-glass-border:    rgba(255,255,255,0.09);
+  --color-glass-hover:     var(--color-glass-border);
+  --color-sidebar-bg:      rgba(10,10,15,0.97);
+  --color-sidebar-border:  var(--color-glass-border);
+  --color-active-bg:       rgba(34,197,94,0.12);
+  --color-active-text:     var(--color-brand);
+
+  --color-text:            #e4e4f0;
+  --color-text-muted:      var(--color-text-muted);
+  --color-text-faint:      var(--color-text-faint);
+
+  --color-secondary:           var(--color-brand);
+  --color-tertiary:            #ef4444;
+  --color-outline-variant:     var(--color-glass-border);
+  --color-surface-container:   #111118;
+  --radius-card:               8px;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    @apply antialiased;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headline);
+    color: var(--color-text);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); }
+
+  ::-webkit-scrollbar        { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { background: var(--color-glass-border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
+}
+
+.glass {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 8px;
+}
+
+.glass-hover:hover {
+  background: var(--color-glass-hover);
+  border-color: var(--color-outline-variant);
+}
+
+.mesh-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 20%, var(--color-brand-glow) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 70%, rgba(59,130,246,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 50% 100%, rgba(139,92,246,0.04) 0%, transparent 60%),
+    var(--color-surface);
+}
+
+.dot-grid {
+  background-image: radial-gradient(circle, var(--color-glass-border) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes loadbar {
+  0%   { width: 0%;  margin-left: 0; }
+  50%  { width: 70%; margin-left: 15%; }
+  100% { width: 0%;  margin-left: 100%; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.animate-fade-up { animation: fadeUp 0.4s ease forwards; }
+.animate-shimmer { animation: shimmer 1.6s infinite; }
+
+.dragging  { opacity: 0.4; transform: scale(0.97); }
+.drag-over {
+  outline: 2px dashed var(--color-brand);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* ── Global rounded edges (4–8 px) ── */
+button:not([class*="rounded"]) { border-radius: 6px; }
+input:not([class*="rounded"]), textarea:not([class*="rounded"]), select:not([class*="rounded"]) { border-radius: 6px; }
+[class*="border border-"]:not([class*="rounded"]):not([class*="border-l-"]) { border-radius: 6px; }
