@@ -1,8 +1,8 @@
-# 🚀 Academic Productivity & Evaluation Tracker
+# 🎓 SemSync — Academic Productivity Tracker
 
 A full-stack web application designed to help students manage **courses, evaluations, tasks, and focused study sessions** in a structured and efficient way.
 
-This system combines **course tracking, evaluation management, and productivity tools** into a single unified platform.
+SemSync combines **course tracking, evaluation management, Google Classroom integration, and productivity tools** into a single unified platform.
 
 ---
 
@@ -11,40 +11,52 @@ This system combines **course tracking, evaluation management, and productivity 
 ### 📚 Course Management
 
 * Create and manage multiple courses
-* Track course-specific evaluations and tasks
-* Organized course-wise dashboard
+* Set target grades and track credits
+* Live grade calculation with required-average projection
+* Organized course-wise dashboard with evaluation breakdown
 
 ### 📝 Evaluation System
 
-* Add, edit, and delete evaluations (quizzes, exams, assignments)
-* Track scores and performance
+* Add, edit, and delete evaluations (quizzes, exams, assignments, labs, projects, vivas)
+* Track scores, max scores, and weightages
+* Automatic current grade and remaining weight calculation
 * Structured evaluation records per course
+
+### 🎓 Google Classroom Integration
+
+* Connect your Google account with read-only access
+* Auto-import all active courses, assignments, due dates, and grades
+* Assignment status tracking: pending, due-soon, submitted, missing, graded
+* Grades tab with score bars and percentages per course
+* Announcements tab per course
+* Auto-refresh every 5 minutes with manual refresh option
+* Classroom assignments automatically synced to the Calendar view
+* Calendar events are removed cleanly when you unlink your account
 
 ### ⏱️ Focus Timer
 
-* Dedicated focus timer for deep work sessions
+* Built-in Pomodoro engine for deep work sessions
+* Configurable work and break intervals
 * Link sessions to tasks or use general categories:
 
-  * Reading
-  * Note Making
-  * Question Solving
-  * Coding
-  * Debugging
-  * etc.
+  * Reading, Note Making, Question Solving, Coding, Debugging, and more
+
+* Audio and visual alerts between sessions
+* Per-day and per-week focus time stats
 
 ### 📅 Calendar View
 
-* Visualize upcoming evaluations and tasks
-* Time-based planning and tracking
+* Month grid view of all evaluations and tasks
+* Colour-coded dots per course
+* Classroom assignments appear automatically
+* Visual deadline clustering to spot heavy weeks
 
 ### 📊 Dashboard
 
-* Overview of:
-
-  * Courses
-  * Evaluations
-  * Tasks
-  * Productivity insights
+* Overview of all active courses with live grade status
+* Urgency-tiered upcoming evaluations (Critical / Operational / Routine)
+* Weekly focus section resets every Monday
+* Upcoming panel updates instantly when a course is deleted
 
 ### 🔐 Authentication
 
@@ -55,6 +67,11 @@ This system combines **course tracking, evaluation management, and productivity 
 
 * Toast-based UI feedback
 * Real-time updates for actions
+
+### 🧭 Onboarding Tutorial
+
+* Step-by-step interactive tutorial on first launch
+* Covers Dashboard, Courses, Calendar, Classroom, Task Center, and Focus Timer
 
 ---
 
@@ -103,62 +120,17 @@ backend/
 frontend/
 ├── src/
 │   ├── components/        # UI components & modals
-│   ├── context/           # Global state (Auth, Notifications)
-│   ├── lib/               # API + data services
+│   │   └── modals/        # SyncCourseModal, AddCourseModal, etc.
+│   ├── context/           # Global state (Auth, Notifications, Theme)
+│   ├── lib/               # API client + data services + session cache
 │   ├── pages/             # Application pages
+│   │   ├── Dashboard.tsx
+│   │   ├── ClassroomPage.tsx
+│   │   ├── CoursePage.tsx
+│   │   ├── CalendarPage.tsx
+│   │   ├── TaskCenterPage.tsx
+│   │   └── FocusTimerPage.tsx
 │   └── main.tsx           # Entry point
-```
-
----
-
-## ⚙️ Setup Instructions
-
-### 1️⃣ Clone the repository
-
-```bash
-git clone <your-repo-url>
-cd project
-```
-
----
-
-### 2️⃣ Backend Setup
-
-```bash
-cd backend
-npm install
-```
-
-#### Configure Environment Variables
-
-Create a `.env` file:
-
-```env
-DATABASE_URL=your_postgres_connection
-JWT_SECRET=your_secret_key
-PORT=5000
-```
-
-#### Run migrations
-
-```bash
-npx drizzle-kit push
-```
-
-#### Start server
-
-```bash
-npm run dev
-```
-
----
-
-### 3️⃣ Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm run dev
 ```
 
 ---
@@ -183,6 +155,11 @@ npm run dev
 * `PUT /evals/:id`
 * `DELETE /evals/:id`
 
+### Classroom (Google OAuth — client-side only)
+
+* Token stored and retrieved via `/classroom/token` endpoints
+* All Classroom data is fetched directly from the Google Classroom API on the client
+
 ---
 
 ## 🧠 Design Decisions
@@ -193,6 +170,8 @@ npm run dev
 * **Context API** instead of Redux (lighter, sufficient)
 * **Component-driven UI** for reusability
 * **Session caching** for performance optimization
+* **localStorage-backed Classroom cache** so the page loads instantly from cache and refreshes in the background
+* **`_fromClassroom` flag** on calendar items enables clean removal when unlinking
 
 ---
 
@@ -209,5 +188,3 @@ This project is intended for **demonstration and personal use only**.
 * Mobile responsiveness improvements
 * Advanced scheduling system
 * AI-based study recommendations
-
-
