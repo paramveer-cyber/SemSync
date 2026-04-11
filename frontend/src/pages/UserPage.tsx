@@ -154,7 +154,7 @@ export default function UserPage() {
                 {['Terms of Service', 'Privacy Policy', 'Data Processing'].map(l => (
                   <a
                     key={l}
-                    href="#"
+                    href="/legal"
                     className="flex items-center gap-1 underline underline-offset-2 hover:text-[var(--color-text)] transition-colors">
                     {l}
                     <ExternalLink className="w-2.5 h-2.5" />
