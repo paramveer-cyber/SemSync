@@ -1,4 +1,4 @@
-const BASE = 'https://semsyncbackend.vercel.app';
+const BASE = 'http://localhost:3000';
 
 const getToken = () => localStorage.getItem('ct_token');
 
@@ -40,3 +40,9 @@ export const createEval = (courseId, data) => request('POST', `/courses/${course
 export const updateEval = (id, data) => request('PATCH', `/evaluations/${id}`, data);
 export const deleteEval = (id) => request('DELETE', `/evaluations/${id}`);
 export const getUpcomingEvals = () => request('GET', '/evaluations/upcoming');
+
+
+// Classroom token (stored in DB)
+export const getClassroomToken  = ()       => request('GET',    '/auth/classroom-token');
+export const saveClassroomToken = (accessToken, expiresIn) => request('POST', '/auth/classroom-token', { accessToken, expiresIn });
+export const clearClassroomToken = ()      => request('DELETE', '/auth/classroom-token');

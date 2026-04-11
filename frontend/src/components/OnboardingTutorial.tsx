@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   ChevronRight, LayoutDashboard, BookMarked,
-  CalendarDays, CheckSquare, Timer, ZoomIn,
+  CalendarDays, CheckSquare, Timer, ZoomIn, GraduationCap,
 } from 'lucide-react';
 
 // ── localStorage helpers ──────────────────────────────────────────────────────
@@ -111,6 +111,25 @@ const STEPS = [
       { icon: '📁', heading: 'Auto Archive', body: 'Completed tasks are automatically archived your history is always accessible, never cluttering your view.' },
     ],
     tip: "The most effective strategy: create tasks for each evaluation the day it's announced, then chip away daily.",
+  },
+  {
+    id: 'classroom',
+    icon: GraduationCap,
+    iconColor: '#4ade80',
+    accent: 'rgba(74,222,128,0.1)',
+    border: 'rgba(74,222,128,0.28)',
+    label: 'Classroom',
+    title: 'Connect Google Classroom',
+    tagline: 'LIVE COURSE DATA',
+    description:
+      'Link your Google Classroom account to pull in all your active courses, assignments, due dates, and grades automatically. Your coursework stays in sync without any manual entry.',
+    details: [
+      { icon: '🔗', heading: 'Link Your Account', body: 'Go to the Classroom page and click "Connect Classroom". Grant read-only access — SemSync never writes to your Classroom.' },
+      { icon: '📋', heading: 'Coursework & Deadlines', body: 'All assignments with due dates appear under each course. Items are split into Upcoming and Past, colour-coded by status: missing, due-soon, submitted, or graded.' },
+      { icon: '🏆', heading: 'Grades Tab', body: 'Returned grades are shown with a score bar and percentage. Switch to the Grades tab on any course to see your full graded history at a glance.' },
+      { icon: '📢', heading: 'Announcements', body: 'Teacher announcements are pulled in per-course so you never miss a change to an exam or deadline.' },
+    ],
+    tip: 'Data auto-refreshes every 5 minutes while the page is open. Hit Refresh manually any time for an instant update.',
   },
   {
     id: 'timer',

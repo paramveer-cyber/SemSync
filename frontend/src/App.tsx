@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -15,10 +16,87 @@ import SettingsPage from './pages/SettingsPage';
 import FocusTimerPage from './pages/FocusTimerPage';
 import AboutPage from './pages/AboutPage';
 import LegalPage from './pages/LegalPage';
+import ClassroomPage from './pages/ClassroomPage';
+
+// ── Global background timer watcher ──────────────────────────────────────────
+// Fires focus/break-end notifications even when the user has navigated away
+// from FocusTimerPage. Reads the same persisted state the timer page writes.
+
+const TIMER_STATE_KEY  = 'focus_timer_state_v1';
+const SESSIONS_KEY     = 'focus_sessions_v1';
+
+function toDateStr(ts: number) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function GlobalTimerWatcher() {
+  useEffect(() => {
+    const tick = setInterval(() => {
+      try {
+        const raw = localStorage.getItem(TIMER_STATE_KEY);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        if (state.status !== 'running') return;
+
+        const elapsed = Math.floor((Date.now() - state.savedAt) / 1000);
+        const remaining = state.secondsLeft - elapsed;
+
+        if (remaining > 0) return; // timer hasn't ended yet
+
+        // Timer just ended — fire notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          if (state.phase === 'focus') {
+            new Notification('Focus Complete! 🎯', {
+              body: 'Great work! Take a 5 minute break and touch grass 🌱',
+            });
+          } else if (state.phase === 'break') {
+            new Notification('Break Over! ⚡', {
+              body: 'Ready to focus again?',
+            });
+          }
+        }
+
+        // If focus phase ended, commit the session to localStorage
+        if (state.phase === 'focus') {
+          const minutes = state.sessionStartMinutes;
+          if (minutes >= 1) {
+            const sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) ?? '[]');
+            const newSession = {
+              id: Math.random().toString(36).slice(2),
+              date: toDateStr(Date.now()),
+              durationMinutes: minutes,
+              taskTitle: state.linkedEval?.title ?? state.linkedTask?.title ?? (state.quickTitle || undefined),
+              taskCategory: state.linkedEval?.courseName ?? state.linkedTask?.category ?? (state.quickCategory || undefined),
+              completedAt: Date.now(),
+            };
+            localStorage.setItem(SESSIONS_KEY, JSON.stringify([newSession, ...sessions]));
+          }
+          // Transition to break phase in persisted state
+          const breakSecs = 5 * 60;
+          localStorage.setItem(TIMER_STATE_KEY, JSON.stringify({
+            ...state,
+            phase: 'break',
+            status: 'running',
+            secondsLeft: breakSecs,
+            totalSeconds: breakSecs,
+            savedAt: Date.now(),
+          }));
+        } else if (state.phase === 'break') {
+          // Break ended — clear persisted state
+          localStorage.removeItem(TIMER_STATE_KEY);
+        }
+      } catch { /* noop */ }
+    }, 1000);
+
+    return () => clearInterval(tick);
+  }, []);
+
+  return null;
+}
 
 const DesktopOnly = ({ children }: { children: React.ReactNode }) => {
-  const isDesktop = window.innerWidth >= 1024; // tweak if needed
-
+  const isDesktop = window.innerWidth >= 1024;
   if (!isDesktop) {
     return (
       <div className="min-h-screen flex items-center justify-center mesh-bg text-center px-6">
@@ -32,7 +110,6 @@ const DesktopOnly = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-
   return <>{children}</>;
 };
 
@@ -66,6 +143,7 @@ export default function App() {
       <ThemeProvider>
       <Router>
         <NotificationProvider>
+          <GlobalTimerWatcher />
           <ToastStack />
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -80,6 +158,7 @@ export default function App() {
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/legal" element={<LegalPage />} />
+            <Route path="/classroom" element={<ProtectedRoute><ClassroomPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </NotificationProvider>

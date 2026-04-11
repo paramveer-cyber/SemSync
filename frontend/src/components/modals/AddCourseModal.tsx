@@ -11,6 +11,7 @@ interface StructureRow {
   label: string;
   weight: string;
   count: string; // how many instances, e.g. "3 quizzes"
+  date: string;  // yyyy-mm-dd for the eval date
 }
 
 const EVAL_TYPES = [
@@ -52,10 +53,10 @@ export default function AddCourseModal({
 
   /* ── Step 2: course structure ── */
   const [rows, setRows] = useState<StructureRow[]>([
-    { id: uid(), type: 'midsem',     label: 'Mid Semester Exam', weight: '25', count: '1' },
-    { id: uid(), type: 'endsem',     label: 'End Semester Exam', weight: '35', count: '1' },
-    { id: uid(), type: 'assignment', label: 'Assignments',       weight: '20', count: '3' },
-    { id: uid(), type: 'quiz',       label: 'Quizzes',           weight: '20', count: '4' },
+    { id: uid(), type: 'midsem',     label: 'Mid Semester Exam', weight: '25', count: '1', date: '' },
+    { id: uid(), type: 'endsem',     label: 'End Semester Exam', weight: '35', count: '1', date: '' },
+    { id: uid(), type: 'assignment', label: 'Assignments',       weight: '20', count: '3', date: '' },
+    { id: uid(), type: 'quiz',       label: 'Quizzes',           weight: '20', count: '4', date: '' },
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -75,7 +76,7 @@ export default function AddCourseModal({
   const updateRow = (id: string, field: keyof StructureRow, value: string) =>
     setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
   const addRow = () =>
-    setRows(prev => [...prev, { id: uid(), type: 'other', label: '', weight: '', count: '1' }]);
+    setRows(prev => [...prev, { id: uid(), type: 'other', label: '', weight: '', count: '1', date: '' }]);
   const removeRow = (id: string) =>
     setRows(prev => prev.filter(r => r.id !== id));
 
@@ -100,13 +101,14 @@ export default function AddCourseModal({
       });
 
       /* 2. Create evaluations from structure rows */
-      const today = new Date().toISOString();
+      const fallbackDate = new Date().toISOString();
       const evalPromises: Promise<any>[] = [];
 
       for (const row of rows) {
         const count   = Math.max(1, parseInt(row.count) || 1);
         const weight  = parseFloat(row.weight) || 0;
         const perEval = parseFloat((weight / count).toFixed(1));
+        const evalDate = row.date ? new Date(row.date).toISOString() : fallbackDate;
 
         for (let i = 1; i <= count; i++) {
           const title = count === 1 ? row.label.trim() || EVAL_TYPES.find(t => t.value === row.type)?.label || row.type
@@ -115,7 +117,7 @@ export default function AddCourseModal({
             createEval(course.id, {
               title,
               type:      row.type,
-              date:      today,
+              date:      evalDate,
               weightage: perEval,
               maxScore:  100,
               score:     null,
@@ -156,7 +158,7 @@ export default function AddCourseModal({
       <div
         className="w-full overflow-hidden"
         style={{
-          maxWidth: step === 2 ? '680px' : '480px',
+          maxWidth: step === 2 ? '780px' : '480px',
           background: 'var(--color-surface)',
           border: '1px solid var(--color-glass-border)',
           transition: 'max-width 0.25s ease',
@@ -300,16 +302,16 @@ export default function AddCourseModal({
             </div>
 
             {/* Column headers */}
-            <div className="grid gap-3 mt-5 mb-2" style={{ gridTemplateColumns: '1fr 140px 80px 64px 32px' }}>
-              {['Label', 'Type', 'Weight %', 'Count', ''].map(h => (
+            <div className="grid gap-3 mt-5 mb-2" style={{ gridTemplateColumns: '1fr 120px 80px 60px 100px 32px' }}>
+              {['Label', 'Type', 'Weight %', 'Count', 'Date', ''].map(h => (
                 <span key={h} className="text-[9px] font-black tracking-[0.2em] uppercase" style={{ color: 'var(--color-text-faint)' }}>{h}</span>
               ))}
             </div>
 
             {/* Rows */}
-            <div className="space-y-2 mb-4" style={{ maxHeight: '240px', overflowY: 'auto' }}>
+            <div className="space-y-2 mb-4" style={{ maxHeight: '260px', overflowY: 'auto' }}>
               {rows.map(row => (
-                <div key={row.id} className="grid gap-3 items-center" style={{ gridTemplateColumns: '1fr 140px 80px 64px 32px' }}>
+                <div key={row.id} className="grid gap-2 items-center" style={{ gridTemplateColumns: '1fr 120px 72px 56px 110px 32px' }}>
                   {/* Label */}
                   <input
                     className="w-full px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/20 focus:outline-none transition-colors"
@@ -320,7 +322,7 @@ export default function AddCourseModal({
                   />
                   {/* Type */}
                   <select
-                    className="w-full px-3 py-2 text-sm text-[var(--color-text)] focus:outline-none cursor-pointer"
+                    className="w-full px-2 py-2 text-sm text-[var(--color-text)] focus:outline-none cursor-pointer"
                     style={fieldStyle}
                     value={row.type}
                     onChange={e => updateRow(row.id, 'type', e.target.value)}>
@@ -330,7 +332,7 @@ export default function AddCourseModal({
                   </select>
                   {/* Weight */}
                   <input
-                    className="w-full px-3 py-2 text-sm text-[var(--color-text)] text-right focus:outline-none transition-colors font-mono"
+                    className="w-full px-2 py-2 text-sm text-[var(--color-text)] text-right focus:outline-none transition-colors font-mono"
                     style={fieldStyle}
                     type="number" min="0" max="100" step="0.5"
                     placeholder="0"
@@ -339,12 +341,21 @@ export default function AddCourseModal({
                   />
                   {/* Count */}
                   <input
-                    className="w-full px-3 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none transition-colors font-mono"
+                    className="w-full px-2 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none transition-colors font-mono"
                     style={fieldStyle}
                     type="number" min="1" max="20" step="1"
                     placeholder="1"
                     value={row.count}
                     onChange={e => updateRow(row.id, 'count', e.target.value)}
+                  />
+                  {/* Date */}
+                  <input
+                    className="w-full px-2 py-2 text-xs text-[var(--color-text)] focus:outline-none transition-colors font-mono"
+                    style={{ ...fieldStyle, colorScheme: 'dark' }}
+                    type="date"
+                    value={row.date}
+                    onChange={e => updateRow(row.id, 'date', e.target.value)}
+                    title="Evaluation date (optional)"
                   />
                   {/* Remove */}
                   <button

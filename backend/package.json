@@ -19,6 +19,7 @@
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
     "google-auth-library": "^10.6.2",
+    "googleapis": "^144.0.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.20.0"
   },

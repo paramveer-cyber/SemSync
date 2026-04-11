@@ -14,11 +14,11 @@ const formatUser = (user) => ({
 
 export const googleAuth = async (req, res) => {
     try {
-        const { idToken } = req.body;
+        const { idToken, accessToken, refreshToken } = req.body;
         if (!idToken) return res.status(400).json({ message: "idToken is required" });
 
         const payload = await verifyGoogleToken(idToken);
-        const user    = await findOrCreateUser(payload);
+        const user    = await findOrCreateUser(payload, accessToken, refreshToken);
         const token   = generateToken(user);
 
         return res.status(200).json({ token, user: formatUser(user) });
@@ -49,4 +49,79 @@ export const getMe = async (req, res) => {
 
 export const logout = (_req, res) => {
     return res.status(200).json({ message: "Logged out" });
+};
+
+// ── Classroom token endpoints ─────────────────────────────────────────────────
+
+/**
+ * GET /auth/classroom-token
+ * Returns the stored Google classroom access token for the authenticated user,
+ * or null if not linked / expired.
+ */
+export const getClassroomToken = async (req, res) => {
+    try {
+        const user = await db.query.users.findFirst({
+            where: eq(users.id, req.user.userId),
+        });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const { googleAccessToken, googleTokenExpiry } = user;
+
+        if (!googleAccessToken || !googleTokenExpiry) {
+            return res.status(200).json({ token: null, expiry: null });
+        }
+
+        // Check expiry
+        if (new Date(googleTokenExpiry).getTime() < Date.now()) {
+            return res.status(200).json({ token: null, expiry: null });
+        }
+
+        return res.status(200).json({
+            token:  googleAccessToken,
+            expiry: new Date(googleTokenExpiry).getTime(),
+        });
+    } catch (err) {
+        console.error("[auth/classroom-token GET]", err.message);
+        return res.status(500).json({ message: "Failed to fetch classroom token" });
+    }
+};
+
+/**
+ * POST /auth/classroom-token
+ * Body: { accessToken, expiresIn }
+ * Stores the Google classroom access token for the authenticated user.
+ */
+export const saveClassroomToken = async (req, res) => {
+    try {
+        const { accessToken, expiresIn } = req.body;
+        if (!accessToken) return res.status(400).json({ message: "accessToken is required" });
+
+        const expiry = new Date(Date.now() + (expiresIn ?? 3600) * 1000);
+
+        await db.update(users)
+            .set({ googleAccessToken: accessToken, googleTokenExpiry: expiry })
+            .where(eq(users.id, req.user.userId));
+
+        return res.status(200).json({ ok: true, expiry: expiry.getTime() });
+    } catch (err) {
+        console.error("[auth/classroom-token POST]", err.message);
+        return res.status(500).json({ message: "Failed to save classroom token" });
+    }
+};
+
+/**
+ * DELETE /auth/classroom-token
+ * Clears the stored Google classroom token for the authenticated user.
+ */
+export const clearClassroomToken = async (req, res) => {
+    try {
+        await db.update(users)
+            .set({ googleAccessToken: null, googleTokenExpiry: null })
+            .where(eq(users.id, req.user.userId));
+
+        return res.status(200).json({ ok: true });
+    } catch (err) {
+        console.error("[auth/classroom-token DELETE]", err.message);
+        return res.status(500).json({ message: "Failed to clear classroom token" });
+    }
 };

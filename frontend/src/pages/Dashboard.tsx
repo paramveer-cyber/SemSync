@@ -127,8 +127,9 @@ export default function Dashboard() {
         setDeleting(id);
         try {
             await deleteCourse(id);
-            invalidateAllCourseData(); // wipe cache so next load is fresh
+            invalidateAllCourseData();
             setCourses(p => p.filter(c => c.id !== id));
+            setUpcoming(p => p.filter((e: any) => e.courseId !== id));
         } catch (err: any) { alert('Failed: ' + err.message); }
         finally { setDeleting(null); }
     };

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { fetchUpcomingEvals } from '../lib/dataService';
+import { fetchCourses, fetchCourse } from '../lib/dataService';
 import {
   Timer, Play, Pause, RotateCcw, X, Plus, Zap, Coffee,
   ChevronDown, CheckCircle2, Link2, Target, AlertCircle, BookOpen
@@ -43,6 +43,34 @@ const CATEGORIES = [
 
 const SESSIONS_KEY = 'focus_sessions_v1';
 const TASKS_KEY = 'architect_tasks_v1';
+const TIMER_STATE_KEY = 'focus_timer_state_v1';
+
+interface PersistedTimerState {
+  phase: TimerPhase;
+  status: TimerStatus;
+  secondsLeft: number;
+  totalSeconds: number;
+  selectedMinutes: number;
+  sessionStartMinutes: number;
+  savedAt: number; // wall-clock ms when state was saved
+  quickTitle: string;
+  quickCategory: string;
+  linkedTask: TimerTask | null;
+  linkedEval: EvalItem | null;
+}
+function saveTimerState(state: PersistedTimerState) {
+  try { localStorage.setItem(TIMER_STATE_KEY, JSON.stringify(state)); } catch { /* noop */ }
+}
+function loadTimerState(): PersistedTimerState | null {
+  try {
+    const raw = localStorage.getItem(TIMER_STATE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as PersistedTimerState;
+  } catch { return null; }
+}
+function clearTimerState() {
+  try { localStorage.removeItem(TIMER_STATE_KEY); } catch { /* noop */ }
+}
 
 function loadSessions(): FocusSession[] {
   try { const r = localStorage.getItem(SESSIONS_KEY); return r ? JSON.parse(r) : []; } catch { return []; }
@@ -263,12 +291,12 @@ export default function FocusTimerPage() {
   const [sessions, setSessions] = useState<FocusSession[]>(loadSessions);
   const [tasks] = useState<TimerTask[]>(loadTasks);
   const [evals, setEvals] = useState<EvalItem[]>([]);
-  const [linkedTask, setLinkedTask] = useState<TimerTask | null>(null);
-  const [linkedEval, setLinkedEval] = useState<EvalItem | null>(null);
+  const [linkedTask, setLinkedTask] = useState<TimerTask | null>(() => loadTimerState()?.linkedTask ?? null);
+  const [linkedEval, setLinkedEval] = useState<EvalItem | null>(() => loadTimerState()?.linkedEval ?? null);
 
   // ── Committed task (shown in badge, used for logging) ──
-  const [quickTitle, setQuickTitle] = useState('');
-  const [quickCategory, setQuickCategory] = useState(CATEGORIES[0]);
+  const [quickTitle, setQuickTitle] = useState(() => loadTimerState()?.quickTitle ?? '');
+  const [quickCategory, setQuickCategory] = useState(() => loadTimerState()?.quickCategory ?? CATEGORIES[0]);
 
   // ── Draft task (bound to input while typing) ──
   const [draftTitle, setDraftTitle] = useState('');
@@ -279,15 +307,51 @@ export default function FocusTimerPage() {
   const [showQuickTask, setShowQuickTask] = useState(false);
   const [taskError, setTaskError] = useState(false);
 
-  const [selectedMinutes, setSelectedMinutes] = useState(25);
-  const [phase, setPhase] = useState<TimerPhase>('idle');
-  const [status, setStatus] = useState<TimerStatus>('idle');
-  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
-  const [totalSeconds, setTotalSeconds] = useState(25 * 60);
-  const [sessionStartMinutes, setSessionStartMinutes] = useState(25);
+  const [selectedMinutes, setSelectedMinutes] = useState(() => {
+    const s = loadTimerState(); return s ? s.selectedMinutes : 25;
+  });
+  const [phase, setPhase] = useState<TimerPhase>(() => {
+    const s = loadTimerState(); return s ? s.phase : 'idle';
+  });
+  const [status, setStatus] = useState<TimerStatus>(() => {
+    const s = loadTimerState();
+    if (!s) return 'idle';
+    return s.status; // restore exactly — secondsLeft already accounts for elapsed time
+  });
+  const [secondsLeft, setSecondsLeft] = useState(() => {
+    const s = loadTimerState();
+    if (!s) return 25 * 60;
+    if (s.status === 'running') {
+      // subtract wall-clock elapsed time
+      const elapsed = Math.floor((Date.now() - s.savedAt) / 1000);
+      const adjusted = s.secondsLeft - elapsed;
+      return Math.max(adjusted, 0);
+    }
+    return s.secondsLeft;
+  });
+  const [totalSeconds, setTotalSeconds] = useState(() => {
+    const s = loadTimerState(); return s ? s.totalSeconds : 25 * 60;
+  });
+  const [sessionStartMinutes, setSessionStartMinutes] = useState(() => {
+    const s = loadTimerState(); return s ? s.sessionStartMinutes : 25;
+  });
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionStartRef = useRef<number>(0);
+
+  // Persist timer state to localStorage whenever it changes so navigation doesn't reset it
+  useEffect(() => {
+    if (phase === 'idle' && status === 'idle') {
+      clearTimerState();
+    } else {
+      saveTimerState({
+        phase, status, secondsLeft, totalSeconds,
+        selectedMinutes, sessionStartMinutes,
+        savedAt: Date.now(),
+        quickTitle, quickCategory, linkedTask, linkedEval,
+      });
+    }
+  }, [phase, status, secondsLeft, totalSeconds, selectedMinutes, sessionStartMinutes, quickTitle, quickCategory, linkedTask, linkedEval]);
 
   // Ask for notification permission on mount
   useEffect(() => {
@@ -296,9 +360,22 @@ export default function FocusTimerPage() {
     }
   }, []);
 
-  // Fetch upcoming evals for linking
+  // Fetch ALL evals (including past deadlines) from course details
   useEffect(() => {
-    fetchUpcomingEvals().then(data => setEvals(data)).catch(() => {});
+    (async () => {
+      try {
+        const courseList = await fetchCourses();
+        const details = await Promise.all(courseList.map((c: any) => fetchCourse(c.id).catch(() => null)));
+        const gathered: EvalItem[] = [];
+        details.forEach((d, i) => {
+          if (!d) return;
+          (d.evaluations ?? []).forEach((ev: any) => {
+            gathered.push({ id: ev.id, title: ev.title, courseName: courseList[i]?.name ?? '', type: ev.type, date: ev.date, weightage: ev.weightage });
+          });
+        });
+        setEvals(gathered);
+      } catch { /* silent */ }
+    })();
   }, []);
 
   const clearTimer = () => { if (intervalRef.current) clearInterval(intervalRef.current); };
@@ -342,6 +419,7 @@ export default function FocusTimerPage() {
               setStatus('idle');
               setSecondsLeft(selectedMinutes * 60);
               setTotalSeconds(selectedMinutes * 60);
+              clearTimerState();
 
               if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('Break Over!', { body: 'Ready to focus again?' });
@@ -388,6 +466,7 @@ export default function FocusTimerPage() {
     setStatus('idle');
     setSecondsLeft(selectedMinutes * 60);
     setTotalSeconds(selectedMinutes * 60);
+    clearTimerState();
   };
 
   const reset = () => {
@@ -396,6 +475,7 @@ export default function FocusTimerPage() {
     setStatus('idle');
     setSecondsLeft(selectedMinutes * 60);
     setTotalSeconds(selectedMinutes * 60);
+    clearTimerState();
   };
 
   const extend = () => {

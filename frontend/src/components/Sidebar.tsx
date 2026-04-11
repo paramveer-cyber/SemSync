@@ -1,4 +1,4 @@
-import { LayoutDashboard, BookOpen, CalendarDays, ClipboardList, Settings, LogOut, Bell, Timer } from 'lucide-react';
+import { LayoutDashboard, BookOpen, CalendarDays, ClipboardList, Settings, LogOut, Timer, GraduationCap } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -7,12 +7,13 @@ import { useState } from 'react';
 import icon from "/favicon.ico";
 
 const navItems = [
-  { name: 'Dashboard',   icon: LayoutDashboard, path: '/dashboard' },
-  { name: 'Courses',     icon: BookOpen,         path: '/courses'   },
-  { name: 'Task Center', icon: ClipboardList,    path: '/tasks'     },
-  { name: 'Calendar',    icon: CalendarDays,     path: '/calendar'  },
-  { name: 'Focus Timer', icon: Timer,            path: '/focus'     },
-  { name: 'Settings',    icon: Settings,         path: '/settings'  },
+  { name: 'Dashboard',   icon: LayoutDashboard, path: '/dashboard'  },
+  { name: 'Courses',     icon: BookOpen,         path: '/courses'    },
+  { name: 'Classroom',   icon: GraduationCap,    path: '/classroom'  },
+  { name: 'Task Center', icon: ClipboardList,    path: '/tasks'      },
+  { name: 'Calendar',    icon: CalendarDays,     path: '/calendar'   },
+  { name: 'Focus Timer', icon: Timer,            path: '/focus'      },
+  { name: 'Settings',    icon: Settings,         path: '/settings'   },
 ];
 
 export default function Sidebar() {
@@ -35,7 +36,6 @@ export default function Sidebar() {
     <aside className="w-72 flex flex-col h-screen sticky top-0 shrink-0"
       style={{ background: 'var(--color-sidebar-bg)', borderRight: '1px solid var(--color-sidebar-border)', backdropFilter: 'blur(20px)' }}>
 
-      {/* Logo + bell */}
       <div className="px-8 pt-8 pb-6 flex items-center justify-between">
         <Link to="/">
           <div className="flex items-center gap-3">
@@ -48,25 +48,8 @@ export default function Sidebar() {
             </div>
           </div>
         </Link>
-
-        {/* Notification bell */}
-        <Link to="/settings"
-          className="relative w-8 h-8 flex items-center justify-center transition-colors duration-150"
-          style={{ color: settings.enabled ? 'var(--color-text-muted)' : 'var(--color-text-faint)', cursor: 'pointer', borderRadius: 6 }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-brand)')}
-          onMouseLeave={e => (e.currentTarget.style.color = settings.enabled ? 'var(--color-text-muted)' : 'var(--color-text-faint)')}
-          title="Notification settings">
-          <Bell className="w-4 h-4" />
-          {unread > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center text-[9px] font-black"
-              style={{ background: '#ef4444', color: '#fff', borderRadius: '50%' }}>
-              {unread > 9 ? '9+' : unread}
-            </span>
-          )}
-        </Link>
       </div>
 
-      {/* Nav */}
       <nav className="grow px-4 space-y-3">
         {navItems.map(item => {
           const active = location.pathname.startsWith(item.path);
@@ -89,7 +72,6 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* User + logout */}
       <div className="px-4 pb-6 pt-4 space-y-1" style={{ borderTop: '1px solid var(--color-glass-border)' }}>
         {user && (
           <Link to="/profile"
