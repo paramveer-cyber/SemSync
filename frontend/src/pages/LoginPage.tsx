@@ -66,7 +66,7 @@ export default function LoginPage() {
 
             <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2 font-headline">Welcome back</h1>
             <p className="text-sm mb-8" style={{ color: 'var(--color-text-muted)' }}>
-              Sign in with your institutional Google account to continue.
+              Sign in with your Google account to continue.
             </p>
 
             {/* Loading state */}
@@ -108,8 +108,6 @@ export default function LoginPage() {
           <p className="text-center text-xs mt-6" style={{ color: 'var(--color-text-muted)' }}>
             © 2026 SemSync. By signing in you agree to our{' '}
             <a href="legal" className="underline underline-offset-2 hover:text-[var(--color-text)] transition-colors">Terms of Service</a>{' '}
-            and{' '}
-            <a href="legal" className="underline underline-offset-2 hover:text-[var(--color-text)] transition-colors">Privacy Policy</a>.
           </p>
         </div>
         
