@@ -576,6 +576,10 @@ export default function ClassroomPage() {
   const handleUnlink = async () => {
     if (autoTimerRef.current) clearInterval(autoTimerRef.current);
     await clearTokenFromDB();
+    try {
+      const existing: any[] = JSON.parse(localStorage.getItem(CALENDAR_LS_KEY) ?? '[]');
+      localStorage.setItem(CALENDAR_LS_KEY, JSON.stringify(existing.filter((i: any) => !i._fromClassroom)));
+    } catch {}
     setLinked(false); setCourses([]); setSelectedId(null); isFirstLoad.current = true;
   };
 
