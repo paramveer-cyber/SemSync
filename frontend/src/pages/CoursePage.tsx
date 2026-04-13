@@ -256,21 +256,21 @@ export default function CoursePage() {
                                                     </span>
                                                 </div>
                                                 <div className="col-span-2 text-right">
-                                                    <span className="text-[10px] text-[var(--color-text-faint)] font-mono">{fmtDate(e.date)}</span>
+                                                    <span className="text-[12px] text-[var(--color-text-faint)] font-mono">{fmtDate(e.date)}</span>
                                                 </div>
                                                 <div className="col-span-2 text-right">
-                                                    <span className="text-[10px] font-mono text-[var(--color-text)]">{e.weightage}%</span>
+                                                    <span className="text-[11.5px] font-mono text-[var(--color-text)]">{e.weightage}%</span>
                                                 </div>
                                                 <div className="col-span-1 text-right">
                                                     {e.score !== null && e.score !== undefined
-                                                        ? <span className="text-[10px] font-mono text-[var(--color-text)]">{e.score}/{e.maxScore}</span>
-                                                        : <span className="text-[10px] font-mono text-[var(--color-text-faint)]">—</span>
+                                                        ? <span className="text-[11.5px] font-mono text-[var(--color-text)]">{e.score}/{e.maxScore}</span>
+                                                        : <span className="text-[11.5px] font-mono text-[var(--color-text-faint)]">—</span>
                                                     }
                                                 </div>
                                                 <div className="col-span-1 text-right">
                                                     {earned !== null
-                                                        ? <span className="text-[10px] font-mono text-[var(--color-brand)] font-bold">{earned}%</span>
-                                                        : <span className="text-[10px] font-mono text-[var(--color-text-faint)]">—</span>
+                                                        ? <span className="text-[11.5px] font-mono text-[var(--color-brand)] font-bold">{earned}%</span>
+                                                        : <span className="text-[11.5px] font-mono text-[var(--color-text-faint)]">—</span>
                                                     }
                                                 </div>
 
@@ -290,8 +290,7 @@ export default function CoursePage() {
                                                             (el.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.12)';
                                                             (el.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(59,130,246,0.25)';
                                                         }}>
-                                                        <Pencil className="w-3 h-3" />
-                                                        Edit
+                                                        <Pencil className="w-4 h-4" />
                                                     </button>
 
                                                     {/* Delete — Anger → red */}
@@ -308,8 +307,7 @@ export default function CoursePage() {
                                                             (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
                                                             (el.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
                                                         }}>
-                                                        <Trash2 className="w-3 h-3" />
-                                                        Delete
+                                                        <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </div>
