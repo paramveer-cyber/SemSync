@@ -9,14 +9,14 @@ export default function LegalPage() {
         <Header title="Legal & Privacy" subtitle="The fine print" />
         <div className="grow overflow-y-auto p-8 max-w-3xl">
           <div className="p-8 rounded-lg space-y-8 text-sm leading-relaxed" style={{ border: "1px solid var(--color-glass-border)", background: "var(--color-surface-1)", color: "var(--color-text-muted)" }}>
-            
             <section>
               <h2 className="text-xl font-bold mb-3" style={{ color: "var(--color-text)" }}>1. Terms of Service & Disclaimer</h2>
               <p>
-                Welcome to this project! By using this website, you agree to these totally generic terms. 
-                <strong> Crucially, you agree that you cannot sue me (Paramveer) or any contributors under any condition.</strong> 
-                This is purely a fun, personal project built out of frustration with existing tools. 
-                No earnings are being made from this platform as of this moment, and it is provided "AS IS" without any warranties.
+                Welcome to this project! This is purely a fun, personal project built out of frustration with existing tools, and no earnings are currently being made from it. By using this website, you agree to the following terms,
+              </p>
+              <br/>
+              <p>
+                This platform is provided strictly "AS IS" and "AS AVAILABLE" without warranties of any kind, either express or implied. To the maximum extent permitted by applicable law, you expressly agree that I (Paramveer) and any contributors shall not be held liable for any direct, indirect, incidental, consequential, or special damages including, but not limited to, data loss, server crashes, or service interruptions arising out of or in any way connected to your use of this site.
               </p>
             </section>
 
@@ -33,7 +33,7 @@ export default function LegalPage() {
             <section>
               <h2 className="text-xl font-bold mb-3" style={{ color: "var(--color-text)" }}>3. Data Ownership</h2>
               <p>
-                You own the data you input. If you want it deleted, just let me know. 
+                You own the data you input. If you want it deleted, just let me know(via email, mentioned in About section). 
                 Again, don't sue me if a server crashes and your task list disappears. I recommend keeping a backup of anything mission-critical.
               </p>
             </section>
@@ -50,6 +50,13 @@ export default function LegalPage() {
                 I reserve the right to modify, update, or completely rewrite these terms at any time without prior notice. Continued use of the platform after any changes indicates your acceptance of the new terms. Since this is a fun project, I probably won't send out a newsletter when I fix a typo in paragraph two.
               </p>
             </section>
+            <section>
+              <h2 className="text-xl font-bold mb-3" style={{ color: "var(--color-text)" }}>6. Age Restriction</h2>
+              <p>
+                This platform is not intended for or directed at children under the age of 13. By using this service and authenticating via Google OAuth, you represent that you are at least 13 years old.
+              </p>
+            </section>
+            
           </div>
         </div>
       </main>
