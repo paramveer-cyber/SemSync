@@ -17,10 +17,7 @@ import FocusTimerPage from './pages/FocusTimerPage';
 import AboutPage from './pages/AboutPage';
 import LegalPage from './pages/LegalPage';
 import ClassroomPage from './pages/ClassroomPage';
-
-// ── Global background timer watcher ──────────────────────────────────────────
-// Fires focus/break-end notifications even when the user has navigated away
-// from FocusTimerPage. Reads the same persisted state the timer page writes.
+import ClassroomCoursePage from './pages/ClassroomCoursePage';
 
 const TIMER_STATE_KEY  = 'focus_timer_state_v1';
 const SESSIONS_KEY     = 'focus_sessions_v1';
@@ -42,9 +39,8 @@ function GlobalTimerWatcher() {
         const elapsed = Math.floor((Date.now() - state.savedAt) / 1000);
         const remaining = state.secondsLeft - elapsed;
 
-        if (remaining > 0) return; // timer hasn't ended yet
+        if (remaining > 0) return; 
 
-        // Timer just ended — fire notification
         if ('Notification' in window && Notification.permission === 'granted') {
           if (state.phase === 'focus') {
             new Notification('Focus Complete! 🎯', {
@@ -57,7 +53,6 @@ function GlobalTimerWatcher() {
           }
         }
 
-        // If focus phase ended, commit the session to localStorage
         if (state.phase === 'focus') {
           const minutes = state.sessionStartMinutes;
           if (minutes >= 1) {
@@ -72,7 +67,6 @@ function GlobalTimerWatcher() {
             };
             localStorage.setItem(SESSIONS_KEY, JSON.stringify([newSession, ...sessions]));
           }
-          // Transition to break phase in persisted state
           const breakSecs = 5 * 60;
           localStorage.setItem(TIMER_STATE_KEY, JSON.stringify({
             ...state,
@@ -83,10 +77,9 @@ function GlobalTimerWatcher() {
             savedAt: Date.now(),
           }));
         } else if (state.phase === 'break') {
-          // Break ended — clear persisted state
           localStorage.removeItem(TIMER_STATE_KEY);
         }
-      } catch { /* noop */ }
+      } catch { }
     }, 1000);
 
     return () => clearInterval(tick);
@@ -96,7 +89,7 @@ function GlobalTimerWatcher() {
 }
 
 const DesktopOnly = ({ children }: { children: React.ReactNode }) => {
-  const isDesktop = window.innerWidth >= 1024;
+  const isDesktop = window.innerWidth >= 768;
   if (!isDesktop) {
     return (
       <div className="min-h-screen flex items-center justify-center mesh-bg text-center px-6">
@@ -159,6 +152,7 @@ export default function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/legal" element={<LegalPage />} />
             <Route path="/classroom" element={<ProtectedRoute><ClassroomPage /></ProtectedRoute>} />
+            <Route path="/classroom/:courseId" element={<ProtectedRoute><ClassroomCoursePage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </NotificationProvider>
