@@ -46,7 +46,7 @@ export default function LoginPage() {
         </Link>
         <div className="flex gap-6">
           <a href="/" className="text-sm transition-colors" style={{ color: 'var(--color-text-muted)' }}>Features</a>
-          <a href="/" className="text-sm transition-colors" style={{ color: 'var(--color-text-muted)' }}>About</a>
+          <a href="/about" className="text-sm transition-colors" style={{ color: 'var(--color-text-muted)' }}>About</a>
         </div>
       </nav>
 
