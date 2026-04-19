@@ -5,7 +5,7 @@ import AddCourseModal from '../components/modals/AddCourseModal';
 import OnboardingTutorial, { hasSeenTutorial, markTutorialSeen } from '../components/OnboardingTutorial';
 import { deleteCourse } from '../lib/api';
 import { fetchCourses, fetchUpcomingEvals, fetchCourse, invalidateAllCourseData } from '../lib/dataService';
-import { Plus, Clock, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, Clock, Trash2, AlertTriangle, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -133,6 +133,32 @@ export default function Dashboard() {
         } catch (err: any) { alert('Failed: ' + err.message); }
         finally { setDeleting(null); }
     };
+
+    // ── Classroom cross-course upcoming ──────────────────────────────────────
+    const [classroomLinked] = useState(() => {
+        try { return !!localStorage.getItem('semsync_classroom_data'); } catch { return false; }
+    });
+    const [classroomExpanded, setClassroomExpanded] = useState(true);
+    const classroomUpcoming = (() => {
+        if (!classroomLinked) return [];
+        try {
+            const data: any[] = JSON.parse(localStorage.getItem('semsync_classroom_data') ?? '[]');
+            const doneIds: Set<string> = new Set(JSON.parse(localStorage.getItem('semsync_classroom_done_ids') ?? '[]'));
+            const items: { id: string; title: string; courseName: string; dueDate: string; days: number; hue: number }[] = [];
+            data.forEach((course: any) => {
+                const hue = course.name.split('').reduce((h: number, c: string) => (h * 31 + c.charCodeAt(0)) % 360, 0);
+                (course.coursework ?? []).forEach((cw: any) => {
+                    if (!cw.dueDate) return;
+                    const days = Math.ceil((new Date(cw.dueDate + 'T23:59:59').getTime() - Date.now()) / 86400000);
+                    if (days < 0 || days > 14) return;
+                    if (course.turnedInIds?.includes(cw.id)) return;
+                    if (doneIds.has(cw.id)) return;
+                    items.push({ id: cw.id, title: cw.title, courseName: course.name, dueDate: cw.dueDate, days, hue });
+                });
+            });
+            return items.sort((a, b) => a.days - b.days).slice(0, 10);
+        } catch { return []; }
+    })();
 
     // ── Upcoming filter: this week first, fallback to all ─────────────────────
     const thisWeek = upcoming.filter(e => { const d = daysUntil(e.date); return d >= 0 && d <= 7; });
@@ -428,6 +454,54 @@ export default function Dashboard() {
                             </div>
                         )}
                     </section>
+
+                    {/* ════════════════════════════════════════════
+                      CLASSROOM UPCOMING (only if linked)
+                    ════════════════════════════════════════════ */}
+                    {classroomLinked && classroomUpcoming.length > 0 && (
+                        <section>
+                            <div className="flex items-center justify-between mb-5">
+                                <div className="flex items-center gap-3">
+                                    <GraduationCap className="w-5 h-5" style={{ color: 'var(--color-brand)' }} />
+                                    <h2 className="text-xl font-extrabold tracking-tight uppercase" style={{ color: 'var(--color-text)' }}>
+                                        Classroom · Next 14 Days
+                                    </h2>
+                                    <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 99, background: 'var(--color-active-bg)', color: 'var(--color-brand)', border: '1px solid var(--color-brand)', letterSpacing: '0.05em' }}>
+                                        {classroomUpcoming.length}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Link to="/classroom" style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-faint)', textDecoration: 'none', letterSpacing: '0.08em', textTransform: 'uppercase' }}
+                                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--color-brand)'}
+                                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--color-text-faint)'}
+                                    >View All →</Link>
+                                    <button onClick={() => setClassroomExpanded(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, background: 'var(--color-glass)', border: '1px solid var(--color-glass-border)', color: 'var(--color-text-muted)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                                        {classroomExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                        {classroomExpanded ? 'Collapse' : 'Expand'}
+                                    </button>
+                                </div>
+                            </div>
+                            {classroomExpanded && (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
+                                    {classroomUpcoming.map(item => {
+                                        const urgent = item.days === 0 ? { label: 'TODAY', color: '#E24B4A' } : item.days === 1 ? { label: 'TOMORROW', color: '#EF9F27' } : item.days <= 3 ? { label: `${item.days}d`, color: '#EF9F27' } : { label: `${item.days}d`, color: 'var(--color-text-faint)' };
+                                        return (
+                                            <Link key={item.id} to="/classroom" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'var(--color-surface-1)', border: '1px solid var(--color-glass-border)', borderLeft: `3px solid hsl(${item.hue},60%,50%)`, borderRadius: 8, transition: 'background 0.12s' }}
+                                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--color-glass)'}
+                                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-1)'}
+                                            >
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</p>
+                                                    <p style={{ fontSize: 11, color: 'var(--color-text-faint)', margin: '3px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.courseName}</p>
+                                                </div>
+                                                <span style={{ fontSize: 11, fontWeight: 800, color: urgent.color, fontFamily: 'monospace', flexShrink: 0 }}>{urgent.label}</span>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </section>
+                    )}
 
                 </div>
 

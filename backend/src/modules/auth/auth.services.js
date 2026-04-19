@@ -7,15 +7,21 @@ import ApiError from "../../common/utils/api-error.js";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const verifyGoogleToken = async (idToken) => {
-    // First try verifying as a proper id_token
     try {
         const ticket = await client.verifyIdToken({
             idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
         });
-        return ticket.getPayload();
+        const payload = ticket.getPayload();
+        if (!payload) {
+            throw new Error("Invalid token payload");
+        }
+        if (!payload.email_verified) {
+            throw new Error("Google email not verified");
+        }
+
+        return payload;
     } catch {
-        // Fallback: treat as access_token and fetch userinfo
         const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
             headers: { Authorization: `Bearer ${idToken}` },
         });

@@ -1,3 +1,5 @@
+// const BASE = 'http://localhost:3000';
+
 const BASE = 'https://semsyncbackend.vercel.app';
 
 const getToken = () => localStorage.getItem('ct_token');

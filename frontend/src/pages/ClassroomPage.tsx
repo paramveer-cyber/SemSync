@@ -15,11 +15,9 @@ import {
   BookOpen, AlertCircle, Search, ArrowUpRight,
 } from 'lucide-react';
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
 const LS_DATA_KEY     = 'semsync_classroom_data';
 const CALENDAR_LS_KEY = 'semsync_calendar_items';
-const AUTO_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
+const AUTO_REFRESH_MS = 5 * 60 * 1000; 
 
 const CLASSROOM_SCOPES = [
   'https://www.googleapis.com/auth/classroom.courses.readonly',
@@ -28,7 +26,6 @@ const CLASSROOM_SCOPES = [
   'https://www.googleapis.com/auth/classroom.student-submissions.me.readonly',
 ].join(' ');
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Announcement { id: string; text: string; creationTime: string; updateTime: string; }
 interface CourseWork {
@@ -47,7 +44,6 @@ interface ClassroomCourse {
   turnedInIds: string[];
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 const WORK_TYPE_LABEL: Record<string, string> = {
   ASSIGNMENT:               'Assignment',
@@ -73,15 +69,6 @@ function daysUntil(dateStr: string) {
   return Math.ceil((new Date(dateStr + 'T23:59:59').getTime() - Date.now()) / 86400000);
 }
 
-// ── Status logic ──────────────────────────────────────────────────────────────
-//
-// Priority (highest wins):
-//   graded    — has returned grade
-//   submitted — turned in (even if past due → NOT missing)
-//   missing   — past due AND not submitted AND no grade
-//   due-soon  — due today/tomorrow, not submitted
-//   pending   — future due date, not submitted
-//
 type AssignmentStatus = 'missing' | 'due-soon' | 'pending' | 'submitted' | 'graded';
 
 function getAssignmentStatus(
@@ -90,7 +77,7 @@ function getAssignmentStatus(
   hasGrade: boolean,
 ): AssignmentStatus {
   if (hasGrade)    return 'graded';
-  if (isSubmitted) return 'submitted'; // submitted past-due is NOT missing
+  if (isSubmitted) return 'submitted'; 
   if (!cw.dueDate) return 'pending';
   const days = daysUntil(cw.dueDate);
   if (days < 0)              return 'missing';
@@ -138,8 +125,6 @@ function courseHue(name: string): number {
   return h;
 }
 
-// ── Diff helper — detect new content after a refresh ─────────────────────────
-
 interface DiffResult {
   newAnnouncements: { courseName: string; ann: Announcement }[];
   newCoursework:    { courseName: string; cw: CourseWork }[];
@@ -170,8 +155,6 @@ function diffCourses(prev: ClassroomCourse[], next: ClassroomCourse[]): DiffResu
   }
   return result;
 }
-
-// ── Token helpers ─────────────────────────────────────────────────────────────
 
 async function fetchTokenFromDB(): Promise<string | null> {
   try { const res = await apiGetClassroomToken(); return res.token ?? null; } catch { return null; }
@@ -208,8 +191,6 @@ function syncToCalendar(courses: ClassroomCourse[]) {
     localStorage.setItem(CALENDAR_LS_KEY, JSON.stringify([...filtered, ...items]));
   } catch {}
 }
-
-// ── Google API fetch ──────────────────────────────────────────────────────────
 
 async function gFetch(path: string, token: string) {
   const res = await fetch(`https://classroom.googleapis.com${path}`, {
@@ -262,8 +243,6 @@ async function fetchAllClassroomData(token: string): Promise<ClassroomCourse[]> 
   );
   return enriched;
 }
-
-// ── Sub-components ────────────────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, accentColor, borderColor, active }: {
   label: string; value: string | number; sub?: string;
@@ -446,8 +425,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-faint)', marginBottom: 8, marginTop: 6 }}>{children}</p>;
 }
 
-// ── Auto-refresh countdown ────────────────────────────────────────────────────
-
 function NextRefreshBadge({ nextRefreshAt }: { nextRefreshAt: number }) {
   const [secsLeft, setSecsLeft] = useState(() => Math.max(0, Math.round((nextRefreshAt - Date.now()) / 1000)));
   useEffect(() => {
@@ -464,10 +441,7 @@ function NextRefreshBadge({ nextRefreshAt }: { nextRefreshAt: number }) {
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
-
 export default function ClassroomPage() {
-  // Access the internal pushToast — it exists on the context but isn't in the public interface type
   const [linked, setLinked]             = useState(false);
   const [initialAuthChecking, setInitialAuthChecking] = useState(true);
   const [courses, setCourses]           = useState<ClassroomCourse[]>(() => getCachedData() ?? []);
@@ -492,7 +466,6 @@ export default function ClassroomPage() {
 
   useEffect(() => { coursesRef.current = courses; }, [courses]);
 
-  // ── Keep syncedIds in sync with localStorage (e.g. course deleted elsewhere) ──
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === 'semsync_synced_classroom_ids') {
@@ -503,14 +476,12 @@ export default function ClassroomPage() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  // ── Core fetch + diff ─────────────────────────────────────────────────────
   const loadData = useCallback(async (token: string, silent = false) => {
     if (!silent) setLoading(true);
     setError(null);
     try {
       const data = await fetchAllClassroomData(token);
 
-      // Diff and notify only after the initial load
       if (!isFirstLoad.current && coursesRef.current.length > 0) {
         const diff = diffCourses(coursesRef.current, data);
 
@@ -531,7 +502,6 @@ export default function ClassroomPage() {
     } finally { if (!silent) setLoading(false); }
   }, [selectedId]);
 
-  // ── Schedule / reset auto-refresh ────────────────────────────────────────
   const scheduleAutoRefresh = useCallback((token: string) => {
     if (autoTimerRef.current) clearInterval(autoTimerRef.current);
     setNextRefreshAt(Date.now() + AUTO_REFRESH_MS);
@@ -543,7 +513,6 @@ export default function ClassroomPage() {
     }, AUTO_REFRESH_MS);
   }, [loadData]);
 
-  // ── Initial auth ──────────────────────────────────────────────────────────
   useEffect(() => {
     fetchTokenFromDB().then(token => {
       setInitialAuthChecking(false);
@@ -559,9 +528,8 @@ export default function ClassroomPage() {
       scheduleAutoRefresh(token);
     });
     return () => { if (autoTimerRef.current) clearInterval(autoTimerRef.current); };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
-  // ── OAuth ─────────────────────────────────────────────────────────────────
   const connectClassroom = useGoogleLogin({
     flow: 'implicit', scope: CLASSROOM_SCOPES,
     onSuccess: async (tr) => {
@@ -593,7 +561,6 @@ export default function ClassroomPage() {
     setSelectedId(id); setActiveTab('work'); setSearchQuery(''); setFilterType('all'); setShowPast(false);
   };
 
-  // ── Derived ───────────────────────────────────────────────────────────────
   const selected = courses.find(c => c.id === selectedId);
 
   const allWork = selected
@@ -626,7 +593,6 @@ export default function ClassroomPage() {
   }));
   const avgGrade = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : null;
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--color-bg)' }}>
       <Sidebar />
@@ -664,7 +630,6 @@ export default function ClassroomPage() {
           </div>
         </div>
 
-        {/* Initial auth check loading screen */}
         {initialAuthChecking && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
             <div style={{ position: 'relative', width: 64, height: 64 }}>
@@ -687,7 +652,6 @@ export default function ClassroomPage() {
           </div>
         )}
 
-        {/* Not linked */}
         {!initialAuthChecking && !linked && (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             <div style={{ textAlign: 'center', maxWidth: 380 }}>
@@ -711,7 +675,6 @@ export default function ClassroomPage() {
           </div>
         )}
 
-        {/* Initial loading shimmer */}
         {!initialAuthChecking && linked && loading && courses.length === 0 && (
           <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -742,18 +705,15 @@ export default function ClassroomPage() {
           </div>
         )}
 
-        {/* Main dashboard */}
         {linked && courses.length > 0 && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
 
-            {/* Stats strip */}
             <div style={{ display: 'flex', gap: 10, padding: '14px 28px', borderBottom: '1px solid var(--color-glass-border)', flexShrink: 0 }}>
               <StatCard label="Due today" value={totalDueToday} sub={totalDueToday === 0 ? 'all clear' : `${totalDueToday} assignment${totalDueToday > 1 ? 's' : ''}`} accentColor="#E24B4A" borderColor="rgba(226,75,74,0.4)" active={totalDueToday > 0} />
               <StatCard label="This week" value={totalDueWeek} sub="due in 7 days" accentColor="#EF9F27" borderColor="rgba(239,159,39,0.4)" />
               <StatCard label="Courses" value={courses.length} sub="active this term" accentColor="var(--color-brand)" borderColor="var(--color-brand)" />
             </div>
 
-            {/* Course pill rail */}
             <div style={{ borderBottom: '1px solid var(--color-glass-border)', flexShrink: 0, WebkitMaskImage: 'linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent)', maskImage: 'linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent)' }}>
               <div ref={pillRailRef} style={{ display: 'flex', gap: 8, padding: '12px 28px', overflowX: 'auto', scrollbarWidth: 'none' }}>
                 {courses.map(course => {
@@ -763,11 +723,9 @@ export default function ClassroomPage() {
               </div>
             </div>
 
-            {/* Course detail */}
             {selected && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
-                {/* Tab + filter bar */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', borderBottom: '1px solid var(--color-glass-border)', flexShrink: 0, gap: 8 }}>
                   <div style={{ display: 'flex', gap: 0 }}>
                     {([
@@ -795,7 +753,6 @@ export default function ClassroomPage() {
                   )}
                 </div>
 
-                {/* Tab content */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '18px 28px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {activeTab === 'work' && (
                     <>

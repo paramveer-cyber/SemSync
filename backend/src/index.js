@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-  origin: ["http://localhost:5173","https://semsync.vercel.app","https://semsync.pages.dev"],
+  origin: ["http://localhost:5173","https://semsync.pages.dev"],
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));

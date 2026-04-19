@@ -51,13 +51,6 @@ export const logout = (_req, res) => {
     return res.status(200).json({ message: "Logged out" });
 };
 
-// ── Classroom token endpoints ─────────────────────────────────────────────────
-
-/**
- * GET /auth/classroom-token
- * Returns the stored Google classroom access token for the authenticated user,
- * or null if not linked / expired.
- */
 export const getClassroomToken = async (req, res) => {
     try {
         const user = await db.query.users.findFirst({
@@ -86,11 +79,6 @@ export const getClassroomToken = async (req, res) => {
     }
 };
 
-/**
- * POST /auth/classroom-token
- * Body: { accessToken, expiresIn }
- * Stores the Google classroom access token for the authenticated user.
- */
 export const saveClassroomToken = async (req, res) => {
     try {
         const { accessToken, expiresIn } = req.body;
@@ -109,10 +97,6 @@ export const saveClassroomToken = async (req, res) => {
     }
 };
 
-/**
- * DELETE /auth/classroom-token
- * Clears the stored Google classroom token for the authenticated user.
- */
 export const clearClassroomToken = async (req, res) => {
     try {
         await db.update(users)

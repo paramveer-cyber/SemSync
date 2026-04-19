@@ -384,8 +384,8 @@ export default function TaskCenterPage() {
                                     <div className="grow overflow-y-auto p-3 space-y-2">
                                         {colTasks.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center h-28 border border-dashed" style={{ borderColor: 'var(--color-glass-border)' }}>
-                                                <p className="text-[9px] font-bold tracking-[0.25em] uppercase" style={{ color: 'var(--color-text-faint)' }}>No tasks</p>
-                                                <p className="text-[9px] font-mono mt-1" style={{ color: 'var(--color-glass-border)' }}>Drag here or add new</p>
+                                                <p className="text-[12px] font-bold tracking-[0.15em] uppercase" style={{ color: 'var(--color-text-faint)' }}>No tasks</p>
+                                                <p className="text-[11px] font-mono mt-1" style={{ color: 'var(--color-text-muted)' }}>Drag here or add new</p>
                                             </div>
                                         ) : colTasks.map(task => (
                                             <TaskCard key={task.id} task={task}

@@ -10,7 +10,7 @@ export const authMiddleware = (req, res, next) => {
         const token = authHeader.split(" ")[1];
         const decoded = verifyToken(token);
 
-        req.user = decoded; // { userId, email }
+        req.user = decoded; 
         next();
 
     } catch {
