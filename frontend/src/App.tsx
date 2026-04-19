@@ -17,7 +17,7 @@ import FocusTimerPage from './pages/FocusTimerPage';
 import AboutPage from './pages/AboutPage';
 import LegalPage from './pages/LegalPage';
 import ClassroomPage from './pages/ClassroomPage';
-import ClassroomCoursePage from './pages/ClassroomCoursePage';
+// import ClassroomCoursePage from './pages/ClassroomCoursePage.tsx';
 
 const TIMER_STATE_KEY  = 'focus_timer_state_v1';
 const SESSIONS_KEY     = 'focus_sessions_v1';
@@ -134,29 +134,29 @@ export default function App() {
   return (
     <DesktopOnly>
       <ThemeProvider>
-      <Router>
-        <NotificationProvider>
-          <GlobalTimerWatcher />
-          <ToastStack />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
-            <Route path="/courses/:id" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
-            <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-            <Route path="/tasks" element={<ProtectedRoute><TaskCenterPage /></ProtectedRoute>} />
-            <Route path="/focus" element={<ProtectedRoute><FocusTimerPage /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/legal" element={<LegalPage />} />
-            <Route path="/classroom" element={<ProtectedRoute><ClassroomPage /></ProtectedRoute>} />
-            <Route path="/classroom/:courseId" element={<ProtectedRoute><ClassroomCoursePage /></ProtectedRoute>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </NotificationProvider>
-      </Router>
+        <Router>
+          <NotificationProvider>
+            <GlobalTimerWatcher />
+            <ToastStack />
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
+              <Route path="/courses/:id" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+              <Route path="/tasks" element={<ProtectedRoute><TaskCenterPage /></ProtectedRoute>} />
+              <Route path="/focus" element={<ProtectedRoute><FocusTimerPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/legal" element={<LegalPage />} />
+              <Route path="/classroom" element={<ProtectedRoute><ClassroomPage /></ProtectedRoute>} />
+              <Route path="/classroom/:courseId" element={<ProtectedRoute><ClassroomCoursePage /></ProtectedRoute>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </NotificationProvider>
+        </Router>
       </ThemeProvider>
     </DesktopOnly>
   );
