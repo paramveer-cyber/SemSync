@@ -152,7 +152,7 @@ export default function App() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/legal" element={<LegalPage />} />
               <Route path="/classroom" element={<ProtectedRoute><ClassroomPage /></ProtectedRoute>} />
-              <Route path="/classroom/:courseId" element={<ProtectedRoute><ClassroomCoursePage /></ProtectedRoute>} />
+              {/* <Route path="/classroom/:courseId" element={<ProtectedRoute><ClassroomCoursePage /></ProtectedRoute>} /> */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </NotificationProvider>
