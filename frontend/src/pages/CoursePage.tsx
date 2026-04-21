@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import AddEvalModal from  '../components/modals/AddEvalModal';
+import AddEvalModal from '../components/modals/AddEvalModal';
 import EditEvalModal from '../components/modals/EditEvalModal';
 import { deleteEval, deleteCourse } from '../lib/api';
 import { fetchCourse, invalidateCourseDetail, invalidateAllCourseData } from '../lib/dataService';
@@ -34,16 +34,19 @@ export default function CoursePage() {
         setLoading(true); setError('');
         try {
             const { course: c, evaluations: e } = await fetchCourse(id!);
-            setCourse(c); setEvals(e);
+            setCourse(c);
+            const sorted = [...e].sort((a, b) => {
+                const aEval = a.score !== null && a.score !== undefined;
+                const bEval = b.score !== null && b.score !== undefined;
+                if (aEval !== bEval) return aEval ? 1 : -1;
+                return a.title.localeCompare(b.title);
+            });
+            setEvals(sorted);
         } catch (err: any) { setError(err.message); }
         finally { setLoading(false); }
     }, [id]);
 
     const computedStats = course ? (() => {
-        // Step 1: round each weightage to 1dp
-        // Step 2: sum them — may be e.g. 100.1 due to rounding
-        // Step 3: if sum > 100, subtract 0.1 from evals that have a decimal (6.7 -> 6.6)
-        //         until total == 100. Never touch whole numbers like 5.0, 25.0.
         const normalizeWeights = (es: any[]): number[] => {
             const ws = es.map(e => Math.round(e.weightage * 10) / 10);
             let sum = Math.round(ws.reduce((s, w) => s + w, 0) * 10) / 10;
