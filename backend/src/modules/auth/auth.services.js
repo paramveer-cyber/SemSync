@@ -20,7 +20,6 @@ export const verifyGoogleToken = async (idToken) => {
         audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    console.log(payload)
     if (!payload || 
         !["accounts.google.com", "https://accounts.google.com"].includes(payload.iss) ||
         !payload.email_verified) {
