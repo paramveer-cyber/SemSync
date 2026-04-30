@@ -26,14 +26,14 @@ export const createEval = async (courseId, userId, data) => {
 
     const { title, type, date, weightage, maxScore, score } = data;
 
-    if (!title?.trim())                                                     throw ApiError.badRequest("title is required");
-    if (!VALID_TYPES.includes(type))                                        throw ApiError.badRequest(`type must be one of: ${VALID_TYPES.join(", ")}`);
-    if (!date || isNaN(new Date(date)))                                     throw ApiError.badRequest("date must be a valid ISO date");
+    if (!title?.trim()) throw ApiError.badRequest("title is required");
+    if (!VALID_TYPES.includes(type)) throw ApiError.badRequest(`type must be one of: ${VALID_TYPES.join(", ")}`);
+    if (!date || isNaN(new Date(date))) throw ApiError.badRequest("date must be a valid ISO date");
     if (typeof weightage !== "number" || weightage <= 0 || weightage > 100) throw ApiError.badRequest("weightage must be a number between 0 and 100");
-    if (typeof maxScore  !== "number" || maxScore  <= 0)                    throw ApiError.badRequest("maxScore must be a positive number");
+    if (typeof maxScore !== "number" || maxScore <= 0) throw ApiError.badRequest("maxScore must be a positive number");
     if (score !== undefined && score !== null) {
         if (typeof score !== "number" || score < 0) throw ApiError.badRequest("score must be a non-negative number");
-        if (score > maxScore)                       throw ApiError.badRequest("score cannot exceed maxScore");
+        if (score > maxScore) throw ApiError.badRequest("score cannot exceed maxScore");
     }
 
     const [created] = await db
@@ -48,16 +48,16 @@ export const updateEval = async (evalId, userId, data) => {
         where: eq(evaluations.id, evalId),
         with: { course: true },
     });
-    if (!existing)                         throw ApiError.notFound("Evaluation not found");
+    if (!existing) throw ApiError.notFound("Evaluation not found");
     if (existing.course.userId !== userId) throw ApiError.forbidden("Access denied");
 
     const allowed = {};
-    if (data.title     !== undefined) allowed.title = data.title.trim();
-    if (data.type      !== undefined) {
+    if (data.title !== undefined) allowed.title = data.title.trim();
+    if (data.type !== undefined) {
         if (!VALID_TYPES.includes(data.type)) throw ApiError.badRequest(`type must be one of: ${VALID_TYPES.join(", ")}`);
         allowed.type = data.type;
     }
-    if (data.date      !== undefined) {
+    if (data.date !== undefined) {
         if (isNaN(new Date(data.date))) throw ApiError.badRequest("date must be a valid ISO date");
         allowed.date = new Date(data.date);
     }
@@ -66,7 +66,7 @@ export const updateEval = async (evalId, userId, data) => {
             throw ApiError.badRequest("weightage must be a number between 0 and 100");
         allowed.weightage = data.weightage;
     }
-    if (data.maxScore  !== undefined) {
+    if (data.maxScore !== undefined) {
         if (typeof data.maxScore !== "number" || data.maxScore <= 0)
             throw ApiError.badRequest("maxScore must be a positive number");
         allowed.maxScore = data.maxScore;
@@ -75,7 +75,7 @@ export const updateEval = async (evalId, userId, data) => {
         const effectiveMax = allowed.maxScore ?? existing.maxScore;
         if (data.score !== null) {
             if (typeof data.score !== "number" || data.score < 0) throw ApiError.badRequest("score must be a non-negative number");
-            if (data.score > effectiveMax)                         throw ApiError.badRequest("score cannot exceed maxScore");
+            if (data.score > effectiveMax) throw ApiError.badRequest("score cannot exceed maxScore");
         }
         allowed.score = data.score;
     }
@@ -95,7 +95,7 @@ export const deleteEval = async (evalId, userId) => {
         where: eq(evaluations.id, evalId),
         with: { course: true },
     });
-    if (!existing)                         throw ApiError.notFound("Evaluation not found");
+    if (!existing) throw ApiError.notFound("Evaluation not found");
     if (existing.course.userId !== userId) throw ApiError.forbidden("Access denied");
     await db.delete(evaluations).where(eq(evaluations.id, evalId));
 };

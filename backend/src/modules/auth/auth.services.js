@@ -3,64 +3,53 @@ import { db } from "../../db/index.js";
 import { users } from "../../db/schema.js";
 import { eq } from "drizzle-orm";
 import ApiError from "../../common/utils/api-error.js";
+import { generateToken, generateRefreshToken, verifyRefreshToken } from "../../common/utils/tokenLogic.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const verifyGoogleToken = async (idToken) => {
-    try {
-        const ticket = await client.verifyIdToken({
-            idToken,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
-        if (!payload) {
-            throw new Error("Invalid token payload");
-        }
-        if (!payload.email_verified) {
-            throw new Error("Google email not verified");
-        }
+export const generateTokens = async (user) =>{
+    const accessToken = generateToken(user.id, user.email);
+    const refreshToken = generateRefreshToken(user.id);
+    await db.update(users).set({ refreshToken }).where(eq(users.id, user.id));
+    return { accessToken, refreshToken };
+}
 
-        return payload;
-    } catch {
-        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-            headers: { Authorization: `Bearer ${idToken}` },
-        });
-        if (!res.ok) throw new Error("Invalid token");
-        const info = await res.json();
-        return { sub: info.sub, email: info.email, name: info.name, picture: info.picture };
+export const verifyGoogleToken = async (idToken) => {
+    const ticket = await client.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    console.log(payload)
+    if (!payload || 
+        !["accounts.google.com", "https://accounts.google.com"].includes(payload.iss) ||
+        !payload.email_verified) {
+        throw ApiError.badRequest("Invalid token payload");
     }
+
+    return payload;
 };
 
-export const findOrCreateUser = async (payload, accessToken, refreshToken) => {
+export const findOrCreateUser = async (payload) => {
     const { sub: googleId, email, name, picture } = payload;
 
     try {
-        const existing = await db.query.users.findFirst({
-            where: eq(users.googleId, googleId),
-        });
-
-        const tokenFields = {
-            ...(accessToken  ? { googleAccessToken: accessToken }                        : {}),
-            ...(refreshToken ? { googleRefreshToken: refreshToken }                      : {}),
-            ...(accessToken  ? { googleTokenExpiry: new Date(Date.now() + 3600 * 1000) } : {}),
-        };
-
-        if (existing) {
-            if (Object.keys(tokenFields).length > 0) {
-                const [updated] = await db.update(users).set(tokenFields).where(eq(users.id, existing.id)).returning();
-                return updated;
-            }
-            return existing;
+        let user;
+        const existing = await db.query.users.findFirst({where: eq(users.googleId, googleId)});
+        if (!existing) {
+            user = (await db.insert(users).values({ googleId, email, name, avatarUrl: picture ?? null }).returning())[0];
+        }
+        else{
+            user = existing;
         }
 
-        const [newUser] = await db
-            .insert(users)
-            .values({ googleId, email, name, avatarUrl: picture ?? null, ...tokenFields })
-            .returning();
-
-        return newUser;
-    } catch (err) {
-        console.error("FULL ERROR:", err);
+        const { accessToken, refreshToken } = await generateTokens(user);
+        
+        return {user, accessToken, refreshToken};
+    } 
+    catch (err) {
+        console.error("Unknown Error Occured:", err);
         throw ApiError.unknown("Unknown Error Occured!");
     }
 };
+

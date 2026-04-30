@@ -8,12 +8,19 @@ export const authMiddleware = (req, res, next) => {
         }
 
         const token = authHeader.split(" ")[1];
-        const decoded = verifyToken(token);
 
-        req.user = decoded; // { userId, email }
-        next();
+        try {
+            const decoded = verifyToken(token);
+            req.user = decoded;
+            return next();
+        } catch (err) {
+            if (err.name === "TokenExpiredError") {
+                return res.status(401).json({ message: "Token expired", code: "TOKEN_EXPIRED" });
+            }
+            return res.status(401).json({ message: "Invalid token" });
+        }
 
     } catch {
-        return res.status(401).json({ message: "Invalid or expired token" });
+        return res.status(401).json({ message: "Unauthorized" });
     }
 };

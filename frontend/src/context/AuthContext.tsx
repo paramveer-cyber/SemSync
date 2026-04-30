@@ -8,8 +8,14 @@ interface AuthCtx { user: User | null; loading: boolean; login: (token: string, 
 const AuthContext = createContext<AuthCtx | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser]       = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('ct_token');
+    invalidateOnLogout();
+    setUser(null);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('ct_token');
@@ -20,8 +26,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  const login  = useCallback((token: string, userData: User) => { localStorage.setItem('ct_token', token); setUser(userData); }, []);
-  const logout = useCallback(() => { localStorage.removeItem('ct_token'); invalidateOnLogout(); setUser(null); }, []);
+  useEffect(() => {
+    window.addEventListener('auth:logout', logout);
+    return () => window.removeEventListener('auth:logout', logout);
+  }, [logout]);
+
+  const login = useCallback((token: string, userData: User) => {
+    localStorage.setItem('ct_token', token);
+    setUser(userData);
+  }, []);
 
   return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>;
 };

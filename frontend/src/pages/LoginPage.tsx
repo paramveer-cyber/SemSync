@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { Lock, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authGoogle } from '../lib/api';
 import { TopLoadingBar } from '../components/LoadingBar';
 
 export default function LoginPage() {
-  const { user, login } = useAuth();
+  const { user, login, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,8 +32,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen mesh-bg flex flex-col">
       {loading && <TopLoadingBar />}
-
-      {/* Nav */}
       <nav className="px-8 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
         <Link to="/">
         
@@ -53,14 +51,12 @@ export default function LoginPage() {
       <main className="grow flex items-center justify-center p-6 relative overflow-hidden">
         <div className="absolute inset-0 dot-grid opacity-30 pointer-events-none" />
 
-        {/* Glowing orbs */}
         <div className="absolute top-1/3 left-1/4 w-64 h-64 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%)', filter: 'blur(20px)' }} />
         <div className="absolute bottom-1/3 right-1/4 w-48 h-48 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%)', filter: 'blur(20px)' }} />
 
         <div className="relative z-10 w-full max-w-105 animate-fade-up">
-          {/* Card */}
           <div className="rounded-3xl p-8"
             style={{ background: 'var(--color-glass)', border: '1px solid var(--color-glass-border)', backdropFilter: 'blur(24px)' }}>
 
@@ -69,8 +65,7 @@ export default function LoginPage() {
               Sign in with your Google account to continue.
             </p>
 
-            {/* Loading state */}
-            {loading ? (
+            {(loading || authLoading) ? (
               <div className="flex flex-col items-center py-8 gap-4">
                 <div className="relative w-12 h-12">
                   <div className="absolute inset-0 rounded-full" style={{ border: '2px solid var(--color-glass-border)' }} />
