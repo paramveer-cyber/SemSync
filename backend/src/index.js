@@ -3,7 +3,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import courseRoutes from "./modules/courses/courses.routes.js";
 import evalCourseRoutes from "./modules/evals/evals.routes.js";
 import { evalStandaloneRouter } from "./modules/evals/evals.routes.js";
-import { authMiddleware } from "./common/middlewares/auth.middleware.js";
+import { authMiddleware } from "./modules/auth/auth.middleware.js";
 import errorHandler from "./common/middlewares/error.middleware.js";
 import cors from "cors";
 import cookieparser from "cookie-parser";

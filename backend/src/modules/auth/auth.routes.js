@@ -8,7 +8,7 @@ import {
     clearClassroomToken,
     refresh,
 } from "./auth.controller.js";
-import { authMiddleware } from "../../common/middlewares/auth.middleware.js";
+import { authMiddleware } from "./auth.middleware.js";
 
 const router = express.Router();
 
