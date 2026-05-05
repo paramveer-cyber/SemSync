@@ -160,14 +160,12 @@ export default function Dashboard() {
         } catch { return []; }
     })();
 
-    // ── Upcoming filter: this week first, fallback to all ─────────────────────
     const thisWeek = upcoming.filter(e => { const d = daysUntil(e.date); return d >= 0 && d <= 7; });
     const displayUpcoming = thisWeek.length > 0 ? thisWeek : upcoming.slice(0, 6);
     const isFallback = thisWeek.length === 0 && upcoming.length > 0;
 
     const { week, month } = getWeekLabel();
 
-    // ── Skeleton ──────────────────────────────────────────────────────────────
     if (loading) {
         return (
             <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
@@ -196,7 +194,6 @@ export default function Dashboard() {
         );
     }
 
-    // ── Main render ───────────────────────────────────────────────────────────
     return (
         <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
             <Sidebar />
@@ -211,11 +208,7 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                    {/* ════════════════════════════════════════════
-              WEEKLY FOCUS
-          ════════════════════════════════════════════ */}
                     <section>
-                        {/* Section header */}
                         <div className="flex items-baseline justify-between mb-8">
                             <h2 className="text-5xl font-extrabold tracking-tighter uppercase text-[var(--color-text)]">
                                 Weekly Focus
@@ -259,7 +252,6 @@ export default function Dashboard() {
                                                     borderRadius: 8,
                                                 }}>
 
-                                                {/* Badge row */}
                                                 <div className="flex items-center justify-between mb-6">
                                                     <span
                                                         className="text-[10px] font-black tracking-[0.2em] px-3 py-1 uppercase"
@@ -275,7 +267,6 @@ export default function Dashboard() {
                                                     </span>
                                                 </div>
 
-                                                {/* Title */}
                                                 <div className="grow  rounded-[var(--radius-card)] ">
                                                     <h3 className="text-2xl font-extrabold tracking-tight text-[var(--color-text)] leading-snug uppercase mb-2">
                                                         {e.title}
@@ -285,7 +276,6 @@ export default function Dashboard() {
                                                     </p>
                                                 </div>
 
-                                                {/* Footer row */}
                                                 <div
                                                     className="flex items-center justify-between mt-5 pt-4"
                                                     style={{ borderTop: '1px solid var(--color-glass-border)' }}>
@@ -310,9 +300,6 @@ export default function Dashboard() {
                         )}
                     </section>
 
-                    {/* ════════════════════════════════════════════
-              COURSE NODES
-          ════════════════════════════════════════════ */}
                     <section>
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-baseline gap-4">
@@ -374,7 +361,6 @@ export default function Dashboard() {
                                                 border: '1px solid var(--color-glass-border)',
                                             }}>
 
-                                            {/* Deleting overlay */}
                                             {isDeleting && (
                                                 <div className="absolute inset-0 bg-[var(--color-surface)]/80 flex flex-col items-center justify-center gap-3 z-20">
                                                     <div className="w-5 h-5 border border-red-500/30 border-t-red-500 animate-spin" />
@@ -382,7 +368,6 @@ export default function Dashboard() {
                                                 </div>
                                             )}
 
-                                            {/* Full-card link with glitch hover */}
                                             <Link
                                                 to={`/courses/${course.id}`}
                                                 className="block relative overflow-hidden flex-1 transition-all duration-150"
@@ -390,14 +375,11 @@ export default function Dashboard() {
                                                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-surface)'; }}
                                                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                                             >
-                                                {/* Scan-line overlay */}
                                                 <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                                     style={{ background: 'repeating-linear-gradient(0deg,transparent,transparent 2px,var(--color-brand-glow) 2px,var(--color-brand-glow) 4px)' }} />
-                                                {/* Green left accent bar */}
                                                 <div className="absolute left-0 top-0 bottom-0 w-0.5 opacity-0 group-hover:opacity-100 transition-all duration-150"
                                                     style={{ background: 'linear-gradient(180deg,var(--color-brand),var(--color-brand-glow))' }} />
 
-                                                {/* Header row: name + status dot + delete btn */}
                                                 <div className="flex items-center justify-between mb-1 gap-2">
                                                     <div className="flex items-center gap-2 min-w-0 flex-1">
                                                         <p className="text-xs font-black tracking-[0.15em] uppercase text-[var(--color-text)] truncate group-hover:text-[var(--color-brand)] transition-colors">
@@ -420,25 +402,21 @@ export default function Dashboard() {
                                                     </button>
                                                 </div>
 
-                                                {/* Progress label */}
                                                 <p className="text-[9px] font-bold tracking-[0.25em] uppercase mt-4 mb-1.5 group-hover:text-[var(--color-brand)] transition-colors" style={{ color: 'var(--color-text-faint)' }}>
                                                     Current Progress
                                                 </p>
 
-                                                {/* Big number */}
                                                 <p className="text-4xl font-extrabold leading-none text-[var(--color-text)] mb-4 tracking-tight group-hover:text-[var(--color-brand)] transition-colors">
                                                     {course.currentGrade.toFixed(1)}
                                                     <span className="text-xl" style={{ color: 'var(--color-text-muted)' }}>%</span>
                                                 </p>
 
-                                                {/* Progress bar */}
                                                 <div className="w-full mb-4 overflow-hidden"
                                                     style={{ height: '2px', background: 'var(--color-glass-border)' }}>
                                                     <div className="h-full transition-all duration-700"
                                                         style={{ width: `${barPct}%`, background: dot }} />
                                                 </div>
 
-                                                {/* Footer */}
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[9px] font-mono transition-colors group-hover:text-[var(--color-brand)]" style={{ color: 'var(--color-text-faint)' }}>
                                                         TARGET: {course.targetGrade}%
@@ -455,9 +433,6 @@ export default function Dashboard() {
                         )}
                     </section>
 
-                    {/* ════════════════════════════════════════════
-                      CLASSROOM UPCOMING (only if linked)
-                    ════════════════════════════════════════════ */}
                     {classroomLinked && classroomUpcoming.length > 0 && (
                         <section>
                             <div className="flex items-center justify-between mb-5">

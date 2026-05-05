@@ -7,26 +7,22 @@ import {
   ChevronDown, Info, Tag, BarChart2
 } from 'lucide-react';
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const DAYS   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const EVAL_TYPES = ['quiz','assignment','lab','project','viva','midsem','endsem','other'] as const;
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const EVAL_TYPES = ['quiz', 'assignment', 'lab', 'project', 'viva', 'midsem', 'endsem', 'other'] as const;
 const LS_KEY = 'semsync_calendar_items';
 
 const TYPE_META: Record<string, { color: string; bg: string; border: string; label: string }> = {
-  midsem:     { color: '#ef4444', bg: 'rgba(239,68,68,0.10)',  border: 'rgba(239,68,68,0.35)',  label: 'Mid Sem'    },
-  endsem:     { color: '#ef4444', bg: 'rgba(239,68,68,0.10)',  border: 'rgba(239,68,68,0.35)',  label: 'End Sem'    },
-  quiz:       { color: 'var(--color-brand)', bg: 'var(--color-brand-glow)', border: 'var(--color-brand)', label: 'Quiz' },
+  midsem: { color: '#ef4444', bg: 'rgba(239,68,68,0.10)', border: 'rgba(239,68,68,0.35)', label: 'Mid Sem' },
+  endsem: { color: '#ef4444', bg: 'rgba(239,68,68,0.10)', border: 'rgba(239,68,68,0.35)', label: 'End Sem' },
+  quiz: { color: 'var(--color-brand)', bg: 'var(--color-brand-glow)', border: 'var(--color-brand)', label: 'Quiz' },
   assignment: { color: '#60a5fa', bg: 'rgba(96,165,250,0.10)', border: 'rgba(96,165,250,0.35)', label: 'Assignment' },
-  lab:        { color: '#a78bfa', bg: 'rgba(167,139,250,0.10)',border: 'rgba(167,139,250,0.35)',label: 'Lab'        },
-  project:    { color: '#06b6d4', bg: 'rgba(6,182,212,0.10)',  border: 'rgba(6,182,212,0.35)',  label: 'Project'    },
-  viva:       { color: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.35)', label: 'Viva'       },
-  other:      { color: 'var(--color-text-muted)', bg: 'var(--color-glass)', border: 'var(--color-glass-border)', label: 'Other' },
-  task:       { color: '#a78bfa', bg: 'rgba(167,139,250,0.10)',border: 'rgba(167,139,250,0.30)',label: 'Task'       },
+  lab: { color: '#a78bfa', bg: 'rgba(167,139,250,0.10)', border: 'rgba(167,139,250,0.35)', label: 'Lab' },
+  project: { color: '#06b6d4', bg: 'rgba(6,182,212,0.10)', border: 'rgba(6,182,212,0.35)', label: 'Project' },
+  viva: { color: '#f59e0b', bg: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.35)', label: 'Viva' },
+  other: { color: 'var(--color-text-muted)', bg: 'var(--color-glass)', border: 'var(--color-glass-border)', label: 'Other' },
+  task: { color: '#a78bfa', bg: 'rgba(167,139,250,0.10)', border: 'rgba(167,139,250,0.30)', label: 'Task' },
 };
-
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface LocalItem {
   id: string;
@@ -41,10 +37,8 @@ interface LocalItem {
   done: boolean;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function pad2(n: number) { return String(n).padStart(2, '0'); }
-function toISO(d: Date) { return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function toISO(d: Date) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
 function loadItems(): LocalItem[] { try { return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]'); } catch { return []; } }
 function saveItems(items: LocalItem[]) { localStorage.setItem(LS_KEY, JSON.stringify(items)); }
 
@@ -54,8 +48,8 @@ function getMeta(e: any) {
 }
 
 function relativeDay(dateStr: string) {
-  const d = new Date(dateStr); d.setHours(0,0,0,0);
-  const t = new Date(); t.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0, 0, 0, 0);
+  const t = new Date(); t.setHours(0, 0, 0, 0);
   const diff = Math.round((d.getTime() - t.getTime()) / 86400000);
   if (diff === 0) return { label: 'TODAY', urgent: true };
   if (diff === 1) return { label: 'TOMORROW', urgent: true };
@@ -65,14 +59,12 @@ function relativeDay(dateStr: string) {
   return { label: `${diff}D`, urgent: false };
 }
 
-// ── Item Detail Panel ─────────────────────────────────────────────────────────
-
 function ItemDetail({ item, onClose, onToggle, onDelete }: {
   item: any; onClose: () => void; onToggle?: () => void; onDelete?: () => void;
 }) {
   const meta = getMeta(item);
   const evalType = item._local ? (item.type === 'task' ? 'task' : item.evalType ?? 'other') : item.type;
-  const isCritical = ['midsem','endsem'].includes(evalType);
+  const isCritical = ['midsem', 'endsem'].includes(evalType);
   const dateStr = item.date ?? '';
   const rel = dateStr ? relativeDay(dateStr) : null;
 
@@ -107,7 +99,7 @@ function ItemDetail({ item, onClose, onToggle, onDelete }: {
         {dateStr && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <Calendar style={{ width: 11, height: 11, color: 'var(--color-text-faint)', flexShrink: 0 }} />
-            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{dateStr.slice(0,10)}</span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{dateStr.slice(0, 10)}</span>
           </div>
         )}
         {item.weightage != null && (
@@ -120,7 +112,7 @@ function ItemDetail({ item, onClose, onToggle, onDelete }: {
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <Tag style={{ width: 11, height: 11, color: 'var(--color-text-faint)', flexShrink: 0 }} />
             <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>
-              Score: {item.score}/{item.maxScore} ({((item.score/item.maxScore)*100).toFixed(1)}%)
+              Score: {item.score}/{item.maxScore} ({((item.score / item.maxScore) * 100).toFixed(1)}%)
             </span>
           </div>
         )}
@@ -158,8 +150,6 @@ function ItemDetail({ item, onClose, onToggle, onDelete }: {
   );
 }
 
-// ── Quick-create modal ────────────────────────────────────────────────────────
-
 interface ModalProps {
   date: Date;
   courses: any[];
@@ -169,13 +159,13 @@ interface ModalProps {
 }
 
 function QuickCreateModal({ date, courses, onClose, onSave, initialMode = 'choose' }: ModalProps) {
-  const [mode, setMode]         = useState<'choose'|'task'|'eval'>(initialMode);
-  const [title, setTitle]       = useState('');
+  const [mode, setMode] = useState<'choose' | 'task' | 'eval'>(initialMode);
+  const [title, setTitle] = useState('');
   const [courseId, setCourseId] = useState('');
   const [evalType, setEvalType] = useState<string>('quiz');
   const [weightage, setWeightage] = useState('');
-  const [note, setNote]         = useState('');
-  const [shake, setShake]       = useState(false);
+  const [note, setNote] = useState('');
+  const [shake, setShake] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { if (mode !== 'choose') setTimeout(() => titleRef.current?.focus(), 80); }, [mode]);
@@ -191,7 +181,7 @@ function QuickCreateModal({ date, courses, onClose, onSave, initialMode = 'choos
     if (!title.trim()) { setShake(true); setTimeout(() => setShake(false), 400); titleRef.current?.focus(); return; }
     const item: LocalItem = {
       id: `local-${Date.now()}`,
-      type: mode as 'task'|'eval',
+      type: mode as 'task' | 'eval',
       title: title.trim(),
       date: toISO(date),
       done: false,
@@ -202,7 +192,7 @@ function QuickCreateModal({ date, courses, onClose, onSave, initialMode = 'choos
     onClose();
   };
 
-  const label = MONTHS[date.getMonth()].slice(0,3) + ' ' + pad2(date.getDate()) + ', ' + date.getFullYear();
+  const label = MONTHS[date.getMonth()].slice(0, 3) + ' ' + pad2(date.getDate()) + ', ' + date.getFullYear();
   const accent = mode === 'eval' ? 'var(--color-brand)' : '#a78bfa';
 
   return (
@@ -283,7 +273,7 @@ function QuickCreateModal({ date, courses, onClose, onSave, initialMode = 'choos
                     <div style={{ flex: 1 }}>
                       <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Type</label>
                       <select className="qc-input" value={evalType} onChange={e => setEvalType(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, background: 'var(--color-surface-2)', border: '1px solid var(--color-glass-border)', color: 'var(--color-text)', cursor: 'pointer', outline: 'none' }}>
-                        {EVAL_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+                        {EVAL_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
                       </select>
                     </div>
                     <div style={{ width: 110 }}>
@@ -315,27 +305,24 @@ function QuickCreateModal({ date, courses, onClose, onSave, initialMode = 'choos
   );
 }
 
-// ── Main CalendarPage ─────────────────────────────────────────────────────────
-
 export default function CalendarPage() {
   const today = new Date();
-  const [year, setYear]   = useState(today.getFullYear());
+  const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
-  const [allEvals, setAllEvals]   = useState<any[]>([]);
-  const [courses, setCourses]     = useState<any[]>([]);
-  const [selected, setSelected]   = useState<number | null>(today.getDate());
+  const [allEvals, setAllEvals] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [selected, setSelected] = useState<number | null>(today.getDate());
   const [localItems, setLocalItems] = useState<LocalItem[]>(() => loadItems());
-  const [modal, setModal]       = useState<{ date: Date; mode?: 'task'|'eval'|'choose' } | null>(null);
+  const [modal, setModal] = useState<{ date: Date; mode?: 'task' | 'eval' | 'choose' } | null>(null);
   const [activeItem, setActiveItem] = useState<any | null>(null);
-  const [sideTab, setSideTab]   = useState<'day'|'upcoming'>('day');
-  const [upcomingFilter, setUpcomingFilter] = useState<'all'|'week'|'month'>('all');
+  const [sideTab, setSideTab] = useState<'day' | 'upcoming'>('day');
+  const [upcomingFilter, setUpcomingFilter] = useState<'all' | 'week' | 'month'>('all');
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = useCallback(async () => {
     try {
       const courseList = await fetchCourses();
       setCourses(courseList);
-      // Fetch ALL evals (including past) by pulling course details
       const details = await Promise.all(courseList.map((c: any) => fetchCourse(c.id).catch(() => null)));
       const gathered: any[] = [];
       details.forEach((d, i) => {
@@ -350,11 +337,11 @@ export default function CalendarPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y-1); } else setMonth(m => m-1); };
-  const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y+1); } else setMonth(m => m+1); };
+  const prevMonth = () => { if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1); };
+  const nextMonth = () => { if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1); };
 
-  const firstDay    = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const evalsOnDay = (day: number) => {
     const target = new Date(year, month, day);
@@ -364,15 +351,15 @@ export default function CalendarPage() {
       return ed.getFullYear() === target.getFullYear() && ed.getMonth() === target.getMonth() && ed.getDate() === target.getDate();
     });
     const local = localItems.filter(item => {
-      const [y2,m2,d2] = item.date.split('-').map(Number);
-      return y2 === target.getFullYear() && m2-1 === target.getMonth() && d2 === target.getDate();
+      const [y2, m2, d2] = item.date.split('-').map(Number);
+      return y2 === target.getFullYear() && m2 - 1 === target.getMonth() && d2 === target.getDate();
     });
     return { remote, local, all: [...remote, ...local.map(l => ({ ...l, _local: true }))] };
   };
 
   const selectedData = selected ? evalsOnDay(selected) : { remote: [], local: [], all: [] };
   const isToday = (day: number) => day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-  const isPast  = (day: number) => { const d = new Date(year, month, day); d.setHours(0,0,0,0); const t = new Date(); t.setHours(0,0,0,0); return d < t; };
+  const isPast = (day: number) => { const d = new Date(year, month, day); d.setHours(0, 0, 0, 0); const t = new Date(); t.setHours(0, 0, 0, 0); return d < t; };
 
   const handleDayClick = (day: number) => {
     setActiveItem(null);
@@ -413,10 +400,10 @@ export default function CalendarPage() {
     .filter(e => e.date)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .filter(e => {
-      const d = new Date(e.date); d.setHours(0,0,0,0);
-      const t = new Date(); t.setHours(0,0,0,0);
-      if (upcomingFilter === 'week') { const w = new Date(t); w.setDate(t.getDate()+7); return d >= t && d <= w; }
-      if (upcomingFilter === 'month') { const m = new Date(t); m.setDate(t.getDate()+30); return d >= t && d <= m; }
+      const d = new Date(e.date); d.setHours(0, 0, 0, 0);
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      if (upcomingFilter === 'week') { const w = new Date(t); w.setDate(t.getDate() + 7); return d >= t && d <= w; }
+      if (upcomingFilter === 'month') { const m = new Date(t); m.setDate(t.getDate() + 30); return d >= t && d <= m; }
       return d >= t;
     });
 
@@ -540,9 +527,9 @@ export default function CalendarPage() {
                 <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid var(--color-glass-border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      {selected && <p style={{ fontSize: 10, color: 'var(--color-text-faint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>{DAYS[new Date(year,month,selected).getDay()]}</p>}
+                      {selected && <p style={{ fontSize: 10, color: 'var(--color-text-faint)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>{DAYS[new Date(year, month, selected).getDay()]}</p>}
                       <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.02em' }}>
-                        {selected ? `${MONTHS[month].slice(0,3)} ${pad2(selected)}` : 'Select a day'}
+                        {selected ? `${MONTHS[month].slice(0, 3)} ${pad2(selected)}` : 'Select a day'}
                       </p>
                     </div>
                     {selected && (
@@ -574,7 +561,7 @@ export default function CalendarPage() {
                     {selectedData.all.map((e: any) => {
                       const meta = getMeta(e);
                       const evalType = e._local ? (e.type === 'task' ? 'task' : e.evalType ?? 'other') : e.type;
-                      const isCritical = ['midsem','endsem'].includes(evalType);
+                      const isCritical = ['midsem', 'endsem'].includes(evalType);
                       const isActive = activeItem?.id === e.id;
                       return (
                         <button
@@ -608,7 +595,7 @@ export default function CalendarPage() {
             ) : (
               <div className="flex-1 overflow-y-auto flex flex-col">
                 <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--color-glass-border)', display: 'flex', gap: 5 }}>
-                  {(['all','week','month'] as const).map(f => (
+                  {(['all', 'week', 'month'] as const).map(f => (
                     <button key={f} onClick={() => setUpcomingFilter(f)} style={{ flex: 1, padding: '5px 0', borderRadius: 6, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer', background: upcomingFilter === f ? 'var(--color-active-bg)' : 'transparent', color: upcomingFilter === f ? 'var(--color-brand)' : 'var(--color-text-faint)', border: `1px solid ${upcomingFilter === f ? 'var(--color-brand)' : 'var(--color-glass-border)'}`, transition: 'all 0.12s' }}>
                       {f === 'all' ? 'All' : f === 'week' ? '7 days' : '30 days'}
                     </button>
@@ -625,7 +612,7 @@ export default function CalendarPage() {
                     {upcomingEvals.map(e => {
                       const meta = TYPE_META[e.type] ?? TYPE_META.other;
                       const rel = relativeDay(e.date);
-                      const isCritical = ['midsem','endsem'].includes(e.type);
+                      const isCritical = ['midsem', 'endsem'].includes(e.type);
                       return (
                         <button key={e.id} onClick={() => { setActiveItem(e); setSideTab('day'); }}
                           style={{ width: '100%', textAlign: 'left', marginBottom: 6, padding: '10px 12px', borderRadius: 10, background: 'var(--color-surface-2)', border: `1px solid ${isCritical ? 'rgba(239,68,68,0.25)' : 'var(--color-glass-border)'}`, cursor: 'pointer', transition: 'all 0.12s' }}

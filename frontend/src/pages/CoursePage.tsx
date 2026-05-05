@@ -7,6 +7,7 @@ import EditEvalModal from '../components/modals/EditEvalModal';
 import { deleteEval, deleteCourse } from '../lib/api';
 import { fetchCourse, invalidateCourseDetail, invalidateAllCourseData } from '../lib/dataService';
 import { AlertTriangle, Plus, Pencil, Trash2 } from 'lucide-react';
+import { LineChart } from '@mui/x-charts';
 
 const TYPE_COLOR: Record<string, string> = {
     midsem: 'text-[var(--color-danger)] border-[var(--color-danger)]',
@@ -50,10 +51,10 @@ export default function CoursePage() {
         const normalizeWeights = (es: any[]): number[] => {
             const ws = es.map(e => Math.round(e.weightage * 10) / 10);
             let sum = Math.round(ws.reduce((s, w) => s + w, 0) * 10) / 10;
-            let excess = Math.round((sum - 100) * 10); // in units of 0.1
+            let excess = Math.round((sum - 100) * 10); 
             if (excess > 0) {
                 for (let i = 0; i < ws.length && excess > 0; i++) {
-                    if (ws[i] % 1 !== 0) { // has decimal
+                    if (ws[i] % 1 !== 0) { 
                         ws[i] = Math.round((ws[i] - 0.1) * 10) / 10;
                         excess--;
                     }
@@ -72,6 +73,13 @@ export default function CoursePage() {
         }, 0) * 10) / 10;
         const remaining = Math.max(0, Math.round((100 - evaluatedWeight) * 10) / 10);
         const needToScore = Math.round((course.targetGrade - earnedSoFar) * 10) / 10;
+        if (needToScore < 0) return {
+            currentGrade: earnedSoFar,
+            totalWeight: 100,
+            totalAllocated,
+            remaining,
+            needToScore: 0,
+        };
         return {
             currentGrade: earnedSoFar,
             totalWeight: 100,
@@ -87,7 +95,7 @@ export default function CoursePage() {
         if (!confirm('Delete this evaluation?')) return;
         try {
             await deleteEval(evalId);
-            invalidateCourseDetail(id!); // stale: this course's stats + upcoming evals
+            invalidateCourseDetail(id!); 
             load();
         }
         catch (err: any) { alert('Failed: ' + err.message); }
@@ -97,7 +105,7 @@ export default function CoursePage() {
         if (!confirm(`Delete "${course?.name}"? All evaluations will be removed.`)) return;
         try {
             await deleteCourse(id!);
-            invalidateAllCourseData(); // courses list is now stale
+            invalidateAllCourseData(); 
             navigate('/courses');
         }
         catch (err: any) { alert('Failed: ' + err.message); }
@@ -129,7 +137,6 @@ export default function CoursePage() {
                         </div>
                     ) : course && (
                         <>
-                            {/* Course header row */}
                             <div className="flex items-start justify-between mb-10 border border-[var(--color-glass-border)] p-6">
                                 <div className="flex items-center space-x-8">
                                     {course.credits && (
@@ -144,7 +151,6 @@ export default function CoursePage() {
                                     </div>
                                 </div>
 
-                                {/* Terminate — Anger → red */}
                                 <button
                                     onClick={handleDeleteCourse}
                                     className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
@@ -166,7 +172,6 @@ export default function CoursePage() {
                                 </button>
                             </div>
 
-                            {/* Stats */}
                             {computedStats && (
                                 <div className="grid grid-cols-2 md:grid-cols-4 border border-[var(--color-glass-border)] mb-10">
                                     {[
@@ -176,7 +181,7 @@ export default function CoursePage() {
                                         {
                                             label: 'Need to Score',
                                             value: `${parseFloat(computedStats.needToScore.toFixed(2))}%`,
-                                            sub: computedStats.needToScore > 100
+                                            sub: computedStats.needToScore == 0 ? "Target Acheived" :computedStats.needToScore > 100
                                                 ? 'Target unreachable — beyond 100%'
                                                 : 'Needed to complete target grade!',
                                             accent: false,
@@ -192,11 +197,116 @@ export default function CoursePage() {
                                 </div>
                             )}
 
-                            {/* Evaluations table */}
+                            {(() => {
+                                const graded = evals
+                                    .filter(e => e.score !== null && e.score !== undefined && e.maxScore)
+                                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+                                if (graded.length < 1) return null;
+
+                                let cumWeight = 0;
+                                let cumEarned = 0;
+                                const points: { x: number; y: number; label: string }[] = [{ x: 0, y: 0, label: 'Start' }];
+                                graded.forEach(e => {
+                                    cumWeight = Math.round((cumWeight + e.weightage) * 10) / 10;
+                                    cumEarned = Math.round((cumEarned + (e.score / e.maxScore) * e.weightage) * 10) / 10;
+                                    points.push({ x: cumWeight, y: cumEarned, label: e.title });
+                                });
+
+                                const xVals = points.map(p => p.x);
+                                const yVals = points.map(p => p.y);
+
+
+                                const targetY = points.map(() => course.targetGrade);
+
+                                const C_EARNED = '#4ade80';
+                                const C_TARGET = '#fb923c';
+
+                                return (
+                                    <div className="mb-10 border border-[var(--color-glass-border)]" style={{ background: 'var(--color-surface-1)' }}>
+                                        <div className="px-6 pt-5 pb-4 border-b border-[var(--color-glass-border)] flex items-start justify-between">
+                                            <div>
+                                                <p className="text-[9px] font-black tracking-[0.25em] uppercase mb-0.5" style={{ color: 'var(--color-brand)' }}>// GRADE_CURVE</p>
+                                                <h4 className="text-sm font-extrabold tracking-tight uppercase" style={{ color: 'var(--color-text)' }}>Cumulative Grade Curve</h4>
+                                            </div>
+                                            <div className="flex items-center gap-5 mt-1">
+                                                {[
+                                                    { color: C_EARNED, label: 'Earned' },
+                                                    { color: C_TARGET, label: `Target (${course.targetGrade}%)` },
+                                                ].map(({ color, label }) => (
+                                                    <div key={label} className="flex items-center gap-1.5">
+                                                        <div style={{ width: 20, height: 2, background: color, borderRadius: 1 }} />
+                                                        <span className="text-[9px] font-bold tracking-widest uppercase font-mono" style={{ color: 'var(--color-text-faint)' }}>{label}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <LineChart
+                                            xAxis={[{
+                                                data: xVals,
+                                                label: 'Weight Assessed (%)',
+                                                min: 0,
+                                                max: Math.max(...xVals, 100),
+                                                tickLabelStyle: { fontSize: 10, fill: '#71717a', fontFamily: 'monospace' },
+                                                labelStyle: { fontSize: 12, fill: '#52525b', fontFamily: 'monospace' },
+                                                valueFormatter: (v: number) => `${v}%`,
+                                                tickNumber: 10,
+                                            }]}
+                                            yAxis={[{
+                                                min: 0,
+                                                max: Math.max(...xVals, 100),
+                                                label: 'Grade Earned (%)',
+                                                tickLabelStyle: { fontSize: 10, fill: '#71717a', fontFamily: 'monospace' },
+                                                labelStyle: { fontSize: 12, fill: '#52525b', fontFamily: 'monospace' },
+                                                valueFormatter: (v: number) => `${v}%`,
+                                                tickNumber: 10,
+                                            }]}
+                                            series={[
+                                                {
+                                                    data: yVals,
+                                                    label: 'Earned',
+                                                    color: C_EARNED,
+                                                    showMark: true,
+                                                    curve: 'linear',
+                                                    valueFormatter: (v: number | null) => v !== null ? `${v}%` : '',
+                                                },
+                                                {
+                                                    data: targetY,
+                                                    label: `Target (${course.targetGrade}%)`,
+                                                    color: C_TARGET,
+                                                    showMark: false,
+                                                    curve: 'linear',
+                                                    valueFormatter: (v: number | null) => v !== null ? `${v}%` : '',
+                                                },
+                                            ]}
+                                            height={380}
+                                            margin={{ top: 20, right: 32, bottom: 56, left: 64 }}
+                                            grid={{ vertical: true, horizontal: true }}
+                                            sx={{
+                                                // Axis lines & ticks
+                                                '& .MuiChartsAxis-line': { stroke: '#3f3f46' },
+                                                '& .MuiChartsAxis-tick': { stroke: '#3f3f46' },
+                                                '& .MuiChartsGrid-line': { stroke: '#27272a', strokeDasharray: '4 4' },
+                                                '& .MuiChartsLegend-root': { display: 'none' },
+                                                '& .MuiLineElement-series-auto-generated-id-0': { strokeWidth: 2.5, filter: `drop-shadow(0 0 6px ${C_EARNED}88)` },
+                                                '& .MuiLineElement-series-auto-generated-id-2': { strokeWidth: 1.5, strokeDasharray: '6 4' },
+                                                '& .MuiMarkElement-root': {
+                                                    stroke: C_EARNED,
+                                                    fill: '#18181b',
+                                                    strokeWidth: 2,
+                                                    r: '5',
+                                                    filter: `drop-shadow(0 0 4px ${C_EARNED}99)`,
+                                                },
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })()}
+
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-sm font-extrabold tracking-widest uppercase">Evaluations ({evals.length})</h3>
 
-                                {/* Add Evaluation — Anticipation → amber-green */}
                                 <button
                                     onClick={() => setShowAdd(true)}
                                     className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
@@ -236,14 +346,12 @@ export default function CoursePage() {
                                 </div>
                             ) : (
                                 <div className="border border-[var(--color-glass-border)] overflow-hidden">
-                                    {/* Table header */}
                                     <div className="grid grid-cols-12 border-b border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 px-6 py-3">
                                         {['Title', 'Type', 'Date', 'Weight', 'Score', 'Earned', ''].map((h, i) => (
                                             <div key={h} className={`text-[9px] font-black tracking-[0.2em] uppercase text-[var(--color-text-faint)] ${i === 0 ? 'col-span-3' : i === 6 ? 'col-span-1 text-right' : 'col-span-2 text-right'
                                                 }`}>{h}</div>
                                         ))}
                                     </div>
-                                    {/* Rows */}
                                     {evals.map(e => {
                                         const earned = e.score !== null && e.score !== undefined
                                             ? ((e.score / e.maxScore) * e.weightage).toFixed(2)
@@ -277,9 +385,7 @@ export default function CoursePage() {
                                                     }
                                                 </div>
 
-                                                {/* Row actions — always visible, colored */}
                                                 <div className="col-span-1 text-right flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    {/* Edit — Trust → blue */}
                                                     <button
                                                         onClick={() => setEditing(e)}
                                                         title="Edit evaluation"
@@ -296,7 +402,6 @@ export default function CoursePage() {
                                                         <Pencil className="w-4 h-4" />
                                                     </button>
 
-                                                    {/* Delete — Anger → red */}
                                                     <button
                                                         onClick={() => handleDeleteEval(e.id)}
                                                         title="Delete evaluation"

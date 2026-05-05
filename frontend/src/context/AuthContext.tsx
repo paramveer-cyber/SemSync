@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { authMe } from '../lib/api';
+import { authLogout } from '../lib/api';
 import { invalidateOnLogout } from '../lib/dataService';
+import { setToken, clearToken } from '../lib/tokenStore.js';
+
+const BASE = 'https://semsyncbackend.vercel.app';
+// const BASE = 'http://localhost:3000';
 
 interface User { id: string; name: string; email: string; avatarUrl?: string; }
 interface AuthCtx { user: User | null; loading: boolean; login: (token: string, user: User) => void; logout: () => void; }
@@ -12,17 +16,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('ct_token');
+    clearToken();
     invalidateOnLogout();
     setUser(null);
+    authLogout().catch(() => { });
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('ct_token');
-    if (!token) { setLoading(false); return; }
-    authMe()
-      .then(({ user }: { user: User }) => setUser(user))
-      .catch(() => { localStorage.removeItem('ct_token'); setUser(null); })
+    fetch(`${BASE}/auth/refresh`, { method: 'POST', credentials: 'include' })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(async (data) => {
+        setToken(data.token);
+        const meRes = await fetch(`${BASE}/auth/me`, {
+          headers: { Authorization: `Bearer ${data.token}` },
+          credentials: 'include',
+        });
+        if (!meRes.ok) throw new Error();
+        const { user: userData } = await meRes.json();
+        setUser(userData);
+      })
+      .catch(() => {
+        clearToken();
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -32,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [logout]);
 
   const login = useCallback((token: string, userData: User) => {
-    localStorage.setItem('ct_token', token);
+    setToken(token);
     setUser(userData);
   }, []);
 

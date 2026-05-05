@@ -54,7 +54,6 @@ function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: 
             className={`group relative flex flex-col cursor-grab active:cursor-grabbing transition-all duration-200 select-none hover:bg-[var(--color-surface-2)] ${dragging ? 'opacity-40 scale-95' : ''}`}
             style={{ background: 'var(--color-surface-1)', border: '1px solid var(--color-glass-border)', padding: '18px 20px 16px' }}>
 
-            {/* Top row: course + priority + actions */}
             <div className="flex items-center justify-between mb-4">
                 <span className="text-[9px] font-black tracking-[0.3em] uppercase" style={{ color: 'var(--color-text-muted)' }}>
                     {task.course.toUpperCase()}
@@ -67,7 +66,6 @@ function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: 
                             <PIc className="w-2.5 h-2.5" />{pm.label}
                           </span>
                     }
-                    {/* Edit button */}
                     <button
                         onClick={e => { e.stopPropagation(); onEdit(task); }}
                         className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-6 h-6 transition-all duration-150 cursor-pointer"
@@ -76,7 +74,6 @@ function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: 
                         onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.10)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(59,130,246,0.22)'; }}>
                         <Pencil className="w-3 h-3" />
                     </button>
-                    {/* Delete button */}
                     <button
                         onClick={e => { e.stopPropagation(); onDelete(task.id); }}
                         className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-6 h-6 transition-all duration-150 cursor-pointer"
@@ -88,7 +85,6 @@ function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: 
                 </div>
             </div>
 
-            {/* Title */}
             <p className="text-sm font-extrabold tracking-tight uppercase leading-snug mb-2"
                 style={{ color: task.status === 'done' ? 'var(--color-text-muted)' : 'white', textDecoration: task.status === 'done' ? 'line-through' : 'none' }}>
                 {task.title}
@@ -97,7 +93,6 @@ function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: 
                 <p className="text-[11px] leading-relaxed mb-3" style={{ color: 'var(--color-text-muted)' }}>{task.description}</p>
             )}
 
-            {/* Footer */}
             <div className="mt-auto pt-3" style={{ borderTop: '1px solid var(--color-glass-border)' }}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5" style={{ color: 'var(--color-text-faint)' }}>
@@ -117,7 +112,6 @@ function TaskCard({ task, onDelete, onEdit, dragging, onDragStart, onDragEnd }: 
     );
 }
 
-/* ── Task Form Modal (shared by New + Edit) ──────────────────────────────────── */
 function TaskModal({
     mode, initial, onClose, onSave,
 }: {
@@ -170,7 +164,6 @@ function TaskModal({
 
             <div className="w-full max-w-md overflow-hidden" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-glass-border)' }}>
 
-                {/* Header */}
                 <div className="flex items-center justify-between px-8 py-6"
                     style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
                     <div>
@@ -273,7 +266,6 @@ function TaskModal({
     );
 }
 
-/* ── Main Page ──────────────────────────────────────────────────────────────── */
 export default function TaskCenterPage() {
     const [tasks, setTasks]           = useState<Task[]>(loadTasks);
     const [showNew, setShowNew]       = useState(false);
@@ -312,7 +304,6 @@ export default function TaskCenterPage() {
 
                 <div className="grow overflow-hidden flex flex-col p-8 gap-8">
 
-                    {/* Page header */}
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 shrink-0">
                         <div>
                             <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-2" style={{ color: 'var(--color-brand)' }}>// OPS_BOARD_V1</span>
@@ -334,7 +325,6 @@ export default function TaskCenterPage() {
                         </div>
                     </div>
 
-                    {/* Column summary strip */}
                     <div className="flex items-center shrink-0" style={{ border: '1px solid var(--color-glass-border)', borderRadius: 8 }}>
                         {COLUMNS.map((col, i) => {
                             const count = tasks.filter(t => t.status === col.id).length;
@@ -351,7 +341,6 @@ export default function TaskCenterPage() {
                         })}
                     </div>
 
-                    {/* Kanban board */}
                     <div className="grid grid-cols-3 gap-5 grow min-h-0">
                         {COLUMNS.map(col => {
                             const colTasks = tasks.filter(t => t.status === col.id);
@@ -380,7 +369,6 @@ export default function TaskCenterPage() {
                                         </span>
                                     </div>
 
-                                    {/* Tasks */}
                                     <div className="grow overflow-y-auto p-3 space-y-2">
                                         {colTasks.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center h-28 border border-dashed" style={{ borderColor: 'var(--color-glass-border)' }}>

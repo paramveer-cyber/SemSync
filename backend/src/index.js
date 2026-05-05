@@ -5,6 +5,8 @@ import evalCourseRoutes from "./modules/evals/evals.routes.js";
 import { evalStandaloneRouter } from "./modules/evals/evals.routes.js";
 import { authMiddleware } from "./modules/auth/auth.middleware.js";
 import errorHandler from "./common/middlewares/error.middleware.js";
+import { apiLimiter } from "./common/middlewares/rateLimiter.js";
+
 import cors from "cors";
 import cookieparser from "cookie-parser";
 
@@ -22,9 +24,9 @@ app.use(cors({
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 app.use("/auth", authRoutes);
-app.use("/courses", authMiddleware, courseRoutes);
-app.use("/courses/:courseId/evaluations", authMiddleware, evalCourseRoutes);
-app.use("/evaluations", authMiddleware, evalStandaloneRouter);
+app.use("/courses", authMiddleware, apiLimiter, courseRoutes);
+app.use("/courses/:courseId/evaluations", authMiddleware, apiLimiter,evalCourseRoutes);
+app.use("/evaluations", authMiddleware, apiLimiter, evalStandaloneRouter);
 
 app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
 app.use(errorHandler);

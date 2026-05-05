@@ -1,7 +1,7 @@
 // const BASE = 'http://localhost:3000';
 const BASE = 'https://semsyncbackend.vercel.app';
 
-const getToken = () => localStorage.getItem('ct_token');
+import { getToken, setToken, clearToken } from './tokenStore.js';
 
 const headers = () => ({
   'Content-Type': 'application/json',
@@ -26,10 +26,10 @@ const request = async (method, path, body, _retry = false) => {
       });
       const refreshData = await refreshRes.json().catch(() => ({}));
       if (!refreshRes.ok) throw new Error(refreshData.message || 'Refresh failed');
-      localStorage.setItem('ct_token', refreshData.token);
+      setToken(refreshData.token);
       return request(method, path, body, true);
     } catch {
-      localStorage.removeItem('ct_token');
+      clearToken();
       window.dispatchEvent(new Event('auth:logout'));
       const error = new Error('Session expired');
       error.status = 401;
