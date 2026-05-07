@@ -3,8 +3,8 @@ import { authLogout } from '../lib/api';
 import { invalidateOnLogout } from '../lib/dataService';
 import { setToken, clearToken } from '../lib/tokenStore.js';
 
-// const BASE = 'https://semsyncbackend.vercel.app';
-const BASE = 'http://localhost:3000';
+const BASE = 'https://semsyncbackend.vercel.app';
+// const BASE = 'http://localhost:3000';
 
 interface User { id: string; name: string; email: string; avatarUrl?: string; }
 interface AuthCtx { user: User | null; loading: boolean; login: (token: string, user: User) => void; logout: () => void; }

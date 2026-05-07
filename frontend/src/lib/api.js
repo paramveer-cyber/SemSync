@@ -1,5 +1,5 @@
-const BASE = 'http://localhost:3000';
-// const BASE = 'https://semsyncbackend.vercel.app';
+// const BASE = 'http://localhost:3000';
+const BASE = 'https://semsyncbackend.vercel.app';
 
 import { getToken, setToken, clearToken } from './tokenStore.js';
 
