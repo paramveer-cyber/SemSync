@@ -1,24 +1,26 @@
-import { db } from "../../db/index.js";
-import { evaluations, courses } from "../../db/schema.js";
-import { eq, and, gte, asc } from "drizzle-orm";
 import ApiError from "../../common/utils/api-error.js";
+import {
+    findCourseById,
+    findEvalsByCoure,
+    findEvalById,
+    insertEval,
+    updateEvalFields,
+    deleteEvalById,
+    findUpcomingEvalsByUser,
+} from "../../db/queries.js";
 
 const VALID_TYPES = ["quiz", "midsem", "endsem", "assignment", "lab", "project", "viva", "other"];
 
-const assertCourseOwnership = async (courseId, userId) => {
-    const course = await db.query.courses.findFirst({
-        where: and(eq(courses.id, courseId), eq(courses.userId, userId)),
-    });
+const assertCourseOwnership = async (courseId, userId, allowArchived = false) => {
+    const course = await findCourseById(courseId, userId);
     if (!course) throw ApiError.notFound("Course not found");
+    if (!allowArchived && course.isArchived) throw ApiError.forbidden("Course is archived");
     return course;
 };
 
 export const getEvalsByCourse = async (courseId, userId) => {
     await assertCourseOwnership(courseId, userId);
-    return db.query.evaluations.findMany({
-        where: eq(evaluations.courseId, courseId),
-        orderBy: (e, { asc }) => [asc(e.date)],
-    });
+    return findEvalsByCoure(courseId);
 };
 
 export const createEval = async (courseId, userId, data) => {
@@ -36,20 +38,14 @@ export const createEval = async (courseId, userId, data) => {
         if (score > maxScore) throw ApiError.badRequest("score cannot exceed maxScore");
     }
 
-    const [created] = await db
-        .insert(evaluations)
-        .values({ courseId, title: title.trim(), type, date: new Date(date), weightage, maxScore, score: score ?? null })
-        .returning();
-    return created;
+    return insertEval({ courseId, title: title.trim(), type, date: new Date(date), weightage, maxScore, score: score ?? null });
 };
 
 export const updateEval = async (evalId, userId, data) => {
-    const existing = await db.query.evaluations.findFirst({
-        where: eq(evaluations.id, evalId),
-        with: { course: true },
-    });
+    const existing = await findEvalById(evalId);
     if (!existing) throw ApiError.notFound("Evaluation not found");
     if (existing.course.userId !== userId) throw ApiError.forbidden("Access denied");
+    if (existing.course.isArchived) throw ApiError.forbidden("Course is archived");
 
     const allowed = {};
     if (data.title !== undefined) allowed.title = data.title.trim();
@@ -82,37 +78,19 @@ export const updateEval = async (evalId, userId, data) => {
 
     if (Object.keys(allowed).length === 0) throw ApiError.badRequest("No valid fields to update");
 
-    const [updated] = await db
-        .update(evaluations)
-        .set(allowed)
-        .where(eq(evaluations.id, evalId))
-        .returning();
-    return updated;
+    return updateEvalFields(evalId, allowed);
 };
 
 export const deleteEval = async (evalId, userId) => {
-    const existing = await db.query.evaluations.findFirst({
-        where: eq(evaluations.id, evalId),
-        with: { course: true },
-    });
+    const existing = await findEvalById(evalId);
     if (!existing) throw ApiError.notFound("Evaluation not found");
     if (existing.course.userId !== userId) throw ApiError.forbidden("Access denied");
-    await db.delete(evaluations).where(eq(evaluations.id, evalId));
+    if (existing.course.isArchived) throw ApiError.forbidden("Course is archived");
+    return deleteEvalById(evalId);
 };
 
 export const getUpcomingEvals = async (userId) => {
-    const now = new Date();
-    const userCourses = await db.query.courses.findMany({
-        where: eq(courses.userId, userId),
-        with: {
-            evaluations: {
-                where: gte(evaluations.date, now),
-                orderBy: [asc(evaluations.date)],
-            },
-        },
-        orderBy: (c, { asc }) => [asc(c.name)],
-    });
-
+    const userCourses = await findUpcomingEvalsByUser(userId);
     const upcoming = [];
     for (const course of userCourses) {
         for (const e of course.evaluations) {

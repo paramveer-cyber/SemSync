@@ -4,29 +4,49 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import AddCourseModal from '../components/modals/AddCourseModal';
 import { deleteCourse } from '../lib/api';
-import { fetchCourses, invalidateAllCourseData } from '../lib/dataService';
-import { Plus, AlertTriangle, Trash2 } from 'lucide-react';
+import { fetchCourses, fetchArchivedCourses, invalidateAllCourseData } from '../lib/dataService';
+import { Plus, AlertTriangle, Trash2, Archive } from 'lucide-react';
 
 export default function CoursesPage() {
+  const [tab, setTab] = useState<'active' | 'past'>('active');
   const [courses, setCourses] = useState<any[]>([]);
+  const [archived, setArchived] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAdd, setShowAdd] = useState(false);
 
-  const load = useCallback(async () => {
+  const loadActive = useCallback(async () => {
     setLoading(true); setError('');
     try { const c = await fetchCourses(); setCourses(c); }
     catch (err: any) { setError(err.message); }
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  const loadArchived = useCallback(async () => {
+    setLoading(true); setError('');
+    try { const c = await fetchArchivedCourses(); setArchived(c); }
+    catch (err: any) { setError(err.message); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { loadActive(); }, [loadActive]);
+
+  useEffect(() => {
+    if (tab === 'past') loadArchived();
+  }, [tab, loadArchived]);
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"?`)) return;
-    try { await deleteCourse(id); invalidateAllCourseData(); setCourses(p => p.filter(c => c.id !== id)); }
+    try {
+      await deleteCourse(id);
+      invalidateAllCourseData();
+      if (tab === 'active') setCourses(p => p.filter(c => c.id !== id));
+      else setArchived(p => p.filter(c => c.id !== id));
+    }
     catch (err: any) { alert('Failed: ' + err.message); }
   };
+
+  const displayList = tab === 'active' ? courses : archived;
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
@@ -41,27 +61,47 @@ export default function CoursesPage() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="p-4 flex items-center space-x-4 rounded-lg" style={{ border: '1px solid var(--color-glass-border)' }}>
-                <div className="w-2 h-2 animate-pulse rounded-full" style={{ background: 'var(--color-brand)' }} />
-                <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: 'var(--color-text-faint)' }}>{courses.length} ACTIVE NODES</span>
+                <div className="w-2 h-2 animate-pulse rounded-full" style={{ background: tab === 'active' ? 'var(--color-brand)' : '#a1a1aa' }} />
+                <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: 'var(--color-text-faint)' }}>
+                  {tab === 'active' ? `${courses.length} ACTIVE NODES` : `${archived.length} ARCHIVED NODES`}
+                </span>
               </div>
-              <button
-                onClick={() => setShowAdd(true)}
-                className="flex items-center gap-2 px-6 py-4 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 rounded-lg"
-                style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)';
-                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-surface)';
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px var(--color-brand-glow)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-active-bg)';
-                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)';
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
-                }}>
-                <Plus className="w-4 h-4" />
-                New Node
-              </button>
+              {tab === 'active' && (
+                <button
+                  onClick={() => setShowAdd(true)}
+                  className="flex items-center gap-2 px-6 py-4 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 rounded-lg"
+                  style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)';
+                    (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-surface)';
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px var(--color-brand-glow)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-active-bg)';
+                    (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)';
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+                  }}>
+                  <Plus className="w-4 h-4" />
+                  New Node
+                </button>
+              )}
             </div>
+          </div>
+
+          <div className="flex gap-1 mb-10 p-1 rounded-lg w-fit" style={{ background: 'var(--color-surface-1)', border: '1px solid var(--color-glass-border)' }}>
+            {(['active', 'past'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="px-6 py-2 text-[10px] font-black tracking-[0.2em] uppercase rounded-md cursor-pointer transition-all duration-150"
+                style={{
+                  background: tab === t ? 'var(--color-surface-2)' : 'transparent',
+                  color: tab === t ? 'var(--color-text)' : 'var(--color-text-faint)',
+                  border: tab === t ? '1px solid var(--color-glass-border)' : '1px solid transparent',
+                }}>
+                {t === 'active' ? 'Active Nodes' : 'Past Nodes'}
+              </button>
+            ))}
           </div>
 
           {error && (
@@ -77,56 +117,88 @@ export default function CoursesPage() {
               <div className="w-px h-8 animate-pulse" style={{ background: 'var(--color-brand)' }} />
               <span className="text-[10px] font-bold tracking-[0.3em] uppercase" style={{ color: 'var(--color-text-faint)' }}>Scanning nodes…</span>
             </div>
-          ) : courses.length === 0 ? (
+          ) : displayList.length === 0 ? (
             <div className="border border-dashed p-20 text-center rounded-lg" style={{ borderColor: 'var(--color-glass-border)' }}>
-              <p className="text-[10px] font-bold tracking-[0.3em] uppercase mb-6" style={{ color: 'var(--color-text-faint)' }}>No course nodes initialized</p>
-              <button
-                onClick={() => setShowAdd(true)}
-                className="px-10 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 rounded-lg"
-                style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)';
-                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-surface)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-active-bg)';
-                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)';
-                }}>
-                Initialize First Course
-              </button>
+              <p className="text-[10px] font-bold tracking-[0.3em] uppercase mb-6" style={{ color: 'var(--color-text-faint)' }}>
+                {tab === 'active' ? 'No course nodes initialized' : 'No archived courses'}
+              </p>
+              {tab === 'active' && (
+                <button
+                  onClick={() => setShowAdd(true)}
+                  className="px-10 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 rounded-lg"
+                  style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)';
+                    (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-surface)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-active-bg)';
+                    (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)';
+                  }}>
+                  Initialize First Course
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {courses.map((course, i) => (
+              {displayList.map((course, i) => (
                 <div
                   key={course.id}
                   className="p-8 group transition-all rounded-lg"
-                  style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)' }}
+                  style={{
+                    border: '1px solid var(--color-glass-border)',
+                    background: 'var(--color-surface-1)',
+                    opacity: tab === 'past' ? 0.8 : 1,
+                  }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2)'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-1)'}>
 
                   <div className="flex justify-between items-start mb-14">
-                    <span className="text-[10px] font-black tracking-[0.4em] uppercase" style={{ color: 'var(--color-text-faint)' }}>
-                      NODE_{String(i + 1).padStart(2, '0')}
-                    </span>
-                    <button
-                      onClick={() => handleDelete(course.id, course.name)}
-                      title={`Delete ${course.name}`}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-0 group-hover:opacity-100"
-                      style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
-                      onMouseEnter={e => {
-                        (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
-                        (e.currentTarget as HTMLButtonElement).style.color = '#fff';
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
-                      }}
-                      onMouseLeave={e => {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
-                        (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
-                      }}>
-                      <Trash2 className="w-3 h-3" />
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black tracking-[0.4em] uppercase" style={{ color: 'var(--color-text-faint)' }}>
+                        {tab === 'past' ? 'ARCHIVED' : `NODE_${String(i + 1).padStart(2, '0')}`}
+                      </span>
+                      {tab === 'past' && <Archive className="w-3 h-3" style={{ color: '#a1a1aa' }} />}
+                    </div>
+                    {tab === 'past' ? (
+                      <button
+                        onClick={() => handleDelete(course.id, course.name)}
+                        title={`Delete ${course.name}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-0 group-hover:opacity-100"
+                        style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
+                        onMouseEnter={e => {
+                          (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
+                          (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+                          (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
+                        }}
+                        onMouseLeave={e => {
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
+                          (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
+                          (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
+                        }}>
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleDelete(course.id, course.name)}
+                        title={`Delete ${course.name}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-0 group-hover:opacity-100"
+                        style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
+                        onMouseEnter={e => {
+                          (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
+                          (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+                          (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
+                        }}
+                        onMouseLeave={e => {
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
+                          (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
+                          (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
+                        }}>
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
+                    )}
                   </div>
 
                   <Link to={`/courses/${course.id}`}>
@@ -139,7 +211,7 @@ export default function CoursesPage() {
                     </div>
                     <div className="pt-4" style={{ borderTop: '1px solid var(--color-glass-border)' }}>
                       <span className="text-[10px] font-bold tracking-widest uppercase group-hover:text-[var(--color-text)] transition-colors" style={{ color: 'var(--color-brand)' }}>
-                        → Access Track
+                        {tab === 'past' ? '→ View Archive' : '→ Access Track'}
                       </span>
                     </div>
                   </Link>

@@ -99,6 +99,14 @@ export async function fetchCourse(id: string): Promise<{ course: any; evaluation
   return cached;
 }
 
+export async function fetchArchivedCourses(): Promise<any[]> {
+  if (!cacheHas(CACHE_KEYS.archivedCourses)) {
+    const { courses } = await api.getArchivedCourses();
+    cacheSet(CACHE_KEYS.archivedCourses, courses);
+  }
+  return cacheGet<any[]>(CACHE_KEYS.archivedCourses) ?? [];
+}
+
 // ── Invalidation helpers (call after mutations) ───────────────────────────────
 
 /**

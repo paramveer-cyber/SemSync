@@ -7,6 +7,7 @@ import {
     saveClassroomToken,
     clearClassroomToken,
     refresh,
+    deleteAccount,
 } from "./auth.controller.js";
 import { authMiddleware } from "./auth.middleware.js";
 import {
@@ -26,5 +27,7 @@ router.get("/me", authMiddleware, getMe);
 router.get("/classroom-token", authMiddleware, getClassroomToken);
 router.post("/classroom-token", authMiddleware, saveClassroomToken);
 router.delete("/classroom-token", authMiddleware, clearClassroomToken);
+
+router.delete("/account", authMiddleware, deleteAccount);
 
 export default router;

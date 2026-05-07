@@ -1,7 +1,14 @@
-import { db } from "../../db/index.js";
-import { courses } from "../../db/schema.js";
-import { eq, and } from "drizzle-orm";
 import ApiError from "../../common/utils/api-error.js";
+import {
+    findCoursesByUser,
+    findArchivedCoursesByUser,
+    findCourseById,
+    findCourseWithEvals,
+    insertCourse,
+    updateCourseFields,
+    setCourseArchived,
+    deleteCourseById,
+} from "../../db/queries.js";
 
 export const computeStats = (course, evals) => {
     let currentGrade = 0, earnedWeight = 0, totalWeight = 0;
@@ -29,36 +36,25 @@ export const computeStats = (course, evals) => {
     };
 };
 
-export const getAllCourses = async (userId) => {
-    return db.query.courses.findMany({
-        where: eq(courses.userId, userId),
-        orderBy: (c, { asc }) => [asc(c.createdAt)],
-    });
-};
+export const getAllCourses = (userId) => findCoursesByUser(userId);
+
+export const getArchivedCourses = (userId) => findArchivedCoursesByUser(userId);
 
 export const getCourseById = async (courseId, userId) => {
-    const course = await db.query.courses.findFirst({
-        where: and(eq(courses.id, courseId), eq(courses.userId, userId)),
-        with: { evaluations: true },
-    });
+    const course = await findCourseWithEvals(courseId, userId);
     if (!course) throw ApiError.notFound("Course not found");
     return course;
 };
 
-export const createCourse = async (userId, data) => {
+export const createCourse = (userId, data) => {
     const { name, credits, targetGrade } = data;
-    const [course] = await db
-        .insert(courses)
-        .values({ userId, name, credits: credits ?? null, targetGrade: targetGrade ?? 50 })
-        .returning();
-    return course;
+    return insertCourse({ userId, name, credits: credits ?? null, targetGrade: targetGrade ?? 50 });
 };
 
 export const updateCourse = async (courseId, userId, data) => {
-    const existing = await db.query.courses.findFirst({
-        where: and(eq(courses.id, courseId), eq(courses.userId, userId)),
-    });
+    const existing = await findCourseById(courseId, userId);
     if (!existing) throw ApiError.notFound("Course not found");
+    if (existing.isArchived) throw ApiError.forbidden("Course is archived");
 
     const allowed = {};
     if (data.name        !== undefined) allowed.name        = data.name;
@@ -67,18 +63,18 @@ export const updateCourse = async (courseId, userId, data) => {
 
     if (Object.keys(allowed).length === 0) throw ApiError.badRequest("No valid fields to update");
 
-    const [updated] = await db
-        .update(courses)
-        .set(allowed)
-        .where(and(eq(courses.id, courseId), eq(courses.userId, userId)))
-        .returning();
-    return updated;
+    return updateCourseFields(courseId, userId, allowed);
+};
+
+export const archiveCourse = async (courseId, userId) => {
+    const existing = await findCourseById(courseId, userId);
+    if (!existing) throw ApiError.notFound("Course not found");
+    if (existing.isArchived) throw ApiError.badRequest("Already archived");
+    return setCourseArchived(courseId, userId);
 };
 
 export const deleteCourse = async (courseId, userId) => {
-    const existing = await db.query.courses.findFirst({
-        where: and(eq(courses.id, courseId), eq(courses.userId, userId)),
-    });
+    const existing = await findCourseById(courseId, userId);
     if (!existing) throw ApiError.notFound("Course not found");
-    await db.delete(courses).where(and(eq(courses.id, courseId), eq(courses.userId, userId)));
+    return deleteCourseById(courseId, userId);
 };

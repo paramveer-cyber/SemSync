@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNotifications } from '../context/NotificationContext';
 import { useTheme, THEMES, buildCustomThemeVars } from '../context/ThemeContext';
-import { Bell, BellOff, BookOpen, Palette, Sun, Moon, PlayCircle, Plus, Pencil, Trash2, Check, X, Info, Scale, Lightbulb, ExternalLink, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Bell, BellOff, BookOpen, Palette, Sun, Moon, Monitor, PlayCircle, Plus, Pencil, Trash2, Check, X, Info, Scale, Lightbulb, ExternalLink, Mail, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import OnboardingTutorial, { resetTutorial } from '../components/OnboardingTutorial';
-
-// ── Shared sub-components ─────────────────────────────────────────────────
+import { useAuth } from '../context/AuthContext';
+import { deleteAccount } from '../lib/api';
 
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -71,7 +71,6 @@ function ThemeSwatch({ name, dark, vars, selected, onClick, custom, onEdit, onDe
           transition: 'all 0.15s',
           boxShadow: selected ? `0 0 0 3px ${brand}33` : 'none',
         }}>
-        {/* Mini preview */}
         <div style={{
           width: 28, height: 28, borderRadius: 6, background: surface,
           flexShrink: 0, position: 'relative', overflow: 'hidden',
@@ -101,7 +100,6 @@ function ThemeSwatch({ name, dark, vars, selected, onClick, custom, onEdit, onDe
         )}
       </button>
 
-      {/* Edit/delete for custom themes */}
       {custom && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {onEdit && (
@@ -132,8 +130,6 @@ function ThemeSwatch({ name, dark, vars, selected, onClick, custom, onEdit, onDe
   );
 }
 
-// ── Custom Theme Builder ──────────────────────────────────────────────────
-
 const PRESET_COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444',
   '#f97316', '#f59e0b', '#eab308', '#22c55e', '#14b8a6',
@@ -141,7 +137,6 @@ const PRESET_COLORS = [
 ];
 
 interface ThemeBuilderProps {
-  /** If provided, we're editing an existing custom theme */
   editing?: { id: string; name: string; brandHex: string; dark: boolean } | null;
   onSave: (name: string, brandHex: string, dark: boolean) => void;
   onCancel: () => void;
@@ -152,7 +147,6 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
   const [brandHex, setBrandHex] = useState(editing?.brandHex ?? '#6366f1');
   const [dark, setDark] = useState(editing?.dark ?? true);
 
-  // Derive live preview vars
   const previewVars = buildCustomThemeVars(brandHex, dark);
   const brand = previewVars['--color-brand'];
   const surface = previewVars['--color-surface'];
@@ -171,7 +165,6 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
       background: 'var(--color-surface-1)',
       boxShadow: `0 0 0 3px ${brand}18`,
     }}>
-      {/* Header */}
       <div style={{
         padding: '10px 14px',
         background: `${brand}0f`,
@@ -188,7 +181,6 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
 
       <div style={{ padding: '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        {/* Theme name */}
         <div>
           <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>
             Theme Name
@@ -209,7 +201,6 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
           />
         </div>
 
-        {/* Dark / Light toggle */}
         <div>
           <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>
             Mode
@@ -234,12 +225,10 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
           </div>
         </div>
 
-        {/* Accent colour */}
         <div>
           <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>
             Accent Colour
           </label>
-          {/* Preset swatches */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 8 }}>
             {PRESET_COLORS.map(hex => (
               <button
@@ -256,7 +245,6 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
               />
             ))}
           </div>
-          {/* Custom hex + colour picker */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <input
               type="color"
@@ -280,7 +268,6 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
           </div>
         </div>
 
-        {/* Live mini-preview */}
         <div>
           <label style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 5 }}>
             Preview
@@ -289,7 +276,6 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
             borderRadius: 8, overflow: 'hidden', border: `1px solid ${border}`,
             background: surface, fontSize: 11,
           }}>
-            {/* Fake sidebar strip + content */}
             <div style={{ display: 'flex', height: 70 }}>
               <div style={{ width: 36, background: dark ? 'rgba(3,3,3,0.98)' : 'rgba(255,255,255,0.98)', borderRight: `1px solid ${border}`, padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {[brand, textMut, textMut].map((c, i) => (
@@ -310,7 +296,6 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
           </div>
         </div>
 
-        {/* Save / Cancel */}
         <div style={{ display: 'flex', gap: 6 }}>
           <button
             onClick={() => isValid && onSave(name, brandHex, dark)}
@@ -343,23 +328,46 @@ function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────
-
 export default function SettingsPage() {
   const { settings, updateSettings, permission, requestPermission } = useNotifications();
   const { theme, setTheme, customThemes, addCustomTheme, updateCustomTheme, deleteCustomTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [showTutorial, setShowTutorial] = useState(false);
   const [builderMode, setBuilderMode] = useState<'create' | 'edit' | null>(null);
   const [editingTheme, setEditingTheme] = useState<{ id: string; name: string; brandHex: string; dark: boolean } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [modeFilter, setModeFilter] = useState<'dark' | 'light' | 'system'>('dark');
+
+  const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0); 
+  const [deleteTypeValue, setDeleteTypeValue] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const DELETE_PHRASE = 'delete my account';
 
   const handleReplayTutorial = () => {
     resetTutorial();
     setShowTutorial(true);
   };
 
-  const darkThemes = THEMES.filter(t => t.dark);
-  const lightThemes = THEMES.filter(t => !t.dark);
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      localStorage.clear();
+      await deleteAccount();
+      logout();
+      navigate('/');
+    } catch (err: any) {
+      setDeleteError(err.message ?? 'Failed to delete account. Please try again.');
+      setDeleteLoading(false);
+    }
+  };
+
+  const systemIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const effectiveDark = modeFilter === 'system' ? systemIsDark : modeFilter === 'dark';
+  const visibleThemes = THEMES.filter(t => t.dark === effectiveDark);
+
   const customDark = customThemes.filter(t => t.dark);
   const customLight = customThemes.filter(t => !t.dark);
 
@@ -390,7 +398,7 @@ export default function SettingsPage() {
       setDeleteConfirm(null);
     } else {
       setDeleteConfirm(id);
-      // auto-clear confirmation after 3 s
+      // auto-clear after 3s
       setTimeout(() => setDeleteConfirm(c => c === id ? null : c), 3000);
     }
   };
@@ -408,42 +416,43 @@ export default function SettingsPage() {
             gridTemplateColumns: '1fr 1fr',
             gridTemplateRows: 'auto auto',
             gap: 12,
-            maxWidth: 900,
+            maxWidth: 1100,
           }}
         >
 
-          {/* ── Appearance (top-left) ── */}
+          {/* appearance */}
           <div style={{ border: '1px solid var(--color-glass-border)', borderRadius: 10, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <SectionHeader icon={Palette} title="Appearance" color="var(--color-brand)" />
             <div className="px-5 py-4 space-y-4" style={{ background: 'var(--color-surface-1)', flex: 1, overflowY: 'auto' }}>
 
-              {/* Built-in dark */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Moon className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
-                  <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>Dark</p>
-                </div>
-                <div className="space-y-1.5">
-                  {darkThemes.map(t => (
-                    <ThemeSwatch key={t.id} themeId={t.id} name={t.name} dark={t.dark} vars={t.vars} selected={theme.id === t.id} onClick={() => setTheme(t.id)} />
-                  ))}
-                </div>
+              {/* mode picker */}
+              <div style={{ display: 'flex', gap: 4 }}>
+                {([
+                  { id: 'dark', Icon: Moon, label: 'Dark' },
+                  { id: 'light', Icon: Sun, label: 'Light' },
+                  { id: 'system', Icon: Monitor, label: 'System' },
+                ] as const).map(({ id, Icon, label }) => (
+                  <button key={id} onClick={() => setModeFilter(id)} style={{
+                    flex: 1, padding: '6px 0', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                    background: modeFilter === id ? 'var(--color-active-bg)' : 'var(--color-glass)',
+                    border: modeFilter === id ? '1px solid var(--color-brand)' : '1px solid var(--color-glass-border)',
+                    color: modeFilter === id ? 'var(--color-brand)' : 'var(--color-text-muted)',
+                    transition: 'all 0.15s',
+                  }}>
+                    <Icon style={{ width: 11, height: 11 }} />{label}
+                  </button>
+                ))}
               </div>
 
-              {/* Built-in light */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Sun className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
-                  <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>Light</p>
-                </div>
-                <div className="space-y-1.5">
-                  {lightThemes.map(t => (
-                    <ThemeSwatch key={t.id} themeId={t.id} name={t.name} dark={t.dark} vars={t.vars} selected={theme.id === t.id} onClick={() => setTheme(t.id)} />
-                  ))}
-                </div>
+              {/* filtered theme list */}
+              <div className="space-y-1.5">
+                {visibleThemes.map(t => (
+                  <ThemeSwatch key={t.id} themeId={t.id} name={t.name} dark={t.dark} vars={t.vars} selected={theme.id === t.id} onClick={() => setTheme(t.id)} />
+                ))}
               </div>
 
-              {/* Custom themes */}
+              {/* custom themes — always visible */}
               {customThemes.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -471,7 +480,6 @@ export default function SettingsPage() {
                       />
                     ))}
                   </div>
-                  {/* Delete confirmation hint */}
                   {deleteConfirm && (
                     <p style={{ fontSize: 10, color: '#f87171', marginTop: 4, textAlign: 'right' }}>
                       Click 🗑️ again to confirm deletion
@@ -480,7 +488,6 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* Builder — inline in the Appearance card */}
               {builderMode ? (
                 <ThemeBuilder
                   editing={builderMode === 'edit' ? editingTheme : null}
@@ -511,7 +518,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ── Deadline Reminders (top-right) ── */}
+          {/* deadline reminders */}
           <div style={{ border: '1px solid var(--color-glass-border)', borderRadius: 10, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <SectionHeader icon={Bell} title="Deadline Reminders" color="var(--color-warn)" />
             <div className="px-5 py-4 space-y-4" style={{ background: 'var(--color-surface-1)', flex: 1 }}>
@@ -584,7 +591,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ── App Guide (bottom, full width) ── */}
+          {/* app guide */}
           <div style={{ gridColumn: 'span 2', border: '1px solid var(--color-glass-border)', borderRadius: 10, overflow: 'hidden' }}>
             <SectionHeader icon={PlayCircle} title="App Guide" color="#818cf8" />
             <div
@@ -621,7 +628,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ── Academic Preferences (bottom, full width) ── */}
+          {/* academic preferences */}
           <div style={{ gridColumn: 'span 2', border: '1px solid var(--color-glass-border)', borderRadius: 10, overflow: 'hidden' }}>
             <SectionHeader icon={BookOpen} title="Academic Preferences" color="var(--color-done)" />
             <div
@@ -663,7 +670,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ── About & Legal ── */}
+          {/* about & legal */}
           <div style={{ gridColumn: 'span 2', border: '1px solid var(--color-glass-border)', borderRadius: 10, overflow: 'hidden' }}>
             <SectionHeader icon={Info} title="About & Legal" color="#38bdf8" />
             <div style={{ background: 'var(--color-surface-1)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, backgroundColor: 'var(--color-glass-border)' }}>
@@ -705,7 +712,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ── Feature Requests ── */}
+          {/* feature requests */}
           <div style={{ gridColumn: 'span 2', border: '1px solid var(--color-glass-border)', borderRadius: 10, overflow: 'hidden' }}>
             <SectionHeader icon={Lightbulb} title="Feature Requests" color="#f59e0b" />
             <div style={{ background: 'var(--color-surface-1)', padding: '20px 20px 24px' }}>
@@ -738,6 +745,203 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* delete account */}
+          <div style={{ gridColumn: 'span 2', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10, overflow: 'hidden' }}>
+            <div
+              className="flex items-center gap-3 px-5 py-3.5"
+              style={{ borderBottom: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.05)' }}
+            >
+              <div className="w-1 self-stretch rounded-full" style={{ background: '#ef4444' }} />
+              <ShieldAlert className="w-4 h-4" style={{ color: '#ef4444' }} />
+              <h3 className="text-sm font-bold tracking-wide" style={{ color: 'var(--color-text)' }}>Danger Zone</h3>
+            </div>
+
+            <div className="px-5 py-5" style={{ background: 'var(--color-surface-1)' }}>
+              {deleteStep === 0 && (
+                <div className="flex items-start justify-between gap-6">
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>Delete Account</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
+                      Permanently delete your account and all associated data — courses, evaluations, classroom cache, and settings. This cannot be undone.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setDeleteStep(1)}
+                    className="shrink-0 flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150"
+                    style={{
+                      background: 'rgba(239,68,68,0.08)',
+                      color: '#f87171',
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      borderRadius: 7,
+                      whiteSpace: 'nowrap',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.18)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)'; }}
+                  >
+                    <Trash2 style={{ width: 13, height: 13 }} />
+                    Delete Account
+                  </button>
+                </div>
+              )}
+
+              {deleteStep === 1 && (
+                <div style={{
+                  background: 'rgba(239,68,68,0.06)',
+                  border: '1px solid rgba(239,68,68,0.25)',
+                  borderRadius: 9,
+                  padding: '16px 20px',
+                }}>
+                  <div className="flex items-start gap-3 mb-4">
+                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: '#f87171' }} />
+                    <div>
+                      <p className="text-sm font-bold mb-1" style={{ color: '#f87171' }}>Are you absolutely sure?</p>
+                      <p className="text-xs" style={{ color: 'var(--color-text-muted)', lineHeight: 1.7 }}>
+                        This will permanently delete <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{user?.name}'s</span> account and erase all data:
+                      </p>
+                      <ul className="text-xs mt-2 space-y-0.5" style={{ color: 'var(--color-text-muted)', paddingLeft: 16, listStyleType: 'disc' }}>
+                        <li>All courses &amp; evaluations</li>
+                        <li>Classroom cache &amp; synced data</li>
+                        <li>Account preferences &amp; settings</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setDeleteStep(0)}
+                      className="flex-1 py-2 text-xs font-semibold cursor-pointer transition-all duration-150"
+                      style={{
+                        background: 'var(--color-glass)',
+                        color: 'var(--color-text-muted)',
+                        border: '1px solid var(--color-glass-border)',
+                        borderRadius: 7,
+                      }}
+                    >
+                      No, keep my account
+                    </button>
+                    <button
+                      onClick={() => setDeleteStep(2)}
+                      className="flex-1 py-2 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150"
+                      style={{
+                        background: 'rgba(239,68,68,0.15)',
+                        color: '#f87171',
+                        border: '1px solid rgba(239,68,68,0.4)',
+                        borderRadius: 7,
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.28)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.15)'; }}
+                    >
+                      Yes, I want to delete
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {deleteStep === 2 && (
+                <div style={{
+                  background: 'rgba(239,68,68,0.06)',
+                  border: '1px solid rgba(239,68,68,0.3)',
+                  borderRadius: 9,
+                  padding: '16px 20px',
+                }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-4 h-4" style={{ color: '#f87171' }} />
+                    <p className="text-sm font-bold" style={{ color: '#f87171' }}>Final confirmation required</p>
+                  </div>
+                  <p className="text-xs mb-3" style={{ color: 'var(--color-text-muted)', lineHeight: 1.7 }}>
+                    To confirm deletion, type{' '}
+                    <code
+                      style={{
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: '#f87171',
+                        background: 'rgba(239,68,68,0.12)',
+                        padding: '1px 6px',
+                        borderRadius: 4,
+                        border: '1px solid rgba(239,68,68,0.25)',
+                        userSelect: 'all',
+                      }}
+                    >
+                      {DELETE_PHRASE}
+                    </code>
+                    {' '}below:
+                  </p>
+                  <input
+                    type="text"
+                    value={deleteTypeValue}
+                    onChange={e => { setDeleteTypeValue(e.target.value); setDeleteError(null); }}
+                    placeholder={DELETE_PHRASE}
+                    autoFocus
+                    spellCheck={false}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      padding: '9px 12px',
+                      borderRadius: 7,
+                      fontSize: 13,
+                      fontFamily: 'monospace',
+                      background: 'var(--color-surface-2)',
+                      border: deleteTypeValue && deleteTypeValue !== DELETE_PHRASE
+                        ? '1px solid rgba(239,68,68,0.5)'
+                        : deleteTypeValue === DELETE_PHRASE
+                          ? '1px solid rgba(34,197,94,0.5)'
+                          : '1px solid var(--color-glass-border)',
+                      color: 'var(--color-text)',
+                      outline: 'none',
+                      marginBottom: 12,
+                      transition: 'border-color 0.15s',
+                    }}
+                  />
+                  {deleteError && (
+                    <p className="text-xs mb-3" style={{ color: '#f87171' }}>{deleteError}</p>
+                  )}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => { setDeleteStep(0); setDeleteTypeValue(''); setDeleteError(null); }}
+                      className="flex-1 py-2 text-xs font-semibold cursor-pointer"
+                      style={{
+                        background: 'var(--color-glass)',
+                        color: 'var(--color-text-muted)',
+                        border: '1px solid var(--color-glass-border)',
+                        borderRadius: 7,
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deleteTypeValue !== DELETE_PHRASE || deleteLoading}
+                      className="flex-1 py-2 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150 flex items-center justify-center gap-2"
+                      style={{
+                        background: deleteTypeValue === DELETE_PHRASE && !deleteLoading ? '#dc2626' : 'rgba(239,68,68,0.12)',
+                        color: deleteTypeValue === DELETE_PHRASE && !deleteLoading ? '#fff' : 'rgba(239,68,68,0.4)',
+                        border: '1px solid rgba(239,68,68,0.4)',
+                        borderRadius: 7,
+                        cursor: deleteTypeValue !== DELETE_PHRASE || deleteLoading ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {deleteLoading ? (
+                        <>
+                          <svg className="animate-spin" style={{ width: 12, height: 12 }} viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
+                            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                          </svg>
+                          Deleting…
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 style={{ width: 12, height: 12 }} />
+                          Delete Forever
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

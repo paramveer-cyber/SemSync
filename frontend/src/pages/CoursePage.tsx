@@ -4,9 +4,9 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import AddEvalModal from '../components/modals/AddEvalModal';
 import EditEvalModal from '../components/modals/EditEvalModal';
-import { deleteEval, deleteCourse } from '../lib/api';
+import { deleteEval, deleteCourse, archiveCourse } from '../lib/api';
 import { fetchCourse, invalidateCourseDetail, invalidateAllCourseData } from '../lib/dataService';
-import { AlertTriangle, Plus, Pencil, Trash2 } from 'lucide-react';
+import { AlertTriangle, Plus, Pencil, Trash2, Archive } from 'lucide-react';
 import { LineChart } from '@mui/x-charts';
 
 const TYPE_COLOR: Record<string, string> = {
@@ -51,10 +51,10 @@ export default function CoursePage() {
         const normalizeWeights = (es: any[]): number[] => {
             const ws = es.map(e => Math.round(e.weightage * 10) / 10);
             let sum = Math.round(ws.reduce((s, w) => s + w, 0) * 10) / 10;
-            let excess = Math.round((sum - 100) * 10); 
+            let excess = Math.round((sum - 100) * 10);
             if (excess > 0) {
                 for (let i = 0; i < ws.length && excess > 0; i++) {
-                    if (ws[i] % 1 !== 0) { 
+                    if (ws[i] % 1 !== 0) {
                         ws[i] = Math.round((ws[i] - 0.1) * 10) / 10;
                         excess--;
                     }
@@ -95,7 +95,7 @@ export default function CoursePage() {
         if (!confirm('Delete this evaluation?')) return;
         try {
             await deleteEval(evalId);
-            invalidateCourseDetail(id!); 
+            invalidateCourseDetail(id!);
             load();
         }
         catch (err: any) { alert('Failed: ' + err.message); }
@@ -105,7 +105,17 @@ export default function CoursePage() {
         if (!confirm(`Delete "${course?.name}"? All evaluations will be removed.`)) return;
         try {
             await deleteCourse(id!);
-            invalidateAllCourseData(); 
+            invalidateAllCourseData();
+            navigate('/courses');
+        }
+        catch (err: any) { alert('Failed: ' + err.message); }
+    };
+
+    const handleArchiveCourse = async () => {
+        if (!confirm(`Archive "${course?.name}"? It becomes read-only permanently.`)) return;
+        try {
+            await archiveCourse(id!);
+            invalidateAllCourseData();
             navigate('/courses');
         }
         catch (err: any) { alert('Failed: ' + err.message); }
@@ -137,6 +147,13 @@ export default function CoursePage() {
                         </div>
                     ) : course && (
                         <>
+                            {course.isArchived && (
+                                <div className="px-5 py-3 mb-6 flex items-center gap-3 rounded-lg"
+                                    style={{ border: '1px solid rgba(161,161,170,0.4)', background: 'rgba(161,161,170,0.08)' }}>
+                                    <Archive className="w-4 h-4 shrink-0" style={{ color: '#a1a1aa' }} />
+                                    <span className="text-[10px] font-black tracking-[0.3em] uppercase" style={{ color: '#a1a1aa' }}>Archived — Read Only</span>
+                                </div>
+                            )}
                             <div className="flex items-start justify-between mb-10 border border-[var(--color-glass-border)] p-6">
                                 <div className="flex items-center space-x-8">
                                     {course.credits && (
@@ -151,25 +168,44 @@ export default function CoursePage() {
                                     </div>
                                 </div>
 
-                                <button
-                                    onClick={handleDeleteCourse}
-                                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
-                                    style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444', background: 'rgba(239,68,68,0.08)' }}
-                                    onMouseEnter={e => {
-                                        (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
-                                        (e.currentTarget as HTMLButtonElement).style.color = '#fff';
-                                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
-                                        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(239,68,68,0.35)';
-                                    }}
-                                    onMouseLeave={e => {
-                                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)';
-                                        (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
-                                        (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.4)';
-                                        (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
-                                    }}>
-                                    <Trash2 className="w-4 h-4" />
-                                    Terminate Course
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    {!course.isArchived && (
+                                        <button
+                                            onClick={handleArchiveCourse}
+                                            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
+                                            style={{ border: '1px solid rgba(161,161,170,0.35)', color: '#a1a1aa', background: 'rgba(161,161,170,0.06)' }}
+                                            onMouseEnter={e => {
+                                                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(161,161,170,0.18)';
+                                                (e.currentTarget as HTMLButtonElement).style.borderColor = '#a1a1aa';
+                                            }}
+                                            onMouseLeave={e => {
+                                                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(161,161,170,0.06)';
+                                                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(161,161,170,0.35)';
+                                            }}>
+                                            <Archive className="w-4 h-4" />
+                                            Archive
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={handleDeleteCourse}
+                                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
+                                        style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444', background: 'rgba(239,68,68,0.08)' }}
+                                        onMouseEnter={e => {
+                                            (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
+                                            (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+                                            (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
+                                            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px rgba(239,68,68,0.35)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)';
+                                            (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
+                                            (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.4)';
+                                            (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+                                        }}>
+                                        <Trash2 className="w-4 h-4" />
+                                        Terminate Course
+                                    </button>
+                                </div>
                             </div>
 
                             {computedStats && (
@@ -181,7 +217,7 @@ export default function CoursePage() {
                                         {
                                             label: 'Need to Score',
                                             value: `${parseFloat(computedStats.needToScore.toFixed(2))}%`,
-                                            sub: computedStats.needToScore == 0 ? "Target Acheived" :computedStats.needToScore > 100
+                                            sub: computedStats.needToScore == 0 ? "Target Acheived" : computedStats.needToScore > 100
                                                 ? 'Target unreachable — beyond 100%'
                                                 : 'Needed to complete target grade!',
                                             accent: false,
@@ -307,7 +343,7 @@ export default function CoursePage() {
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-sm font-extrabold tracking-widest uppercase">Evaluations ({evals.length})</h3>
 
-                                <button
+                                {!course.isArchived && <button
                                     onClick={() => setShowAdd(true)}
                                     className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-widest cursor-pointer transition-all duration-150"
                                     style={{ border: '1px solid rgba(34,197,94,0.35)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
@@ -323,13 +359,13 @@ export default function CoursePage() {
                                     }}>
                                     <Plus className="w-4 h-4" />
                                     Add Evaluation
-                                </button>
+                                </button>}
                             </div>
 
                             {evals.length === 0 ? (
                                 <div className="border border-dashed border-[var(--color-glass-border)] p-16 text-center">
                                     <p className="text-[10px] font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase mb-6">No evaluations logged</p>
-                                    <button
+                                    {!course.isArchived && <button
                                         onClick={() => setShowAdd(true)}
                                         className="px-8 py-3 text-sm font-black tracking-widest cursor-pointer transition-all duration-150 uppercase"
                                         style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
@@ -342,7 +378,7 @@ export default function CoursePage() {
                                             (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)';
                                         }}>
                                         Log First Evaluation
-                                    </button>
+                                    </button>}
                                 </div>
                             ) : (
                                 <div className="border border-[var(--color-glass-border)] overflow-hidden">
@@ -386,37 +422,40 @@ export default function CoursePage() {
                                                 </div>
 
                                                 <div className="col-span-1 text-right flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => setEditing(e)}
-                                                        title="Edit evaluation"
-                                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150"
-                                                        style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)' }}
-                                                        onMouseEnter={el => {
-                                                            (el.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.25)';
-                                                            (el.currentTarget as HTMLButtonElement).style.borderColor = '#3b82f6';
-                                                        }}
-                                                        onMouseLeave={el => {
-                                                            (el.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.12)';
-                                                            (el.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(59,130,246,0.25)';
-                                                        }}>
-                                                        <Pencil className="w-4 h-4" />
-                                                    </button>
+                                                    {!course.isArchived &&
+                                                        <>
+                                                            <button
+                                                                onClick={() => setEditing(e)}
+                                                                title="Edit evaluation"
+                                                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150"
+                                                                style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)' }}
+                                                                onMouseEnter={el => {
+                                                                    (el.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.25)';
+                                                                    (el.currentTarget as HTMLButtonElement).style.borderColor = '#3b82f6';
+                                                                }}
+                                                                onMouseLeave={el => {
+                                                                    (el.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.12)';
+                                                                    (el.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(59,130,246,0.25)';
+                                                                }}>
+                                                                <Pencil className="w-4 h-4" />
+                                                            </button>
 
-                                                    <button
-                                                        onClick={() => handleDeleteEval(e.id)}
-                                                        title="Delete evaluation"
-                                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150"
-                                                        style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
-                                                        onMouseEnter={el => {
-                                                            (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.22)';
-                                                            (el.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
-                                                        }}
-                                                        onMouseLeave={el => {
-                                                            (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
-                                                            (el.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
-                                                        }}>
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                            <button
+                                                                onClick={() => handleDeleteEval(e.id)}
+                                                                title="Delete evaluation"
+                                                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150"
+                                                                style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
+                                                                onMouseEnter={el => {
+                                                                    (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.22)';
+                                                                    (el.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
+                                                                }}
+                                                                onMouseLeave={el => {
+                                                                    (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
+                                                                    (el.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
+                                                                }}>
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </>}
                                                 </div>
                                             </div>
                                         );

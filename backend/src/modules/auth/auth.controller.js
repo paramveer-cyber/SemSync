@@ -1,8 +1,13 @@
 import { verifyGoogleToken, findOrCreateUser, generateTokens } from "./auth.services.js";
-import {verifyRefreshToken} from "../../common/utils/tokenLogic.js";
-import { db } from "../../db/index.js";
-import { users } from "../../db/schema.js";
-import { eq } from "drizzle-orm";
+import { verifyRefreshToken } from "../../common/utils/tokenLogic.js";
+import {
+    findUserById,
+    findUserByRefreshToken,
+    setUserRefreshToken,
+    setUserGoogleToken,
+    clearUserGoogleToken,
+    deleteUserById,
+} from "../../db/queries.js";
 import ApiError from "../../common/utils/api-error.js";
 
 const COOKIE_OPTS = {
@@ -25,17 +30,13 @@ export const googleAuth = async (req, res) => {
         if (!idToken) return res.status(400).json({ message: "idToken is required" });
 
         const payload = await verifyGoogleToken(idToken);
-        const {user, accessToken, refreshToken} = await findOrCreateUser(payload);
+        const { user, accessToken, refreshToken } = await findOrCreateUser(payload);
 
         res.cookie("refreshToken", refreshToken, COOKIE_OPTS);
-
         return res.status(200).json({ token: accessToken, user: formatUser(user) });
-    }
-    catch (err) {
+    } catch (err) {
         console.error("[auth/google]", err.message);
-        if (err instanceof ApiError) {
-            return res.status(err.statusCode).json({ message: err.message });
-        }
+        if (err instanceof ApiError) return res.status(err.statusCode).json({ message: err.message });
         return res.status(401).json({ message: "Invalid Google token" });
     }
 };
@@ -46,26 +47,19 @@ export const refresh = async (req, res) => {
         if (!token) return res.status(401).json({ message: "No refresh token" });
 
         let decoded;
-        try {
-            decoded = verifyRefreshToken(token);
-        } catch {
-            return res.status(401).json({ message: "Invalid or expired refresh token" });
-        }
+        try { decoded = verifyRefreshToken(token); }
+        catch { return res.status(401).json({ message: "Invalid or expired refresh token" }); }
 
-        const user = await db.query.users.findFirst({
-            where: eq(users.id, decoded.userId),
-        });
-
+        const user = await findUserById(decoded.userId);
         if (!user) return res.status(401).json({ message: "User not found" });
 
         if (user.refreshToken !== token) {
-            await db.update(users).set({ refreshToken: null }).where(eq(users.id, user.id));
+            await setUserRefreshToken(user.id, null);
             res.clearCookie("refreshToken");
             return res.status(401).json({ message: "Refresh token reuse detected" });
         }
 
-        const {accessToken, refreshToken} = await generateTokens(user);
-
+        const { accessToken, refreshToken } = await generateTokens(user);
         res.cookie("refreshToken", refreshToken, COOKIE_OPTS);
         return res.status(200).json({ token: accessToken });
     } catch (err) {
@@ -76,16 +70,12 @@ export const refresh = async (req, res) => {
 
 export const getMe = async (req, res) => {
     try {
-        const user = await db.query.users.findFirst({
-            where: eq(users.id, req.user.userId),
-        });
+        const user = await findUserById(req.user.userId);
         if (!user) return res.status(404).json({ message: "User not found" });
         return res.status(200).json({ user: formatUser(user) });
     } catch (err) {
         console.error("[auth/me]", err.message);
-        if (err instanceof ApiError) {
-            return res.status(err.statusCode).json({ message: err.message });
-        }
+        if (err instanceof ApiError) return res.status(err.statusCode).json({ message: err.message });
         return res.status(500).json({ message: "Failed to fetch user" });
     }
 };
@@ -94,14 +84,8 @@ export const logout = async (req, res) => {
     try {
         const token = req.cookies?.refreshToken;
         if (token) {
-            const user = await db.query.users.findFirst({
-                where: eq(users.refreshToken, token),
-            });
-            if (user) {
-                await db.update(users)
-                    .set({ refreshToken: null })
-                    .where(eq(users.id, user.id));
-            }
+            const user = await findUserByRefreshToken(token);
+            if (user) await setUserRefreshToken(user.id, null);
         }
         res.clearCookie("refreshToken");
         return res.status(200).json({ message: "Logged out" });
@@ -113,25 +97,14 @@ export const logout = async (req, res) => {
 
 export const getClassroomToken = async (req, res) => {
     try {
-        const user = await db.query.users.findFirst({
-            where: eq(users.id, req.user.userId),
-        });
+        const user = await findUserById(req.user.userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
         const { googleAccessToken, googleTokenExpiry } = user;
+        if (!googleAccessToken || !googleTokenExpiry) return res.status(200).json({ token: null, expiry: null });
+        if (new Date(googleTokenExpiry).getTime() < Date.now()) return res.status(200).json({ token: null, expiry: null });
 
-        if (!googleAccessToken || !googleTokenExpiry) {
-            return res.status(200).json({ token: null, expiry: null });
-        }
-
-        if (new Date(googleTokenExpiry).getTime() < Date.now()) {
-            return res.status(200).json({ token: null, expiry: null });
-        }
-
-        return res.status(200).json({
-            token: googleAccessToken,
-            expiry: new Date(googleTokenExpiry).getTime(),
-        });
+        return res.status(200).json({ token: googleAccessToken, expiry: new Date(googleTokenExpiry).getTime() });
     } catch (err) {
         console.error("[auth/classroom-token GET]", err.message);
         return res.status(500).json({ message: "Failed to fetch classroom token" });
@@ -144,11 +117,7 @@ export const saveClassroomToken = async (req, res) => {
         if (!accessToken) return res.status(400).json({ message: "accessToken is required" });
 
         const expiry = new Date(Date.now() + (expiresIn ?? 3600) * 1000);
-
-        await db.update(users)
-            .set({ googleAccessToken: accessToken, googleTokenExpiry: expiry })
-            .where(eq(users.id, req.user.userId));
-
+        await setUserGoogleToken(req.user.userId, accessToken, expiry);
         return res.status(200).json({ ok: true, expiry: expiry.getTime() });
     } catch (err) {
         console.error("[auth/classroom-token POST]", err.message);
@@ -158,13 +127,27 @@ export const saveClassroomToken = async (req, res) => {
 
 export const clearClassroomToken = async (req, res) => {
     try {
-        await db.update(users)
-            .set({ googleAccessToken: null, googleTokenExpiry: null })
-            .where(eq(users.id, req.user.userId));
-
+        await clearUserGoogleToken(req.user.userId);
         return res.status(200).json({ ok: true });
     } catch (err) {
         console.error("[auth/classroom-token DELETE]", err.message);
         return res.status(500).json({ message: "Failed to clear classroom token" });
+    }
+};
+
+export const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const user = await findUserById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        await deleteUserById(userId);
+
+        res.clearCookie("refreshToken");
+        
+        return res.status(200).json({ message: "Account deleted" });
+    } catch (err) {
+        console.error("[auth/delete-account]", err.message);
+        return res.status(500).json({ message: "Failed to delete account" });
     }
 };

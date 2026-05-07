@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import AddCourseModal from '../components/modals/AddCourseModal';
 import OnboardingTutorial, { hasSeenTutorial, markTutorialSeen } from '../components/OnboardingTutorial';
-import { deleteCourse } from '../lib/api';
+import { deleteCourse, archiveCourse } from '../lib/api';
 import { fetchCourses, fetchUpcomingEvals, fetchCourse, invalidateAllCourseData } from '../lib/dataService';
-import { Plus, Clock, Trash2, AlertTriangle, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Clock, Trash2, AlertTriangle, GraduationCap, ChevronDown, ChevronUp, Archive } from 'lucide-react';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -127,6 +127,18 @@ export default function Dashboard() {
         setDeleting(id);
         try {
             await deleteCourse(id);
+            invalidateAllCourseData();
+            setCourses(p => p.filter(c => c.id !== id));
+            setUpcoming(p => p.filter((e: any) => e.courseId !== id));
+        } catch (err: any) { alert('Failed: ' + err.message); }
+        finally { setDeleting(null); }
+    };
+
+    const handleArchive = async (id: string, name: string) => {
+        if (!confirm(`Archive "${name}"? It becomes read-only permanently.`)) return;
+        setDeleting(id);
+        try {
+            await archiveCourse(id);
             invalidateAllCourseData();
             setCourses(p => p.filter(c => c.id !== id));
             setUpcoming(p => p.filter((e: any) => e.courseId !== id));
@@ -390,16 +402,28 @@ export default function Dashboard() {
                                                             style={{ background: dot, boxShadow: `0 0 5px ${dot}99` }}
                                                         />
                                                     </div>
-                                                    <button
-                                                        onClick={ev => { ev.preventDefault(); ev.stopPropagation(); handleDelete(course.id, course.name); }}
-                                                        disabled={!!deleting}
-                                                        title="Delete course"
-                                                        className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-6 h-6 rounded cursor-pointer transition-all duration-150 shrink-0 disabled:cursor-not-allowed"
-                                                        style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)', position: 'relative', zIndex: 10 }}
-                                                        onMouseEnter={el => { if (!deleting) { (el.currentTarget as HTMLButtonElement).style.background = '#ef4444'; (el.currentTarget as HTMLButtonElement).style.color = '#fff'; } }}
-                                                        onMouseLeave={el => { (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)'; (el.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}>
-                                                        <Trash2 className="w-3 h-3" />
-                                                    </button>
+                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0" style={{ position: 'relative', zIndex: 10 }}>
+                                                        <button
+                                                            onClick={ev => { ev.preventDefault(); ev.stopPropagation(); handleArchive(course.id, course.name); }}
+                                                            disabled={!!deleting}
+                                                            title="Archive course"
+                                                            className="flex items-center justify-center w-6 h-6 rounded cursor-pointer transition-all duration-150 disabled:cursor-not-allowed"
+                                                            style={{ background: 'rgba(161,161,170,0.10)', color: '#a1a1aa', border: '1px solid rgba(161,161,170,0.22)' }}
+                                                            onMouseEnter={el => { if (!deleting) { (el.currentTarget as HTMLButtonElement).style.background = 'rgba(161,161,170,0.3)'; } }}
+                                                            onMouseLeave={el => { (el.currentTarget as HTMLButtonElement).style.background = 'rgba(161,161,170,0.10)'; }}>
+                                                            <Archive className="w-3 h-3" />
+                                                        </button>
+                                                        <button
+                                                            onClick={ev => { ev.preventDefault(); ev.stopPropagation(); handleDelete(course.id, course.name); }}
+                                                            disabled={!!deleting}
+                                                            title="Delete course"
+                                                            className="flex items-center justify-center w-6 h-6 rounded cursor-pointer transition-all duration-150 disabled:cursor-not-allowed"
+                                                            style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
+                                                            onMouseEnter={el => { if (!deleting) { (el.currentTarget as HTMLButtonElement).style.background = '#ef4444'; (el.currentTarget as HTMLButtonElement).style.color = '#fff'; } }}
+                                                            onMouseLeave={el => { (el.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)'; (el.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}>
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
                                                 </div>
 
                                                 <p className="text-[9px] font-bold tracking-[0.25em] uppercase mt-4 mb-1.5 group-hover:text-[var(--color-brand)] transition-colors" style={{ color: 'var(--color-text-faint)' }}>

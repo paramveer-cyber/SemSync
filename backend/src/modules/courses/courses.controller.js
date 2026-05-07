@@ -1,9 +1,11 @@
 import {
     getAllCourses,
+    getArchivedCourses,
     getCourseById,
     createCourse,
     updateCourse,
     deleteCourse,
+    archiveCourse,
     computeStats,
 } from "./courses.services.js";
 import ApiError from "../../common/utils/api-error.js";
@@ -12,6 +14,18 @@ export const listCourses = async (req, res, next) => {
     try {
         const data = await getAllCourses(req.user.userId);
         return res.status(200).json({ courses: data });
+    } catch (err) { next(err); }
+};
+export const listArchivedCourses = async (req, res, next) => {
+    try {
+        const data = await getArchivedCourses(req.user.userId);
+        return res.status(200).json({ courses: data });
+    } catch (err) { next(err); }
+};
+export const doArchiveCourse = async (req, res, next) => {
+    try {
+        const course = await archiveCourse(req.params.id, req.user.userId);
+        return res.status(200).json({ course });
     } catch (err) { next(err); }
 };
 export const getCourse = async (req, res, next) => {

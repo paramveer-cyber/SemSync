@@ -1,5 +1,11 @@
-import { pgTable, uuid, text, timestamp, integer, real, jsonb } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { pgTable, uuid, text, timestamp, integer, real, jsonb, boolean } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+
+const updatedAt = () =>
+    timestamp("updated_at")
+        .default(sql`now()`)
+        .notNull()
+        .$onUpdate(() => new Date());
 
 export const users = pgTable("users", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -12,6 +18,8 @@ export const users = pgTable("users", {
     googleTokenExpiry: timestamp("google_token_expiry"),
     refreshToken: text("refresh_token"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: updatedAt(),
+
 });
 
 export const courses = pgTable("courses", {
@@ -22,7 +30,10 @@ export const courses = pgTable("courses", {
     name: text("name").notNull(),
     credits: integer("credits"),
     targetGrade: real("target_grade").notNull().default(50),
+    isArchived: boolean("is_archived").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: updatedAt(),
+
 });
 
 export const evaluations = pgTable("evaluations", {
@@ -37,6 +48,7 @@ export const evaluations = pgTable("evaluations", {
     maxScore: real("max_score").notNull(),
     score: real("score"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: updatedAt(),
 });
 
 export const classroomCache = pgTable("classroom_cache", {
@@ -45,7 +57,7 @@ export const classroomCache = pgTable("classroom_cache", {
         .references(() => users.id, { onDelete: "cascade" })
         .notNull().unique(),
     data: jsonb("data").notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: updatedAt(),
 });
 
 export const usersRelations = relations(users, ({ many, one }) => ({

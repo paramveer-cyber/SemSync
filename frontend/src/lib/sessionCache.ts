@@ -48,7 +48,7 @@ export function cacheClear(): void {
 // Centralised so every file uses the same strings
 export const CACHE_KEYS = {
   courses: 'courses',
+  archivedCourses: 'archivedCourses',
   upcomingEvals: 'upcomingEvals',
-  /** per-course key: pass the course id */
   course: (id: string) => `course:${id}`,
 } as const;

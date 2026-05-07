@@ -1,5 +1,5 @@
-// const BASE = 'http://localhost:3000';
-const BASE = 'https://semsyncbackend.vercel.app';
+const BASE = 'http://localhost:3000';
+// const BASE = 'https://semsyncbackend.vercel.app';
 
 import { getToken, setToken, clearToken } from './tokenStore.js';
 
@@ -56,6 +56,8 @@ export const getCourse = (id) => request('GET', `/courses/${id}`);
 export const createCourse = (data) => request('POST', '/courses', data);
 export const updateCourse = (id, data) => request('PATCH', `/courses/${id}`, data);
 export const deleteCourse = (id) => request('DELETE', `/courses/${id}`);
+export const archiveCourse = (id) => request('POST', `/courses/${id}/archive`);
+export const getArchivedCourses = () => request('GET', '/courses/archived');
 
 export const getEvals = (courseId) => request('GET', `/courses/${courseId}/evaluations`);
 export const createEval = (courseId, data) => request('POST', `/courses/${courseId}/evaluations`, data);
@@ -66,3 +68,4 @@ export const getUpcomingEvals = () => request('GET', '/evaluations/upcoming');
 export const getClassroomToken = () => request('GET', '/auth/classroom-token');
 export const saveClassroomToken = (accessToken, expiresIn) => request('POST', '/auth/classroom-token', { accessToken, expiresIn });
 export const clearClassroomToken = () => request('DELETE', '/auth/classroom-token');
+export const deleteAccount = () => request('DELETE', '/auth/account');
