@@ -219,6 +219,90 @@ export default function Dashboard() {
                             <span className="text-xs font-bold text-red-400 uppercase tracking-widest">{error}</span>
                         </div>
                     )}
+                    <section id="upcoming-banner">
+                        <div
+                            className="relative overflow-hidden rounded-xl px-5 py-3.5 flex items-center gap-4"
+                            style={{
+                                background:
+                                    'linear-gradient(135deg, var(--color-surface-1) 0%, var(--color-surface) 100%)',
+                                border: '1px solid var(--color-glass-border)',
+                            }}
+                        >
+                            <div
+                                className="absolute inset-0 pointer-events-none opacity-30"
+                                style={{
+                                    background:
+                                        'radial-gradient(circle at top right, var(--color-brand-glow), transparent 40%)',
+                                }}
+                            />
+
+                            <div
+                                className="relative z-10 w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
+                                style={{
+                                    background: 'var(--color-active-bg)',
+                                    border: '1px solid var(--color-brand)',
+                                }}
+                            >
+                                🎮
+                            </div>
+
+                            <div className="relative z-10 min-w-0 flex-1">
+                                <p
+                                    className="text-[9px] font-black tracking-[0.24em] uppercase mb-1"
+                                    style={{ color: 'var(--color-brand)' }}
+                                >
+                                    Upcoming
+                                </p>
+
+                                <p
+                                    className="text-sm leading-5 truncate"
+                                    style={{ color: 'var(--color-text)' }}
+                                >
+                                    Gamification layer with XP, achievements, streaks, rewards, and level progression.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                aria-label="Dismiss upcoming notice"
+                                className="relative z-20 w-7 h-7 rounded-md flex items-center justify-center cursor-pointer transition-all duration-150 shrink-0"
+                                style={{
+                                    border: '1px solid var(--color-glass-border)',
+                                    background: 'rgba(255,255,255,0.03)',
+                                    color: 'var(--color-text-faint)',
+                                }}
+                                onClick={() => {
+                                    const el = document.getElementById('upcoming-banner');
+
+                                    if (el) {
+                                        el.style.opacity = '0';
+                                        el.style.transform = 'translateY(-6px)';
+                                        el.style.transition = 'all 160ms ease';
+
+                                        setTimeout(() => {
+                                            el.style.display = 'none';
+                                        }, 160);
+                                    }
+                                }}
+                                onMouseEnter={(e) => {
+                                    const btn = e.currentTarget;
+
+                                    btn.style.background = 'rgba(255,255,255,0.08)';
+                                    btn.style.color = 'var(--color-text)';
+                                    btn.style.transform = 'scale(1.05)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    const btn = e.currentTarget;
+
+                                    btn.style.background = 'rgba(255,255,255,0.03)';
+                                    btn.style.color = 'var(--color-text-faint)';
+                                    btn.style.transform = 'scale(1)';
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </section>
 
                     <section>
                         <div className="flex items-baseline justify-between mb-8">
