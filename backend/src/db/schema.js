@@ -28,7 +28,7 @@ export const courses = pgTable("courses", {
         .references(() => users.id, { onDelete: "cascade" })
         .notNull(),
     name: text("name").notNull(),
-    credits: integer("credits").default(4).notNull(),
+    credits: integer("credits").default(4),
     targetGrade: real("target_grade").notNull().default(50),
     isArchived: boolean("is_archived").notNull().default(false),
     createdAt: timestamp("created_at").defaultNow().notNull(),
