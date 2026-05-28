@@ -13,7 +13,7 @@ import ApiError from "../../common/utils/api-error.js";
 const COOKIE_OPTS = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -27,11 +27,8 @@ const formatUser = (user) => ({
 export const googleAuth = async (req, res) => {
     try {
         const { idToken } = req.body;
-        if (!idToken) return res.status(400).json({ message: "idToken is required" });
-
         const payload = await verifyGoogleToken(idToken);
         const { user, accessToken, refreshToken } = await findOrCreateUser(payload);
-
         res.cookie("refreshToken", refreshToken, COOKIE_OPTS);
         return res.status(200).json({ token: accessToken, user: formatUser(user) });
     } catch (err) {
@@ -114,8 +111,6 @@ export const getClassroomToken = async (req, res) => {
 export const saveClassroomToken = async (req, res) => {
     try {
         const { accessToken, expiresIn } = req.body;
-        if (!accessToken) return res.status(400).json({ message: "accessToken is required" });
-
         const expiry = new Date(Date.now() + (expiresIn ?? 3600) * 1000);
         await setUserGoogleToken(req.user.userId, accessToken, expiry);
         return res.status(200).json({ ok: true, expiry: expiry.getTime() });
@@ -137,14 +132,11 @@ export const clearClassroomToken = async (req, res) => {
 
 export const deleteAccount = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const { userId } = req.user;
         const user = await findUserById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
-
         await deleteUserById(userId);
-
         res.clearCookie("refreshToken");
-        
         return res.status(200).json({ message: "Account deleted" });
     } catch (err) {
         console.error("[auth/delete-account]", err.message);

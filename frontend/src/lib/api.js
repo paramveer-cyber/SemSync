@@ -1,5 +1,4 @@
-// const BASE = 'http://localhost:3000';
-const BASE = 'https://semsyncbackend.vercel.app';
+const BASE = import.meta.env.VITE_BASE_URL ?? '';
 
 import { getToken, setToken, clearToken } from './tokenStore.js';
 
@@ -7,6 +6,27 @@ const headers = () => ({
   'Content-Type': 'application/json',
   ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
 });
+
+let refreshInFlight = null;
+
+const doRefresh = async () => {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    try {
+      const refreshRes = await fetch(`${BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const refreshData = await refreshRes.json().catch(() => ({}));
+      if (!refreshRes.ok) throw new Error(refreshData.message || 'Refresh failed');
+      setToken(refreshData.token);
+      window.dispatchEvent(new Event('auth:login'));
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+  return refreshInFlight;
+};
 
 const request = async (method, path, body, _retry = false) => {
   const res = await fetch(`${BASE}${path}`, {
@@ -20,13 +40,7 @@ const request = async (method, path, body, _retry = false) => {
 
   if (res.status === 401 && data.code === 'TOKEN_EXPIRED' && !_retry) {
     try {
-      const refreshRes = await fetch(`${BASE}/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const refreshData = await refreshRes.json().catch(() => ({}));
-      if (!refreshRes.ok) throw new Error(refreshData.message || 'Refresh failed');
-      setToken(refreshData.token);
+      await doRefresh();
       return request(method, path, body, true);
     } catch {
       clearToken();
@@ -69,3 +83,22 @@ export const getClassroomToken = () => request('GET', '/auth/classroom-token');
 export const saveClassroomToken = (accessToken, expiresIn) => request('POST', '/auth/classroom-token', { accessToken, expiresIn });
 export const clearClassroomToken = () => request('DELETE', '/auth/classroom-token');
 export const deleteAccount = () => request('DELETE', '/auth/account');
+
+export const focusSessionStart = () => request('POST', '/focus/session/start');
+export const focusSessionEnd = (data) => request('POST', '/focus/session/end', data);
+export const getGamificationDashboard = () => request('GET', '/focus/dashboard');
+export const useStreakFreeze = () => request('POST', '/focus/streak/freeze');
+
+// ─── Server-owned timer API ────────────────────────────────────────────────
+export const timerGet = () => request('GET', '/focus/timer');
+export const timerStart = (data) => request('POST', '/focus/timer/start', data);
+export const timerPause = () => request('POST', '/focus/timer/pause');
+export const timerResume = () => request('POST', '/focus/timer/resume');
+export const timerExtend = (addMinutes) => request('POST', '/focus/timer/extend', { addMinutes });
+export const timerSync = () => request('POST', '/focus/timer/sync');
+export const timerEnd = (data) => request('POST', '/focus/timer/end', data);
+export const timerAbort = (data) => request('POST', '/focus/timer/abort', data);
+
+
+export const trackPageVisit = (page) => request('POST', '/focus/track/page', { page });
+export const trackTask = (action) => request('POST', '/focus/track/task', { action });

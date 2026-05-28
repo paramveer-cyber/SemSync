@@ -7,7 +7,8 @@ export function TopLoadingBar() {
     const t2 = setTimeout(() => setW(60),  350);
     const t3 = setTimeout(() => setW(80),  900);
     const t4 = setTimeout(() => setW(86), 1800);
-    return () => [t1,t2,t3,t4].forEach(clearTimeout);
+    const t5 = setTimeout(() => setW(95), 3600);
+    return () => [t1,t2,t3,t4,t5].forEach(clearTimeout);
   }, []);
   return (
     <div className="fixed top-0 left-0 right-0 z-[9999] h-[2px] pointer-events-none">

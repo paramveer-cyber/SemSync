@@ -6,7 +6,7 @@
   "scripts": {
     "gen": "npx drizzle-kit generate",
     "mig": "npx drizzle-kit migrate",
-    "dev": "node index.js",
+    "dev": "node --watch index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
@@ -24,7 +24,8 @@
     "googleapis": "^171.4.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",

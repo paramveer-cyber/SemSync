@@ -1,0 +1,196 @@
+import {
+    getStats, getStreak, getEarnedAchievements,
+    insertEvent, countEventsByType, countScoreEventsForEval, countRecentEventsByType,
+} from "../../db/gamification.js";
+import { findCoursesByUser } from "../../db/queries.js";
+import { getISTContext } from "../../common/utils/dates.js";
+import { awardAchievementXpIdempotent } from "../../common/utils/xp.js";
+import { evaluateAchievements, isAboveTarget, isCourseConfigured } from "./utils/achievements.eval.js";
+import { pushAchievements } from "../../common/sse.js";
+
+// ─── Internal helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Load user state, run targeted achievement evaluation, award XP.
+ * triggerEvent: the event type that caused this evaluation — used to narrow
+ * which achievements are checked (via TRIGGER_INDEX in registry).
+ */
+async function runEval(userId, triggerEvent, sessionMeta = {}) {
+    const { today, weekStart } = getISTContext();
+    const [stats, streak, earned] = await Promise.all([
+        getStats(userId), getStreak(userId), getEarnedAchievements(userId),
+    ]);
+    const earnedSet = new Set(earned.map(e => e.achievementId));
+    const newAchievements = await evaluateAchievements(userId, { stats, streak, earnedSet, sessionMeta, triggerEvent });
+    if (newAchievements.length) {
+        await awardAchievementXpIdempotent(userId, newAchievements, today, weekStart);
+        pushAchievements(userId, newAchievements);
+    }
+    return newAchievements;
+}
+
+/** Same as runEval but also evaluates qualifier-event achievements after inserting a qualifier event. */
+async function emitQualifier(userId, qualifierType, meta = {}) {
+    await insertEvent({ userId, type: qualifierType, metadata: meta });
+    return runEval(userId, qualifierType);
+}
+
+// ─── Public hooks ─────────────────────────────────────────────────────────────
+
+export async function onCourseCreated(userId) {
+    const earned = await getEarnedAchievements(userId);
+    const earnedSet = new Set(earned.map(e => e.achievementId));
+
+    // Blueprint: no sessions yet, all courses now configured
+    const sessions = await countEventsByType(userId, "session.completed");
+    if (sessions === 0 && !earnedSet.has("the_blueprint")) {
+        const courses = await findCoursesByUser(userId);
+        if (courses.length > 0 && courses.every(isCourseConfigured)) {
+            await emitQualifier(userId, "achievement.blueprint_qualified");
+        }
+    }
+
+    // Optimist: 3+ courses with target >= 90
+    if (!earnedSet.has("the_optimist")) {
+        const courses = await findCoursesByUser(userId);
+        if (courses.filter(c => (c.targetGrade ?? 0) >= 90).length >= 3) {
+            await emitQualifier(userId, "achievement.optimist_qualified");
+        }
+    }
+
+    return runEval(userId, "course.created");
+}
+
+export async function onCourseArchived(userId) {
+    return runEval(userId, "course.archived");
+}
+
+export async function onCourseUpdated(userId) {
+    const earned = await getEarnedAchievements(userId);
+    const earnedSet = new Set(earned.map(e => e.achievementId));
+
+    if (!earnedSet.has("the_optimist")) {
+        const courses = await findCoursesByUser(userId);
+        if (courses.filter(c => (c.targetGrade ?? 0) >= 90).length >= 3) {
+            await emitQualifier(userId, "achievement.optimist_qualified");
+        }
+    }
+
+    return runEval(userId, "course.updated");
+}
+
+export async function onEvalCreated(userId, evalData) {
+    const earned = await getEarnedAchievements(userId);
+    const earnedSet = new Set(earned.map(e => e.achievementId));
+
+    // Panic mode: eval added < 24h before deadline
+    if (evalData?.date && !earnedSet.has("panic_mode")) {
+        const hoursUntil = (new Date(evalData.date).getTime() - Date.now()) / 3600000;
+        if (hoursUntil >= 0 && hoursUntil < 24) {
+            await emitQualifier(userId, "achievement.panic_mode_qualified");
+        }
+    }
+
+    // Blueprint: no sessions yet, all courses now configured
+    const sessions = await countEventsByType(userId, "session.completed");
+    if (sessions === 0 && !earnedSet.has("the_blueprint")) {
+        const courses = await findCoursesByUser(userId);
+        if (courses.length > 0 && courses.every(isCourseConfigured)) {
+            await emitQualifier(userId, "achievement.blueprint_qualified");
+        }
+    }
+
+    return runEval(userId, "eval.created");
+}
+
+export async function onEvalScoreUpdated(userId, evalData, prevScore) {
+    await insertEvent({ userId, type: "eval.score_entered", metadata: { eval_id: evalData?.id } });
+
+    const earned = await getEarnedAchievements(userId);
+    const earnedSet = new Set(earned.map(e => e.achievementId));
+
+    // Retroactive: score entered for eval that happened > 1 week ago
+    if (evalData?.date && !earnedSet.has("retroactive")) {
+        const daysSince = (Date.now() - new Date(evalData.date).getTime()) / 86400000;
+        if (daysSince > 7) {
+            await emitQualifier(userId, "achievement.retroactive_qualified");
+        }
+    }
+
+    // Revisionist: same eval score updated 3+ times
+    if (prevScore !== null && prevScore !== undefined && evalData?.id && !earnedSet.has("revisionist")) {
+        const updates = await countScoreEventsForEval(userId, evalData.id);
+        if (updates >= 3) {
+            await emitQualifier(userId, "achievement.revisionist_qualified");
+        }
+    }
+
+    // Spite mode trigger: score below course target
+    if (evalData?.score !== null && evalData?.course?.targetGrade) {
+        const pct = (evalData.score / evalData.maxScore) * 100;
+        if (pct < evalData.course.targetGrade) {
+            await insertEvent({ userId, type: "achievement.spite_mode_trigger", metadata: { eval_id: evalData.id } });
+        }
+    }
+
+    return runEval(userId, "eval.score_entered");
+}
+
+export async function onProgressPageVisited(userId) {
+    await insertEvent({ userId, type: "page.progress_visited", metadata: {} });
+    return runEval(userId, "page.progress_visited");
+}
+
+export async function onSettingsPageVisited(userId) {
+    await insertEvent({ userId, type: "page.settings_visited", metadata: {} });
+    return runEval(userId, "page.settings_visited");
+}
+
+export async function onTaskCreated(userId) {
+    await insertEvent({ userId, type: "task.created", metadata: {} });
+    return runEval(userId, "task.created");
+}
+
+export async function onTaskCompleted(userId) {
+    await insertEvent({ userId, type: "task.completed", metadata: {} });
+
+    const earned = await getEarnedAchievements(userId);
+    const earnedSet = new Set(earned.map(e => e.achievementId));
+
+    // No-backlog: 10 tasks completed within 48-hour window
+    if (!earnedSet.has("no_backlog")) {
+        const recent = await countRecentEventsByType(userId, "task.completed", 48 * 3600);
+        if (recent >= 10) {
+            await emitQualifier(userId, "achievement.no_backlog_qualified");
+        }
+    }
+
+    // Valedictorian: 200+ sessions, 100+ tasks done, all courses above target
+    if (!earnedSet.has("valedictorian")) {
+        const [stats, courses] = await Promise.all([
+            getStats(userId), findCoursesByUser(userId),
+        ]);
+        if (await _checkValedictorian(userId, stats, courses)) {
+            await emitQualifier(userId, "achievement.valedictorian_qualified");
+        }
+    }
+
+    return runEval(userId, "task.completed");
+}
+
+export async function onStreakFrozen(userId) {
+    await insertEvent({ userId, type: "streak.freeze_used", metadata: {} });
+}
+
+// ─── Called from session.service after session events are inserted ─────────────
+// Separate export so session.service can pass full sessionMeta context.
+export { runEval as runSessionEval };
+
+// ─── Private ──────────────────────────────────────────────────────────────────
+
+async function _checkValedictorian(userId, stats, courses) {
+    if ((stats?.totalSessions ?? 0) < 200) return false;
+    const tasksDone = await countEventsByType(userId, "task.completed");
+    if (tasksDone < 100) return false;
+    return courses.length > 0 && courses.every(isAboveTarget);
+}

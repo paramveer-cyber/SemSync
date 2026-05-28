@@ -276,7 +276,10 @@ export default function TaskCenterPage() {
 
     useEffect(() => { saveTasks(tasks); }, [tasks]);
 
-    const addTask    = useCallback((t: Task) => setTasks(p => [t, ...p]), []);
+    const addTask    = useCallback((t: Task) => {
+        setTasks(p => [t, ...p]);
+        import('../lib/api').then(({ trackTask }) => trackTask('created').catch(() => {}));
+    }, []);
     const deleteTask = useCallback((id: string) => setTasks(p => p.filter(t => t.id !== id)), []);
     const editTask   = useCallback((updated: Task) => setTasks(p => p.map(t => t.id === updated.id ? updated : t)), []);
 
@@ -284,9 +287,14 @@ export default function TaskCenterPage() {
     const onDragEnd   = () => { setDragging(null); setDragOverCol(null); dragItem.current = null; };
     const onDrop      = (status: Status) => {
         if (!dragItem.current) return;
+        const prevTask = tasks.find(t => t.id === dragItem.current);
+        const wasNotDone = prevTask && prevTask.status !== 'done';
         setTasks(p => p.map(t => t.id === dragItem.current
             ? { ...t, status, progress: status === 'done' ? 100 : status === 'active' && t.progress === undefined ? 0 : t.progress }
             : t));
+        if (status === 'done' && wasNotDone) {
+            import('../lib/api').then(({ trackTask }) => trackTask('completed').catch(() => {}));
+        }
         onDragEnd();
     };
 

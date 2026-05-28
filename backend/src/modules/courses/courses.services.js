@@ -28,11 +28,11 @@ export const computeStats = (course, evals) => {
     }
 
     return {
-        currentGrade:    parseFloat(currentGrade.toFixed(2)),
-        earnedWeight:    parseFloat(earnedWeight.toFixed(2)),
-        totalWeight:     parseFloat(totalWeight.toFixed(2)),
+        currentGrade: parseFloat(currentGrade.toFixed(2)),
+        earnedWeight: parseFloat(earnedWeight.toFixed(2)),
+        totalWeight: parseFloat(totalWeight.toFixed(2)),
         remainingWeight: parseFloat(remainingWeight.toFixed(2)),
-        requiredAvg:     requiredAvg !== null ? parseFloat(requiredAvg.toFixed(2)) : null,
+        requiredAvg: requiredAvg !== null ? parseFloat(requiredAvg.toFixed(2)) : null,
     };
 };
 
@@ -48,7 +48,7 @@ export const getCourseById = async (courseId, userId) => {
 
 export const createCourse = (userId, data) => {
     const { name, credits, targetGrade } = data;
-    return insertCourse({ userId, name, credits: credits ?? null, targetGrade: targetGrade ?? 50 });
+    return insertCourse({ userId, name, ...(credits !== undefined && { credits }), targetGrade: targetGrade ?? 50 });
 };
 
 export const updateCourse = async (courseId, userId, data) => {
@@ -57,8 +57,8 @@ export const updateCourse = async (courseId, userId, data) => {
     if (existing.isArchived) throw ApiError.forbidden("Course is archived");
 
     const allowed = {};
-    if (data.name        !== undefined) allowed.name        = data.name;
-    if (data.credits     !== undefined) allowed.credits     = data.credits;
+    if (data.name !== undefined) allowed.name = data.name;
+    if (data.credits !== undefined) allowed.credits = data.credits;
     if (data.targetGrade !== undefined) allowed.targetGrade = data.targetGrade;
 
     if (Object.keys(allowed).length === 0) throw ApiError.badRequest("No valid fields to update");

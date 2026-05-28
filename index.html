@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SemSync — Developer Documentation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap');
+
+        :root {
+            --bg: #080b0f;
+            --bg1: #0d1117;
+            --bg2: #131920;
+            --bg3: #1a2330;
+            --accent: #00e5a0;
+            --accent2: #00a8ff;
+            --accent3: #ff6b35;
+            --text: #d4dce8;
+            --muted: #6b7f96;
+            --border: rgba(0, 229, 160, 0.12);
+            --border2: rgba(255, 255, 255, 0.06);
+            --code-bg: #0a0f14;
+            --radius: 6px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 15px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'IBM Plex Mono', monospace;
+            line-height: 1.7;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── Sidebar ── */
+        nav {
+            width: 260px;
+            min-width: 260px;
+            background: var(--bg1);
+            border-right: 1px solid var(--border2);
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            padding: 28px 0;
+            flex-shrink: 0;
+        }
+
+        nav::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        nav::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .nav-logo {
+            padding: 0 20px 24px;
+            border-bottom: 1px solid var(--border2);
+            margin-bottom: 16px;
+        }
+
+        .nav-logo span {
+            display: block;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent);
+            letter-spacing: -0.02em;
+        }
+
+        .nav-logo small {
+            font-size: 0.65rem;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .nav-section {
+            padding: 4px 20px 2px;
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 14px;
+        }
+
+        nav a {
+            display: block;
+            padding: 5px 20px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: color 0.15s, background 0.15s;
+            border-left: 2px solid transparent;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: var(--accent);
+            background: rgba(0, 229, 160, 0.05);
+            border-left-color: var(--accent);
+        }
+
+        /* ── Main content ── */
+        main {
+            flex: 1;
+            min-width: 0;
+            max-width: 900px;
+            padding: 56px 56px 120px;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            margin-bottom: 64px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border2);
+        }
+
+        .hero-tag {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 2.8rem;
+            line-height: 1.1;
+            color: #fff;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            color: var(--accent);
+        }
+
+        .hero p {
+            font-size: 0.85rem;
+            color: var(--muted);
+            max-width: 560px;
+            line-height: 1.8;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .pill {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.68rem;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+        }
+
+        .pill.green {
+            border-color: rgba(0, 229, 160, 0.3);
+            color: var(--accent);
+        }
+
+        .pill.blue {
+            border-color: rgba(0, 168, 255, 0.3);
+            color: var(--accent2);
+        }
+
+        .pill.orange {
+            border-color: rgba(255, 107, 53, 0.3);
+            color: var(--accent3);
+        }
+
+        /* ── Section headings ── */
+        section {
+            margin-bottom: 72px;
+        }
+
+        section:target {
+            scroll-margin-top: 32px;
+        }
+
+        h2 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #fff;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 .sec-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: rgba(0, 229, 160, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1px 7px;
+            font-weight: 400;
+        }
+
+        h3 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #c8d5e3;
+            margin: 32px 0 12px;
+            letter-spacing: -0.01em;
+        }
+
+        h4 {
+            font-size: 0.8rem;
+            color: var(--accent2);
+            margin: 24px 0 8px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        p {
+            margin-bottom: 14px;
+            font-size: 0.85rem;
+        }
+
+        strong {
+            color: #e8f0f8;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Callout boxes ── */
+        .callout {
+            background: var(--bg2);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            padding: 14px 18px;
+            margin: 20px 0;
+            font-size: 0.82rem;
+        }
+
+        .callout.orange {
+            border-left-color: var(--accent3);
+        }
+
+        .callout.blue {
+            border-left-color: var(--accent2);
+        }
+
+        .callout-label {
+            font-size: 0.62rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
+
+        /* ── Code blocks ── */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            overflow-x: auto;
+            margin: 16px 0 24px;
+            font-size: 0.76rem;
+            line-height: 1.75;
+            color: #b8cfe0;
+        }
+
+        pre::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        pre::-webkit-scrollbar-thumb {
+            background: var(--muted);
+        }
+
+        code {
+            background: rgba(0, 229, 160, 0.07);
+            color: var(--accent);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 0.82em;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: inherit;
+        }
+
+        /* Syntax-like coloring in pre */
+        .kw {
+            color: #7dd3fc;
+        }
+
+        .str {
+            color: #86efac;
+        }
+
+        .cm {
+            color: #4b6478;
+            font-style: italic;
+        }
+
+        .fn {
+            color: #fbbf24;
+        }
+
+        .num {
+            color: #f9a8d4;
+        }
+
+        .arr {
+            color: var(--accent);
+        }
+
+        /* ── Tables ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 28px;
+            font-size: 0.8rem;
+        }
+
+        th {
+            background: var(--bg2);
+            color: var(--accent);
+            text-align: left;
+            padding: 10px 14px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border2);
+            color: var(--text);
+            vertical-align: top;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* ── Flow diagrams ── */
+        .flow {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+            margin: 16px 0 24px;
+            font-size: 0.76rem;
+            line-height: 2;
+            color: #b8cfe0;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .flow .node {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .flow .arrow {
+            color: var(--accent);
+        }
+
+        .flow .label {
+            color: var(--muted);
+        }
+
+        .flow .ok {
+            color: #86efac;
+        }
+
+        .flow .err {
+            color: #fca5a5;
+        }
+
+        /* ── Grid layouts ── */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .card {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+        }
+
+        .card h4 {
+            margin-top: 0;
+        }
+
+        .card p {
+            margin-bottom: 0;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        /* ── Rate limit table ── */
+        .rl-table td:nth-child(2) {
+            color: var(--accent3);
+            font-weight: 500;
+        }
+
+        .rl-table td:nth-child(3) {
+            color: var(--accent2);
+        }
+
+        /* ── Badge ── */
+        .badge {
+            display: inline-block;
+            font-size: 0.62rem;
+            padding: 2px 7px;
+            border-radius: 3px;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+
+        .badge-green {
+            background: rgba(0, 229, 160, 0.15);
+            color: var(--accent);
+            border: 1px solid var(--border);
+        }
+
+        .badge-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .badge-blue {
+            background: rgba(0, 168, 255, 0.15);
+            color: var(--accent2);
+            border: 1px solid rgba(0, 168, 255, 0.2);
+        }
+
+        /* ── XP formula box ── */
+        .formula {
+            background: var(--bg3);
+            border: 1px solid rgba(0, 229, 160, 0.2);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin: 16px 0;
+            font-size: 0.78rem;
+            line-height: 2;
+            color: var(--text);
+        }
+
+        .formula .var {
+            color: var(--accent2);
+        }
+
+        .formula .eq {
+            color: var(--muted);
+        }
+
+        /* ── Warning box ── */
+        .warn {
+            background: rgba(255, 107, 53, 0.08);
+            border: 1px solid rgba(255, 107, 53, 0.25);
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 0.8rem;
+            color: #ffd0be;
+        }
+
+        .warn::before {
+            content: "⚠ ";
+            color: var(--accent3);
+        }
+
+        /* ── Scrollbar global ── */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg3);
+            border-radius: 3px;
+        }
+
+        /* ── Print / mobile hide nav ── */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+
+            main {
+                padding: 32px 20px 80px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════ SIDEBAR ════════════════════════════════ -->
+    <nav>
+        <div class="nav-logo">
+            <span>SemSync</span>
+            <small>Developer Docs</small>
+        </div>
+
+        <div class="nav-section">Overview</div>
+        <a href="#s1">01 · Architecture</a>
+        <a href="#s2">02 · Frontend</a>
+        <a href="#s3">03 · Backend</a>
+
+        <div class="nav-section">Reference</div>
+        <a href="#s4">04 · Folder Guide</a>
+        <a href="#s5">05 · File Breakdown</a>
+        <a href="#s6">06 · Functions</a>
+        <a href="#s7">07 · E2E Flows</a>
+
+        <div class="nav-section">Deep Dives</div>
+        <a href="#s8">08 · Database</a>
+        <a href="#s9">09 · Caching</a>
+        <a href="#s10">10 · Security</a>
+        <a href="#s11">11 · Gamification</a>
+        <a href="#s12">12 · Timer System</a>
+
+        <div class="nav-section">Guides</div>
+        <a href="#s13">13 · Scalability</a>
+        <a href="#s14">14 · Modification</a>
+        <a href="#s15">15 · Optimization</a>
+        <a href="#s16">16 · Environment</a>
+    </nav>
+
+    <!-- ═══════════════════════════════ MAIN ══════════════════════════════════ -->
+    <main>
+
+        <!-- HERO -->
+        <div class="hero">
+            <div class="hero-tag">// fullstack architecture guide</div>
+            <h1>SemSync<br><em>Developer</em> Docs</h1>
+            <p>Architectural walkthrough for a developer with zero prior exposure. Assumes strong
+                React/Node/Postgres/Drizzle knowledge. Skips basics — focuses on this specific system.</p>
+            <div class="pill-row">
+                <span class="pill green">React + Vite + TS</span>
+                <span class="pill green">Express + ESM</span>
+                <span class="pill blue">PostgreSQL + Drizzle</span>
+                <span class="pill blue">JWT + Google OAuth</span>
+                <span class="pill orange">No Redis · No WebSockets · No SSR</span>
+            </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s1">
+            <h2><span class="sec-num">01</span> High-Level Architecture</h2>
+
+            <h3>What This Application Is</h3>
+            <p><strong>SemSync</strong> is a semester-tracking web application for university students. Core features:
+            </p>
+            <ul style="font-size:0.83rem;line-height:2;padding-left:20px;margin-bottom:16px;">
+                <li>Course + evaluation management (grades, weightage, target grade computation)</li>
+                <li>Server-owned focus timer with full gamification (XP, streaks, achievements, daily goals)</li>
+                <li>Google Classroom integration for importing evaluations</li>
+                <li>Task center (localStorage-persisted, no backend)</li>
+                <li>Calendar view of upcoming evaluations</li>
+                <li>Achievement system with cinematic unlock animations</li>
+            </ul>
+
+            <div class="callout orange">
+                <div class="callout-label">Key Architectural Facts</div>
+                <strong>No Redis. No WebSockets. No SSR.</strong> The backend is a pure REST API. Real-time feel is
+                achieved via polling — achievements every 45 s, timer sync every 10 s via HTTP heartbeat.
+            </div>
+
+            <h3>System Overview</h3>
+            <pre class="flow"><span class="node">Browser</span>
+│
+├─ <span class="node">React (Vite + TypeScript)</span>               <span class="label">CSR-only, no SSR</span>
+│  ├─ Context layer                          <span class="label">Auth / Theme / Achievement / Notification</span>
+│  ├─ Pages (route-level components)
+│  ├─ lib/api.js                             <span class="label">fetch wrapper, auto-refresh on TOKEN_EXPIRED</span>
+│  ├─ lib/dataService.ts                     <span class="label">cache-first read layer over api.js</span>
+│  ├─ lib/sessionCache.ts                    <span class="label">in-memory Map (module scope, session-only)</span>
+│  └─ lib/tokenStore.js                      <span class="label">in-memory access token (never localStorage)</span>
+│
+│  <span class="arr">────────────── HTTP REST ──────────────</span>
+│
+├─ <span class="node">Express (Node.js + ESM)</span>
+│  ├─ src/index.js                           <span class="label">route mounting, CORS, middleware chain</span>
+│  ├─ modules/auth/                          <span class="label">Google OAuth, JWT, refresh token rotation</span>
+│  ├─ modules/courses/                       <span class="label">course CRUD + grade computation</span>
+│  ├─ modules/evals/                         <span class="label">evaluation CRUD + upcoming query</span>
+│  ├─ modules/focus/                         <span class="label">session lifecycle, gamification, timer</span>
+│  └─ common/                                <span class="label">rate limiters, error class, utils</span>
+│
+│  <span class="arr">────────────── Drizzle ORM ─────────────</span>
+│
+└─ <span class="node">PostgreSQL</span>
+   ├─ users
+   ├─ courses
+   ├─ evaluations
+   ├─ events          <span class="label">append-only audit log — gamification source of truth</span>
+   ├─ user_stats
+   ├─ user_streaks
+   ├─ user_achievements
+   ├─ daily_goals
+   └─ timers          <span class="label">one row per active timer, deleted on completion</span></pre>
+
+            <h3>Design Philosophy</h3>
+            <div class="grid-2">
+                <div class="card">
+                    <h4>Scalable Monolith</h4>
+                    <p>Every domain (auth, courses, evals, focus) is a self-contained module with its own controller →
+                        service → queries chain. No micro-service boundary, but extraction later would be mechanical.
+                    </p>
+                </div>
+                <div class="card">
+                    <h4>Server-Owned State</h4>
+                    <p>Timer elapsed time, XP, streaks, achievement awards — nothing trusted from the client. Server
+                        recomputes or anchors all values.</p>
+                </div>
+                <div class="card">
+                    <h4>Events Table as Ledger</h4>
+                    <p>Gamification data derived by counting rows in the <code>events</code> table. History queryable,
+                        achievements re-evaluable, idempotency trivially implemented.</p>
+                </div>
+                <div class="card">
+                    <h4>Cache-First Frontend</h4>
+                    <p>All course data loaded in one burst on first cache miss. Subsequent pages are instant (zero
+                        network). Invalidated explicitly after mutations.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s2">
+            <h2><span class="sec-num">02</span> Frontend Architecture</h2>
+
+            <h3>Stack</h3>
+            <table>
+                <tr>
+                    <th>Concern</th>
+                    <th>Choice</th>
+                </tr>
+                <tr>
+                    <td>Framework</td>
+                    <td>React 18 + Vite + TypeScript</td>
+                </tr>
+                <tr>
+                    <td>Routing</td>
+                    <td>react-router-dom v6</td>
+                </tr>
+                <tr>
+                    <td>Styling</td>
+                    <td>Tailwind CSS + CSS custom properties (theme vars)</td>
+                </tr>
+                <tr>
+                    <td>HTTP</td>
+                    <td>Native <code>fetch</code> via <code>lib/api.js</code></td>
+                </tr>
+                <tr>
+                    <td>State</td>
+                    <td>React Context + <code>useState</code> / <code>useRef</code></td>
+                </tr>
+                <tr>
+                    <td>Cache</td>
+                    <td>In-memory <code>Map</code> in <code>lib/sessionCache.ts</code></td>
+                </tr>
+                <tr>
+                    <td>Persistence</td>
+                    <td><code>localStorage</code> for tasks, notif state, seen achievements, XP snapshot</td>
+                </tr>
+            </table>
+
+            <h3>Folder Structure</h3>
+            <pre>src/
+├─ App.tsx                  <span class="cm">// Root: providers, router, GlobalTimerWatcher</span>
+├─ main.tsx                 <span class="cm">// Entry point</span>
+├─ index.css                <span class="cm">// Global styles (mesh-bg, animations)</span>
+├─ context/
+│  ├─ AuthContext.tsx        <span class="cm">// Auth state + silent refresh on mount</span>
+│  ├─ AchievementContext.tsx <span class="cm">// XP/level/streak sync + unlock queue + polling</span>
+│  ├─ NotificationContext.tsx<span class="cm">// Upcoming eval toast logic</span>
+│  └─ ThemeContext.tsx       <span class="cm">// CSS var injection for theme switching</span>
+├─ lib/
+│  ├─ api.js                 <span class="cm">// fetch wrapper (auto-refresh, error normalisation)</span>
+│  ├─ tokenStore.js          <span class="cm">// In-memory access token (module var)</span>
+│  ├─ dataService.ts         <span class="cm">// Cache-first read API over api.js</span>
+│  ├─ sessionCache.ts        <span class="cm">// In-memory Map store with invalidation helpers</span>
+│  └─ sound.ts               <span class="cm">// Web Audio API tone synthesis</span>
+├─ pages/                   <span class="cm">// One file per route</span>
+├─ components/              <span class="cm">// Shared UI, modals, achievement display</span>
+└─ Themes.ts                <span class="cm">// Theme definitions (vars per theme)</span></pre>
+
+            <h3>Routing</h3>
+            <p>All routes are client-side. Protected routes use <code>&lt;ProtectedRoute&gt;</code> which gates on
+                <code>AuthContext.user</code>. While <code>loading === true</code>, a spinner shows; on miss, redirects
+                to <code>/login</code>. Only desktop (<code>window.innerWidth &ge; 768</code>) renders the app.
+            </p>
+
+            <table>
+                <tr>
+                    <th>Route</th>
+                    <th>Component</th>
+                    <th>Auth</th>
+                </tr>
+                <tr>
+                    <td><code>/</code></td>
+                    <td>LandingPage</td>
+                    <td><span class="badge badge-blue">public</span></td>
+                </tr>
+                <tr>
+                    <td><code>/login</code></td>
+                    <td>LoginPage</td>
+                    <td><span class="badge badge-blue">public</span></td>
+                </tr>
+                <tr>
+                    <td><code>/dashboard</code></td>
+                    <td>Dashboard</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/courses</code></td>
+                    <td>CoursesPage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/courses/:id</code></td>
+                    <td>CoursePage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/calendar</code></td>
+                    <td>CalendarPage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/tasks</code></td>
+                    <td>TaskCenterPage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/focus</code></td>
+                    <td>FocusTimerPage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/profile</code></td>
+                    <td>UserPage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/settings</code></td>
+                    <td>SettingsPage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/classroom</code></td>
+                    <td>ClassroomPage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+                <tr>
+                    <td><code>/progress</code></td>
+                    <td>ProgressPage</td>
+                    <td><span class="badge badge-green">protected</span></td>
+                </tr>
+            </table>
+
+            <h3>Provider Nesting Order</h3>
+            <pre>ThemeProvider
+  Router
+    NotificationProvider
+      AchievementProvider
+        GlobalTimerWatcher        <span class="cm">// headless, fires browser Notification API</span>
+        ToastStack / AchievementToastStack / CinematicUnlock
+        Routes</pre>
+
+            <h3>Context Responsibilities</h3>
+            <table>
+                <tr>
+                    <th>Context</th>
+                    <th>What it owns</th>
+                    <th>Key behaviour</th>
+                </tr>
+                <tr>
+                    <td><code>AuthContext</code></td>
+                    <td>user, loading, login, logout</td>
+                    <td>On mount: fires <code>POST /auth/refresh</code> → <code>GET /auth/me</code>. Listens for
+                        <code>auth:logout</code> DOM event (emitted by api.js on failed refresh).
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>AchievementContext</code></td>
+                    <td>pendingUnlocks, xpState, refresh</td>
+                    <td>Polls <code>/focus/dashboard</code> every 45 s and on tab-visibility change. Deduplicates
+                        against localStorage "seen" set. Routes unlocks to cinematic or toast display.</td>
+                </tr>
+                <tr>
+                    <td><code>NotificationContext</code></td>
+                    <td>toasts, settings</td>
+                    <td>Polls <code>/evaluations/upcoming</code>. Fires in-app toasts for evals due within
+                        6h/12h/24h/48h windows. Tracks fired events in localStorage.</td>
+                </tr>
+                <tr>
+                    <td><code>ThemeContext</code></td>
+                    <td>active theme, setter</td>
+                    <td>Reads from localStorage, injects CSS vars to <code>:root</code> via
+                        <code>style.setProperty</code>. Switching is instant, purely client-side.
+                    </td>
+                </tr>
+            </table>
+
+            <h3>Data Flow: Cache-First Reading</h3>
+            <pre class="flow"><span class="node">Page component</span>
+  │
+  ▼
+<span class="node">dataService.ts</span> (fetchCourses / fetchCourse / fetchUpcomingEvals)
+  │
+  ├─ <span class="arr">cacheHas(key)</span> → <span class="ok">HIT</span> → return cached value immediately (zero network)
+  │
+  └─ <span class="err">MISS</span> → primeCache()
+              ├─ getCourses()         ┐
+              ├─ getUpcomingEvals()   ├ all in parallel
+              └─ getCourse(id) × N   ┘
+              store all results in sessionCache
+              return requested key
+
+<span class="node">Mutation</span> (create / update / delete)
+  │
+  └─ invalidateCourseDetail(courseId)  <span class="label">or</span>  invalidateAllCourseData()
+     → deletes keys from the Map
+     → next read triggers primeCache again</pre>
+
+            <h3>Token Lifecycle (Frontend)</h3>
+            <pre class="flow"><span class="node">App boot</span>
+  │
+  └─ AuthContext mounts
+      POST /auth/refresh (httpOnly cookie)  →  access token stored in tokenStore.js (memory only)
+      GET /auth/me                          →  user object in React state
+
+<span class="node">API call</span> (api.js)
+  │
+  ├─ <span class="ok">200 OK</span>  →  return data
+  │
+  └─ <span class="err">401 TOKEN_EXPIRED</span>  (and not _retry)
+      POST /auth/refresh  →  new token  →  retry original request
+      <span class="err">If refresh fails</span>  →  clearToken() + dispatch 'auth:logout'
+                              AuthContext.logout() → user=null → redirect /login</pre>
+
+            <div class="callout">
+                <div class="callout-label">Security Note</div>
+                The access token never touches <code>localStorage</code> or <code>sessionStorage</code>.
+                <code>tokenStore.js</code> is a module-scoped variable — invisible to browser devtools storage panels.
+            </div>
+
+            <h3>GlobalTimerWatcher (App.tsx)</h3>
+            <p>A headless component that ticks every 1 s, reads <code>focus_timer_state_v1</code> from localStorage, and
+                fires browser <code>Notification</code> API calls when a phase expires. This is the <strong>legacy
+                    display mirror</strong> — the authoritative timer state lives on the server. The two systems
+                coexist: localStorage is only a cross-page display convenience.</p>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s3">
+            <h2><span class="sec-num">03</span> Backend Architecture</h2>
+
+            <h3>Stack</h3>
+            <table>
+                <tr>
+                    <th>Concern</th>
+                    <th>Choice</th>
+                </tr>
+                <tr>
+                    <td>Runtime</td>
+                    <td>Node.js — ESM modules (<code>"type":"module"</code>)</td>
+                </tr>
+                <tr>
+                    <td>Framework</td>
+                    <td>Express</td>
+                </tr>
+                <tr>
+                    <td>ORM</td>
+                    <td>Drizzle ORM</td>
+                </tr>
+                <tr>
+                    <td>DB</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                <tr>
+                    <td>Auth</td>
+                    <td>JWT (jsonwebtoken) + Google OAuth (google-auth-library)</td>
+                </tr>
+                <tr>
+                    <td>Rate limiting</td>
+                    <td>express-rate-limit (in-memory per-process)</td>
+                </tr>
+                <tr>
+                    <td>Validation</td>
+                    <td>Manual — in service layer, throws <code>ApiError</code></td>
+                </tr>
+            </table>
+
+            <h3>Module Structure</h3>
+            <pre>src/
+├─ index.js
+├─ modules/
+│  ├─ auth/
+│  │  ├─ auth.controller.js    <span class="cm">// googleAuth, refresh, me, logout, classroom token, deleteAccount</span>
+│  │  ├─ auth.services.js      <span class="cm">// verifyGoogleToken, findOrCreateUser, generateTokens</span>
+│  │  ├─ auth.middleware.js    <span class="cm">// Bearer token verification → req.user</span>
+│  │  └─ auth.routes.js
+│  ├─ courses/
+│  │  ├─ courses.controller.js
+│  │  ├─ courses.services.js   <span class="cm">// computeStats, CRUD wrappers</span>
+│  │  └─ courses.routes.js
+│  ├─ evals/
+│  │  ├─ evals.controller.js
+│  │  ├─ evals.services.js     <span class="cm">// ownership assertion, validation, CRUD</span>
+│  │  └─ evals.routes.js       <span class="cm">// two routers: nested + standalone</span>
+│  └─ focus/
+│     ├─ focus.controller.js   <span class="cm">// session/timer/dashboard/track endpoints</span>
+│     ├─ focus.service.js      <span class="cm">// barrel re-export</span>
+│     ├─ session.service.js    <span class="cm">// startSession / endSession (XP, streak, achievements)</span>
+│     ├─ dashboard.service.js  <span class="cm">// getDashboardData</span>
+│     ├─ hooks.service.js      <span class="cm">// onCourse*/onEval*/onTask*/onPage* hooks</span>
+│     ├─ timer.service.js      <span class="cm">// server-owned timer lifecycle</span>
+│     ├─ timer.db.js           <span class="cm">// timer DB CRUD</span>
+│     ├─ streak.js             <span class="cm">// freezeStreak</span>
+│     ├─ achievements.js       <span class="cm">// ACHIEVEMENTS array + ACHIEVEMENT_MAP + TRIGGER_INDEX</span>
+│     └─ utils/
+│        ├─ achievements.eval.js <span class="cm">// evaluateAchievements (master evaluator)</span>
+│        └─ goals.js             <span class="cm">// generateDailyGoals + checkAndCompleteGoals</span>
+├─ db/
+│  ├─ schema.js                <span class="cm">// Drizzle table definitions</span>
+│  ├─ index.js                 <span class="cm">// DB connection singleton</span>
+│  ├─ queries.js               <span class="cm">// user/course/eval queries</span>
+│  └─ gamification.js          <span class="cm">// events/stats/streaks/achievements/goals queries</span>
+└─ common/
+   ├─ middlewares/
+   │  ├─ rateLimiter.js        <span class="cm">// named limiters per route class</span>
+   │  └─ error.middleware.js   <span class="cm">// global error handler</span>
+   └─ utils/
+      ├─ api-error.js          <span class="cm">// ApiError class (statusCode + isOperational)</span>
+      ├─ tokenLogic.js         <span class="cm">// JWT sign/verify for access + refresh tokens</span>
+      ├─ xp.js                 <span class="cm">// computeIntegrityScore, computeXP, awardXpIdempotent</span>
+      ├─ dates.js              <span class="cm">// IST date helpers (all streak/goal logic)</span>
+      └─ sanitize.js           <span class="cm">// strips hidden unearned achievement data before response</span></pre>
+
+            <h3>Request Lifecycle</h3>
+            <pre class="flow"><span class="node">HTTP request</span>
+  │
+  ├─ express.json() + cookie-parser
+  ├─ CORS whitelist: localhost:5173 + semsync.pages.dev
+  ├─ Route match
+  │   ├─ /auth/*        →  authRoutes  <span class="label">(own rate limiters, no authMiddleware)</span>
+  │   └─ /courses, /evaluations, /focus
+  │       ├─ authMiddleware  <span class="label">(verifies Bearer JWT → req.user = { userId, email })</span>
+  │       ├─ apiLimiter      <span class="label">(100 req/min, shared)</span>
+  │       └─ route-specific limiters  <span class="label">(session, timer, task, page)</span>
+  │
+  ├─ <span class="node">Controller</span>  →  extracts req.body / req.params / req.user
+  │                  delegates to service
+  │
+  ├─ <span class="node">Service</span>     →  business logic, validation, ownership assertion
+  │                  calls queries.js or gamification.js
+  │
+  ├─ <span class="node">Drizzle</span>     →  PostgreSQL
+  │
+  └─ <span class="ok">JSON response</span>  or  next(err)  →  error.middleware.js</pre>
+
+            <div class="callout blue">
+                <div class="callout-label">IST Timezone Lock</div>
+                All date/streak logic uses <code>Asia/Kolkata</code> as the authoritative timezone — hardcoded in
+                <code>dates.js</code>. Streak calculations derive today/yesterday/weekStart from IST, not UTC. Single
+                place to change for non-IST deployments.
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s4">
+            <h2><span class="sec-num">04</span> Folder-by-Folder Reference</h2>
+
+            <h3>Backend</h3>
+            <table>
+                <tr>
+                    <th>Folder</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><code>src/modules/auth/</code></td>
+                    <td>Identity. Google OAuth verification, JWT generation, refresh rotation, classroom OAuth token
+                        storage.</td>
+                </tr>
+                <tr>
+                    <td><code>src/modules/courses/</code></td>
+                    <td>Course CRUD. <code>computeStats</code> lives here — derives currentGrade, requiredAvg from
+                        evaluations array. Computed on-demand per response, no DB aggregation.</td>
+                </tr>
+                <tr>
+                    <td><code>src/modules/evals/</code></td>
+                    <td>Evaluation CRUD. Two routers: nested for course-scoped ops, standalone for cross-course queries.
+                        Ownership always asserted before mutation.</td>
+                </tr>
+                <tr>
+                    <td><code>src/modules/focus/</code></td>
+                    <td>Most complex module. Session lifecycle, server timer, XP computation, streak management,
+                        achievement evaluation, daily goal generation, event hooks.</td>
+                </tr>
+                <tr>
+                    <td><code>src/db/</code></td>
+                    <td><code>schema.js</code> defines all tables. <code>queries.js</code>: user/course/eval.
+                        <code>gamification.js</code>: events/stats/streaks/achievements/goals. <code>index.js</code>: DB
+                        singleton.
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>src/common/</code></td>
+                    <td>Shared utilities across modules. Rate limiters, error normalisation, token logic, XP math, IST
+                        dates, sanitisation. Nothing domain-specific.</td>
+                </tr>
+            </table>
+
+            <h3>Frontend</h3>
+            <table>
+                <tr>
+                    <th>Folder</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><code>src/pages/</code></td>
+                    <td>One component per route. Page components own local loading/error state, fetch via
+                        <code>dataService.ts</code>, call <code>api.js</code> directly for mutations.
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>src/components/</code></td>
+                    <td>Shared UI. Modals (<code>AddCourseModal</code>, <code>AddEvalModal</code>,
+                        <code>EditEvalModal</code>, <code>SyncCourseModal</code>), gamification display
+                        (<code>XPBar</code>, <code>StreakDisplay</code>, <code>DailyGoals</code>,
+                        <code>SessionComplete</code>), achievement display (<code>AchievementToastStack</code>,
+                        <code>CinematicUnlock</code>), layout (<code>Sidebar</code>, <code>Header</code>).
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>src/context/</code></td>
+                    <td>Global state providers. Auth, theme, achievements, notifications.</td>
+                </tr>
+                <tr>
+                    <td><code>src/lib/</code></td>
+                    <td>All infrastructure: HTTP client, token store, cache, data service, sound.</td>
+                </tr>
+            </table>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s5">
+            <h2><span class="sec-num">05</span> File-by-File Breakdown</h2>
+
+            <h3>Backend</h3>
+
+            <h4>src/index.js</h4>
+            <p>Express app factory. Mounts all route groups. Sets CORS origin whitelist (hardcoded; update for new
+                deployments). No middleware applied globally except json + cookie-parser. <code>authMiddleware</code>
+                and <code>apiLimiter</code> applied per-route-group — intentional because <code>/auth</code> routes have
+                their own per-endpoint limiters.</p>
+
+            <h4>src/modules/auth/auth.services.js</h4>
+            <p>Three exports: <code>verifyGoogleToken</code>, <code>findOrCreateUser</code>,
+                <code>generateTokens</code>. <code>verifyGoogleToken</code> validates the Google ID token locally (no
+                extra HTTP round-trip), checks <code>iss</code> claim and <code>email_verified</code>.
+                <code>findOrCreateUser</code> does a find-or-insert, then always calls <code>generateTokens</code>.
+                <code>generateTokens</code> mints 15-min access JWT + 7-day refresh JWT, stores refresh token in DB.
+            </p>
+
+            <h4>src/modules/auth/auth.controller.js</h4>
+            <p>HTTP layer for auth. Key security decisions:</p>
+            <ul style="font-size:0.82rem;line-height:2;padding-left:20px;margin-bottom:16px;">
+                <li>Refresh token set as <code>httpOnly; secure; sameSite=none</code> cookie (7-day). Never in response
+                    body.</li>
+                <li><code>refresh</code> handler checks <code>user.refreshToken === token</code> before issuing.
+                    Mismatch → wipe DB token + clear cookie + 401. This is replay detection.</li>
+                <li><code>deleteAccount</code> cascades through all foreign keys (PostgreSQL
+                    <code>ON DELETE CASCADE</code>).
+                </li>
+                <li>Classroom OAuth token stored separately; retrieved/cleared by dedicated endpoints.</li>
+            </ul>
+
+            <h4>src/modules/auth/auth.middleware.js</h4>
+            <p>Reads <code>Authorization: Bearer &lt;token&gt;</code>. Verifies JWT. Injects
+                <code>req.user = { userId, email }</code>. Returns <code>{ code: 'TOKEN_EXPIRED' }</code> on expiry —
+                the frontend <code>api.js</code> uses this specific code to trigger silent refresh.
+            </p>
+
+            <h4>src/modules/courses/courses.services.js</h4>
+            <p><code>computeStats(course, evals)</code> is the grade engine. Iterates evaluations, accumulates weighted
+                grade, computes <code>requiredAvg</code> (what student needs on remaining evals to hit target). Returned
+                in every GET course response. No DB aggregation — pure JS computation.</p>
+
+            <h4>src/modules/evals/evals.services.js</h4>
+            <p><code>assertCourseOwnership</code> called at top of every mutation — prevents IDOR. Validates eval fields
+                (type whitelist, weightage 0–100, score ≤ maxScore). When score is updated, calls
+                <code>onEvalScoreUpdated</code> hook (triggers achievement check).
+            </p>
+
+            <h4>src/modules/focus/session.service.js</h4>
+            <p>Most security-sensitive backend file. <code>endSession</code> flow:</p>
+            <ol style="font-size:0.82rem;line-height:2;padding-left:20px;margin-bottom:16px;">
+                <li>If <code>serverToken</code> present: find <code>session.start</code> event, check not consumed,
+                    compute duration from event timestamp (client <code>actualMinutes</code> ignored). Mark consumed.
+                </li>
+                <li>Clamp all inputs server-side.</li>
+                <li>Enforce daily cap (20 sessions/day).</li>
+                <li>Compute <code>integrityScore</code> from visibility + interaction data.</li>
+                <li>Compute XP (capped at 300/session).</li>
+                <li>Upsert stats + streak.</li>
+                <li>Insert session event + sub-events (comeback, linked, time-of-day).</li>
+                <li>Run achievement evaluation.</li>
+                <li>Award achievement XP idempotently.</li>
+                <li>Return everything for client display.</li>
+            </ol>
+            <div class="callout">
+                <div class="callout-label">Timer Path</div>
+                When called from <code>timer.service.js</code>, <code>serverToken</code> is <code>null</code> and
+                <code>actualMinutes</code> is already server-computed. Steps 1–2 (token anchor) are skipped.
+            </div>
+
+            <h4>src/modules/focus/timer.service.js</h4>
+            <p>Server-owned timer. One row per user in <code>timers</code> table (unique constraint). Every operation is
+                idempotent: start returns existing timer if one exists; pause/resume are no-ops if already in target
+                state. <code>nonce</code> = 16-byte hex random, generated on start, echoed back on end — prevents replay
+                of the same <code>timerEnd</code> request twice.</p>
+
+            <h4>src/modules/focus/achievements.js</h4>
+            <p>Achievement registry. Each entry has: <code>id</code>, <code>emoji</code>, <code>tier</code>,
+                <code>xp</code>, <code>hidden</code>, <code>name</code>, <code>desc</code>, <code>rule</code> (typed
+                evaluation spec), <code>triggers</code> (event types that can unlock this). Also exports
+                <code>ACHIEVEMENT_MAP</code> (Map by id) and <code>TRIGGER_INDEX</code> (Map from event type → Set of
+                achievement ids) for O(1) lookups.
+            </p>
+
+            <h4>src/modules/focus/utils/achievements.eval.js</h4>
+            <p><code>evaluateAchievements(userId, ctx)</code> — master evaluator. Flow: narrow candidates via
+                <code>TRIGGER_INDEX</code> → evaluate each rule via switch statement → lazy-load DB data (each source at
+                most once per run) → batch-insert newly qualified achievements with <code>onConflictDoNothing</code> →
+                return only newly inserted rows.
+            </p>
+
+            <h4>src/db/gamification.js</h4>
+            <p>All gamification queries. Key: <code>upsertStats</code> uses raw SQL
+                <code>INSERT … ON CONFLICT DO UPDATE</code> that atomically increments counters and resets today/week
+                minutes on date rollover. Level computed inline:
+                <code>GREATEST(1, FLOOR(SQRT(total_xp / 100)) + 1)</code>.
+            </p>
+
+            <h4>src/common/utils/xp.js</h4>
+            <p><code>computeIntegrityScore</code> scores a session 0–1 based on duration ratio, visibility ratio, and
+                interaction count. <code>computeXP</code> derives raw XP (base + plan-bonus × multiplier, cap 300).
+                <code>awardAchievementXpIdempotent</code> checks event log before awarding — idempotency guard for XP.
+            </p>
+
+            <h3>Frontend</h3>
+
+            <h4>src/lib/api.js</h4>
+            <p>All API calls through <code>request(method, path, body, _retry)</code>. On <code>401 TOKEN_EXPIRED</code>
+                and <code>!_retry</code>: fires <code>POST /auth/refresh</code>, stores new token, retries original. On
+                any other non-2xx: throws <code>Error</code> with <code>.status</code> and <code>.data</code> attached.
+                <code>_retry</code> flag prevents infinite loops.
+            </p>
+
+            <h4>src/lib/tokenStore.js</h4>
+            <p>Three-line module. <code>_token</code> is a module-scoped variable. Intentionally not in React state —
+                must be readable synchronously inside <code>api.js</code>'s <code>headers()</code> function without
+                React context.</p>
+
+            <h4>src/lib/sessionCache.ts</h4>
+            <p>In-memory <code>Map&lt;string, CacheEntry&gt;</code>. All keys centralised in <code>CACHE_KEYS</code>.
+                <code>cacheInvalidate(...keys)</code> deletes specific keys. <code>cacheClear()</code> empties all
+                (called on logout). No TTL — cache lives until explicit invalidation or tab close.
+            </p>
+
+            <h4>src/lib/dataService.ts</h4>
+            <p><code>primeCache()</code> fetches courses + upcoming evals in parallel, then fetches each course detail
+                in parallel. All stored in sessionCache. Public functions check cache first. Invalidation functions wrap
+                <code>cacheInvalidate</code> / <code>cacheClear</code> with domain logic.
+            </p>
+
+            <h4>src/context/AuthContext.tsx</h4>
+            <p>Mount effect: fires refresh + me. Sets token in memory, user in state. Registers <code>auth:logout</code>
+                DOM event listener. <code>login()</code> and <code>logout()</code> are stable callbacks via
+                <code>useCallback</code>.
+            </p>
+
+            <h4>src/context/AchievementContext.tsx</h4>
+            <p>Manages unlock queue. Key design decisions: <code>seenRef</code> persists via <code>useRef</code> seeded
+                from localStorage; new achievements marked seen before enqueuing (prevents duplicates on rapid poll
+                cycles); cinematic-tier achievements sorted to end of queue (toasts display first);
+                <code>fetchingRef</code> prevents concurrent fetches; audio warmed on first user click (browser autoplay
+                policy).
+            </p>
+
+            <h4>src/pages/FocusTimerPage.tsx</h4>
+            <p>Most complex page. Two timer modes coexist: (1) <strong>Server-owned timer</strong> — fetched on mount,
+                synced via <code>POST /focus/timer/sync</code> every 10 s, displayed via local countdown. (2)
+                <strong>Break phase</strong> — purely client-side 5-min countdown after session ends. Integrity
+                tracking: <code>invisibleRef</code> accumulates tab-hidden seconds; <code>interactionCountRef</code>
+                counts throttled mouse/key events. Both sent to <code>/focus/timer/end</code>.
+            </p>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s6">
+            <h2><span class="sec-num">06</span> Function-Level Deep Dives</h2>
+
+            <h3>computeIntegrityScore({ plannedMinutes, actualMinutes, invisibleSeconds, interactionCount })</h3>
+            <p>Scores a session 0–1 to modulate XP. Prevents gaming by running a session in a background tab or going
+                AFK.</p>
+
+            <div class="formula">
+                <span class="var">durationScore</span> = ratio &gt; 1.5 → 0.3 <span class="eq">(significantly
+                    over-ran)</span>
+                ratio &lt; 0.5 → 0.4 <span class="eq">(gave up early)</span>
+                0.85–1.15 → 1.0 <span class="eq">(on-plan)</span>
+                else → 0.75
+
+                <span class="var">visibilityScore</span> = invis &gt; 50% → 0.1 <span class="eq">(mostly hidden)</span>
+                invis &gt; 30% → 0.5
+                invis &gt; 10% → 0.8
+                else → 1.0
+
+                <span class="var">interactionScore</span>= 0 events → 0.3 <span class="eq">(probably AFK)</span>
+                &lt; 10% expected → 0.5
+                &lt; 30% expected → 0.75
+                else → 1.0
+
+                <span class="var">finalScore</span> = duration × 0.4 + visibility × 0.35 + interaction × 0.25
+            </div>
+
+            <h3>computeXP({ actualMinutes, integrityScore, plannedMinutes })</h3>
+            <div class="formula">
+                <span class="var">base</span> = min(actualMinutes × 2, 150)
+                <span class="var">planBonus</span> = |actual - planned| &lt; 5 ? 10 : 0
+                <span class="var">mult</span> = integrityScore &lt; 0.4 → 0
+                integrityScore &lt; 0.6 → 0.5
+                else → 1.0
+                <span class="var">xp</span> = min((base + planBonus) × mult, 300)
+            </div>
+
+            <h3>upsertStats(userId, minutes, xp, today, weekStart, isNewSession)</h3>
+            <p>Atomically updates <code>user_stats</code> row. The <code>CASE WHEN stats_date = today</code> branch
+                resets <code>today_minutes</code> to just the new session if the date changed. Level is computed inline
+                in SQL: <code>GREATEST(1, FLOOR(SQRT(total_xp / 100)) + 1)</code> — always consistent with total XP.</p>
+            <div class="warn">Two concurrent session endings for the same user can race here. PostgreSQL
+                <code>ON CONFLICT DO UPDATE</code> is atomic per-row so no corruption, but achievement evaluation reads
+                stats after — the second eval might see stats that include both sessions. Acceptable for current
+                single-user design. Fix: wrap in <code>FOR UPDATE</code> transaction.
+            </div>
+
+            <h3>upsertStreak(userId, today, yesterday)</h3>
+            <pre>No streak row      → insert currentStreak = 1
+lastActiveDate === today     → no-op (already counted)
+lastActiveDate === yesterday → increment, update longest
+else                         → reset to 1 (broken)</pre>
+            <p>Returns <code>{ currentStreak, wasIncremented, wasBroken, previousStreak }</code>. The
+                <code>previousStreak</code> field qualifies phoenix/rebuilt achievements that require breaking a long
+                streak and rebuilding.
+            </p>
+
+            <h3>evaluateAchievements(userId, ctx)</h3>
+            <table>
+                <tr>
+                    <th>Input</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>stats</code></td>
+                    <td><code>user_stats</code> row</td>
+                </tr>
+                <tr>
+                    <td><code>streak</code></td>
+                    <td><code>user_streaks</code> row</td>
+                </tr>
+                <tr>
+                    <td><code>earnedSet</code></td>
+                    <td>Set&lt;achievementId&gt; already earned — prevents re-award</td>
+                </tr>
+                <tr>
+                    <td><code>sessionMeta</code></td>
+                    <td><code>{ actualMinutes, integrityScore, hourOfDay, daysSinceLastSession, hoursBeforeEval, todaySessionCount }</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>triggerEvents</code></td>
+                    <td>Array of event types to narrow candidates via TRIGGER_INDEX</td>
+                </tr>
+            </table>
+            <p><strong>Lazy loading:</strong> <code>getCourses</code>, <code>getArchived</code>,
+                <code>getSessions</code> each load at most once via <code>??=</code>. Avoids N×DB calls when many
+                achievements need the same data. <strong>Idempotency:</strong> <code>insertAchievements</code> uses
+                <code>onConflictDoNothing</code>. Returns only newly inserted rows.
+            </p>
+
+            <h3>startTimer / endTimer</h3>
+            <table>
+                <tr>
+                    <th>Operation</th>
+                    <th>Key behaviour</th>
+                </tr>
+                <tr>
+                    <td>start</td>
+                    <td><code>plannedMinutes</code> clamped [1, 240]. <code>nonce</code> = 16-byte hex random. If timer
+                        exists, return it (idempotent — handles network retries).</td>
+                </tr>
+                <tr>
+                    <td>end</td>
+                    <td>Verify <code>body.nonce === timer.nonce</code> (replay protection). Compute elapsed from DB
+                        timestamps. Delete timer row immediately (prevents duplicate-end race). If elapsed &lt; 1 min or
+                        abort → <code>dropped: true</code>, no XP.</td>
+                </tr>
+            </table>
+
+            <h3>primeCache() — dataService.ts</h3>
+            <p>Called on first cache miss of any key. Fires <code>getCourses()</code> + <code>getUpcomingEvals()</code>
+                in parallel, then <code>getCourse(id)</code> for each course in parallel. Stores all results. The first
+                page pays the full cost; all subsequent pages are instant. No TTL — data stays fresh until a mutation
+                explicitly invalidates it.</p>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s7">
+            <h2><span class="sec-num">07</span> End-to-End Request Flows</h2>
+
+            <h3>App Boot / Auth Hydration</h3>
+            <pre class="flow"><span class="node">User opens tab</span>
+  │
+  ▼
+<span class="node">AuthContext mounts</span>
+  │
+  ├─ POST /auth/refresh (httpOnly cookie)
+  │   ├─ <span class="ok">200</span>  →  setToken(data.token)
+  │   │         GET /auth/me  →  setUser(userData)
+  │   │         loading = false
+  │   │
+  │   └─ <span class="err">4xx</span>  →  clearToken(), setUser(null), loading = false
+  │
+  ▼
+<span class="node">ProtectedRoute renders</span>
+  ├─ loading  →  spinner
+  ├─ !user    →  &lt;Navigate to="/login"&gt;
+  └─ user     →  render children</pre>
+
+            <h3>Google Login</h3>
+            <pre
+                class="flow"><span class="node">User clicks "Sign in with Google"</span>
+  │
+  ▼
+Google Identity Services SDK fires callback with idToken
+  │
+  ▼
+POST /auth/google
+  ├─ verifyGoogleToken(idToken)          <span class="label">validates with Google's public keys; checks iss + email_verified</span>
+  ├─ findOrCreateUser(payload)           <span class="label">upsert user row</span>
+  ├─ generateTokens(user)
+  │   ├─ JWT (15m) access token
+  │   └─ JWT (7d) refresh token  →  stored in DB + set as httpOnly cookie
+  └─ return { token: accessToken, user: {...} }
+  │
+  ▼
+<span class="node">AuthContext.login(token, user)</span>  →  token in memory, user in state  →  navigate /dashboard</pre>
+
+            <h3>Refresh Token Rotation</h3>
+            <pre class="flow"><span class="node">API call returns 401 TOKEN_EXPIRED</span>
+  │
+  ▼
+api.js: POST /auth/refresh (cookie, _retry not set)
+  │
+  ├─ Server: verify cookie JWT signature
+  │           match cookie value vs DB user.refreshToken
+  │           <span class="err">MISMATCH</span>  →  wipe DB + clear cookie + 401  <span class="label">(replay detected)</span>
+  │
+  ├─ <span class="ok">200</span>  →  setToken(new access token)
+  │         retry original request with _retry=true
+  │
+  └─ <span class="err">Failure</span>  →  clearToken() + dispatch 'auth:logout'
+               AuthContext.logout()  →  user=null  →  redirect /login</pre>
+
+            <h3>Focus Session (Full Timer Flow)</h3>
+            <pre class="flow"><span class="node">User configures timer</span> (duration, optional task/eval link)
+  │
+  ▼
+POST /focus/timer/start { plannedMinutes, linkedTaskId?, ... }
+  ├─ server generates nonce, stores timer row (startedAt = now())
+  └─ returns { timer: { nonce, remainingSeconds, ... } }
+  │
+  ▼
+<span class="node">Client</span>: starts local countdown from remainingSeconds
+        polls POST /focus/timer/sync every 10s
+        tracks invisibleSeconds (visibilitychange) + interactionCount (mouse/key)
+  │
+  ▼  (timer hits 0  OR  user clicks end)
+  │
+POST /focus/timer/end { nonce, invisibleSeconds, interactionCount }
+  ├─ nonce check  →  mismatch  →  dropped: true
+  ├─ computeElapsedSeconds from DB timestamps
+  ├─ deleteTimer  <span class="label">(race protection: duplicate end ignored)</span>
+  ├─ endSession(userId, { actualMinutes: serverComputed, ... })
+  │   ├─ daily cap check (20 sessions/day)
+  │   ├─ computeIntegrityScore + computeXP
+  │   ├─ upsertStats + upsertStreak
+  │   ├─ insertEvent session.completed + sub-events
+  │   ├─ evaluateAchievements
+  │   └─ awardAchievementXpIdempotent
+  └─ returns { xp, integrityScore, newAchievements, stats, streak, goals }
+  │
+  ▼
+<span class="node">Client</span>: shows SessionComplete modal
+        queues newAchievements for display
+        AchievementContext.refresh() re-polls dashboard</pre>
+
+            <h3>Course Creation + Achievement Hook</h3>
+            <pre class="flow"><span class="node">User submits AddCourseModal</span>
+  │
+  ▼
+POST /courses { name, credits, targetGrade }
+  ├─ insertCourse
+  └─ onCourseCreated(userId)
+      ├─ check blueprint qualification (no sessions + all courses configured)
+      ├─ check optimist qualification (3+ courses with target ≥ 90)
+      └─ evaluateAchievements(userId, { triggerEvent: 'course.created' })
+  │
+  ▼
+returns { course, newAchievements }
+  │
+  ▼
+<span class="node">Client</span>: invalidateAllCourseData()  →  next read re-fetches
+        if newAchievements.length  →  AchievementContext.enqueueUnlocks</pre>
+
+            <h3>Daily Goals Generation</h3>
+            <pre class="flow">GET /focus/dashboard
+  │
+  ├─ getTodayGoals(userId, today)  →  rows exist  →  return them
+  │
+  └─ EMPTY  →  generateDailyGoals(userId, stats, streak, today)
+      ├─ get7DayAvgMinutes
+      ├─ getGoalCompletionRate (last 1 and 3 days)
+      ├─ compute baseline minutes
+      │   isNewUser (&lt;5 sessions)  →  15 min
+      │   bad yesterday            →  60% of 7-day avg
+      │   on completion streak     →  add stretch goal
+      ├─ up to 3 goals:
+      │   1. session_duration (always)
+      │   2. eval_prep (eval ≤3 days away)  or  streak_maintain
+      │   3. stretch (if completion streak)
+      └─ insertGoals  →  return</pre>
+
+            <h3>Achievement Evaluation (Targeted)</h3>
+            <pre class="flow">Event fires (e.g. session.completed)
+  │
+triggerEvents = ['session.completed', 'session.linked_completed', ...]
+  │
+evaluateAchievements(userId, { ..., triggerEvents })
+  │
+  ├─ TRIGGER_INDEX.get('session.completed')  →  Set of achievement IDs
+  │   union with other trigger IDs
+  ├─ filter out already-earned
+  ├─ for each candidate:
+  │   switch(rule.type)
+  │     'stat'         →  stats.totalSessions &gt;= rule.gte
+  │     'streak'       →  streak.currentStreak &gt;= rule.gte
+  │     'event_count'  →  countEventsByType(userId, rule.eventType)
+  │     'session_meta' →  check sessionMeta fields
+  │     ...
+  ├─ batch insertAchievements (onConflictDoNothing)
+  └─ return newly inserted rows</pre>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s8">
+            <h2><span class="sec-num">08</span> Database Design</h2>
+
+            <h3>Schema</h3>
+            <pre>users
+  id (uuid PK), googleId (unique), email (unique)
+  refreshToken            <span class="cm">// null = logged out</span>
+  googleAccessToken / googleTokenExpiry  <span class="cm">// classroom OAuth</span>
+
+courses
+  id (uuid PK)
+  userId → users.id CASCADE DELETE
+  name, credits, targetGrade, isArchived
+
+evaluations
+  id (uuid PK)
+  courseId → courses.id CASCADE DELETE
+  title, type, date, weightage, maxScore
+  score (nullable)        <span class="cm">// null = not yet graded</span>
+
+events
+  id (uuid PK)
+  userId → users.id CASCADE DELETE
+  type (text)             <span class="cm">// "session.completed", "course.created", "achievement.xp.first_light", ...</span>
+  occurredAt, metadata (jsonb)
+  INDEXES: (userId, type), (userId, occurredAt)
+
+user_stats              <span class="cm">// one row per user (PK = userId)</span>
+  totalSessions, totalMinutes, todayMinutes, weekMinutes, totalXp, level
+  statsDate             <span class="cm">// to detect day rollover in upsert</span>
+  weekStart             <span class="cm">// for week rollover</span>
+
+user_streaks            <span class="cm">// one row per user (PK = userId)</span>
+  currentStreak, longestStreak, lastActiveDate, freezeCount
+
+user_achievements
+  (userId, achievementId) UNIQUE INDEX  <span class="cm">// prevents duplicate awards</span>
+  tier, xpAwarded, earnedAt
+
+daily_goals
+  userId, date, type, title, targetValue, status, xpReward
+  INDEX: (userId, date)
+
+timers
+  userId UNIQUE          <span class="cm">// one active timer per user — DB-level enforcement</span>
+  status ('running' | 'paused')
+  startedAt, plannedMinutes
+  pausedAt, pausedElapsedSeconds
+  nonce                  <span class="cm">// anti-replay token</span>
+  linkedTaskId, linkedEvalId, linkedEvalDueDate, quickTitle, quickCategory</pre>
+
+            <h3>Key Design Decisions</h3>
+            <table>
+                <tr>
+                    <th>Decision</th>
+                    <th>Reason</th>
+                </tr>
+                <tr>
+                    <td><code>events</code> as ledger</td>
+                    <td>Rather than maintaining counters that drift, gamification data is derived by counting event
+                        rows. History queryable, achievements re-evaluable, idempotency trivial.</td>
+                </tr>
+                <tr>
+                    <td><code>timers.userId</code> UNIQUE</td>
+                    <td>Enforces one active timer per user at DB level, not just application level. Concurrent start
+                        requests — only one insert succeeds.</td>
+                </tr>
+                <tr>
+                    <td><code>user_achievements</code> unique index on (userId, achievementId)</td>
+                    <td><code>onConflictDoNothing</code> makes the evaluator callable multiple times safely. Business
+                        logic can never double-award.</td>
+                </tr>
+                <tr>
+                    <td>Cascade deletes everywhere</td>
+                    <td>Deleting a user removes all their data atomically. No orphaned rows.</td>
+                </tr>
+                <tr>
+                    <td><code>refreshToken = null</code> = logged out</td>
+                    <td>No blacklist table needed. Refresh endpoint checks DB value against cookie — simple, correct.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Level in SQL</td>
+                    <td><code>GREATEST(1, FLOOR(SQRT(total_xp / 100)) + 1)</code> computed inline in upsert — always
+                        consistent with XP, no separate update needed.</td>
+                </tr>
+            </table>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s9">
+            <h2><span class="sec-num">09</span> Caching Architecture</h2>
+
+            <div class="callout orange">
+                <div class="callout-label">No Redis</div>
+                All caching is client-side and in-memory. Every backend request hits PostgreSQL directly.
+            </div>
+
+            <h3>Client-Side Session Cache (<code>sessionCache.ts</code>)</h3>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Type</td>
+                    <td><code>Map&lt;string, { data, cachedAt }&gt;</code></td>
+                </tr>
+                <tr>
+                    <td>Lifetime</td>
+                    <td>Tab session — cleared on refresh, tab close, or logout</td>
+                </tr>
+                <tr>
+                    <td>Scope</td>
+                    <td>Single tab only (module variable)</td>
+                </tr>
+                <tr>
+                    <td>Keys</td>
+                    <td><code>'courses'</code>, <code>'archivedCourses'</code>, <code>'upcomingEvals'</code>,
+                        <code>'course:&lt;id&gt;'</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>TTL</td>
+                    <td>None — invalidated explicitly after mutations</td>
+                </tr>
+            </table>
+
+            <h3>Invalidation Map</h3>
+            <table>
+                <tr>
+                    <th>Mutation</th>
+                    <th>Invalidation call</th>
+                    <th>Keys cleared</th>
+                </tr>
+                <tr>
+                    <td>Create / delete course</td>
+                    <td><code>invalidateAllCourseData()</code></td>
+                    <td>All keys (<code>cacheClear()</code>)</td>
+                </tr>
+                <tr>
+                    <td>Archive course</td>
+                    <td><code>invalidateAllCourseData()</code></td>
+                    <td>All keys</td>
+                </tr>
+                <tr>
+                    <td>Create / update / delete eval</td>
+                    <td><code>invalidateCourseDetail(courseId)</code></td>
+                    <td><code>course:&lt;id&gt;</code> + <code>upcomingEvals</code></td>
+                </tr>
+                <tr>
+                    <td>Logout</td>
+                    <td><code>invalidateOnLogout()</code></td>
+                    <td>All keys</td>
+                </tr>
+            </table>
+            <p><strong>Why nuclear on course changes:</strong> Course IDs are stored as <code>course:&lt;id&gt;</code>
+                keys. When a course is deleted, the ID is unknown in the delete handler, and the courses list is also
+                stale. Clearing everything is safe — <code>primeCache()</code> re-fetches it all on next access.</p>
+
+            <h3>LocalStorage Persistence</h3>
+            <table>
+                <tr>
+                    <th>Key</th>
+                    <th>Contents</th>
+                    <th>Managed by</th>
+                </tr>
+                <tr>
+                    <td><code>semsync_seen_achievements_v2</code></td>
+                    <td>Set of achievement IDs shown to user</td>
+                    <td>AchievementContext</td>
+                </tr>
+                <tr>
+                    <td><code>semsync_xp_state_v1</code></td>
+                    <td><code>{ totalXp, level, currentStreak }</code> snapshot</td>
+                    <td>AchievementContext</td>
+                </tr>
+                <tr>
+                    <td><code>semsync_notif_settings</code></td>
+                    <td>Notification preferences</td>
+                    <td>NotificationContext</td>
+                </tr>
+                <tr>
+                    <td><code>semsync_notif_fired</code></td>
+                    <td>Which notification events already shown</td>
+                    <td>NotificationContext</td>
+                </tr>
+                <tr>
+                    <td><code>architect_tasks_v1</code></td>
+                    <td>Task center data (all tasks)</td>
+                    <td>TaskCenterPage</td>
+                </tr>
+                <tr>
+                    <td><code>focus_timer_state_v1</code></td>
+                    <td>Display mirror of timer state (cross-page)</td>
+                    <td>GlobalTimerWatcher + FocusTimerPage</td>
+                </tr>
+            </table>
+            <div class="callout">
+                <div class="callout-label">Security</div>
+                The access token is NOT in localStorage. It lives in <code>tokenStore.js</code> module scope only —
+                invisible to devtools storage panels.
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s10">
+            <h2><span class="sec-num">10</span> Security Architecture</h2>
+
+            <h3>Authentication Flow</h3>
+            <p>Google OAuth one-tap/button flow. Client receives Google <code>idToken</code>, forwards to
+                <code>POST /auth/google</code>. Server verifies token signature against Google's public keys (no extra
+                HTTP round-trip), checks <code>iss</code> and <code>email_verified</code>. Client never has direct
+                access to Google's identity infrastructure.
+            </p>
+
+            <h3>JWT Tokens</h3>
+            <table>
+                <tr>
+                    <th>Token</th>
+                    <th>Expiry</th>
+                    <th>Payload</th>
+                    <th>Storage</th>
+                </tr>
+                <tr>
+                    <td>Access</td>
+                    <td>15 min</td>
+                    <td><code>{ userId, email, issuer: "semTracker" }</code></td>
+                    <td>Memory only (tokenStore.js)</td>
+                </tr>
+                <tr>
+                    <td>Refresh</td>
+                    <td>7 days</td>
+                    <td><code>{ userId, issuer: "semTracker" }</code></td>
+                    <td>httpOnly cookie + DB</td>
+                </tr>
+            </table>
+
+            <h3>Refresh Token Rotation + Replay Detection</h3>
+            <p>On every refresh, a new refresh token is issued and stored in DB. Old token becomes invalid. If
+                <code>user.refreshToken !== cookie</code>, the existing DB token is wiped and the request rejected —
+                detects token theft/replay. An attacker who steals and uses a refresh token will trigger this on the
+                victim's next refresh, invalidating the attacker's session.
+            </p>
+
+            <h3>Rate Limiting</h3>
+            <table class="rl-table">
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Window</th>
+                    <th>Max</th>
+                    <th>Why</th>
+                </tr>
+                <tr>
+                    <td><code>POST /auth/google</code></td>
+                    <td>15 min</td>
+                    <td>10</td>
+                    <td>Brute force / scraping</td>
+                </tr>
+                <tr>
+                    <td><code>POST /auth/refresh</code></td>
+                    <td>15 min</td>
+                    <td>30</td>
+                    <td>Token refresh abuse</td>
+                </tr>
+                <tr>
+                    <td><code>POST /auth/logout</code></td>
+                    <td>5 min</td>
+                    <td>10</td>
+                    <td>Session invalidation spam</td>
+                </tr>
+                <tr>
+                    <td>All /courses, /evals, /focus</td>
+                    <td>1 min</td>
+                    <td>100</td>
+                    <td>General API protection</td>
+                </tr>
+                <tr>
+                    <td><code>POST /focus/session/start</code></td>
+                    <td>1 min</td>
+                    <td>10</td>
+                    <td>Session farming</td>
+                </tr>
+                <tr>
+                    <td><code>POST /focus/session/end</code></td>
+                    <td>1 min</td>
+                    <td>25</td>
+                    <td>XP farming — tighter than api limiter</td>
+                </tr>
+                <tr>
+                    <td><code>POST /focus/track/task</code></td>
+                    <td>1 min</td>
+                    <td>30</td>
+                    <td>task.completed event flooding</td>
+                </tr>
+                <tr>
+                    <td><code>POST /focus/track/page</code></td>
+                    <td>1 min</td>
+                    <td>20</td>
+                    <td>Event flooding</td>
+                </tr>
+                <tr>
+                    <td><code>POST /focus/timer/start</code></td>
+                    <td>1 min</td>
+                    <td>5</td>
+                    <td>One timer per user anyway (DB enforces)</td>
+                </tr>
+                <tr>
+                    <td><code>POST /focus/timer/end</code></td>
+                    <td>1 min</td>
+                    <td>10</td>
+                    <td>Nonce check already stops replays; secondary defense</td>
+                </tr>
+            </table>
+
+            <h3>Authorization</h3>
+            <p>Every resource mutation asserts ownership. The pattern in evals:</p>
+            <pre><span class="kw">const</span> existing = <span class="kw">await</span> findEvalById(evalId);
+<span class="kw">if</span> (!existing) <span class="kw">throw</span> ApiError.notFound(...)
+<span class="kw">if</span> (existing.course.userId !== userId) <span class="kw">throw</span> ApiError.forbidden(...)  <span class="cm">// IDOR prevention</span></pre>
+
+            <h3>Timer Anti-Cheat</h3>
+            <ul style="font-size:0.82rem;line-height:2;padding-left:20px;">
+                <li><code>startedAt</code> set by server — client cannot forge start time</li>
+                <li><code>plannedMinutes</code> clamped to [1, 240] server-side</li>
+                <li><code>nonce</code> prevents replay of <code>/timer/end</code></li>
+                <li><code>actualMinutes</code> always computed from DB timestamps, never from client</li>
+                <li><code>interactionCount</code> + <code>invisibleSeconds</code> accepted but clamped to physically
+                    possible bounds</li>
+            </ul>
+
+            <h3>Event Injection Prevention</h3>
+            <pre><span class="kw">const</span> VALID_PAGES        = <span class="kw">new</span> Set([<span class="str">"progress"</span>, <span class="str">"settings"</span>]);
+<span class="kw">const</span> VALID_TASK_ACTIONS = <span class="kw">new</span> Set([<span class="str">"created"</span>, <span class="str">"completed"</span>]);</pre>
+            <p>Client cannot inject arbitrary event types via track endpoints. Anything outside these allowlists
+                silently returns <code>{ newAchievements: [] }</code>.</p>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s11">
+            <h2><span class="sec-num">11</span> Gamification Engine</h2>
+
+            <h3>Session End Pipeline</h3>
+            <pre class="flow"><span class="node">Session ends (timer or legacy)</span>
+  │
+  ├─ computeIntegrityScore (visibility + interaction + duration)
+  ├─ computeXP (base + plan bonus) × multiplier, capped 300
+  ├─ upsertStats (total/today/week minutes, XP, level)
+  ├─ upsertStreak (today vs yesterday IST date comparison)
+  ├─ insertEvent session.completed + sub-events
+  ├─ generateDailyGoals (if first session of day and no goals exist yet)
+  ├─ checkAndCompleteGoals
+  └─ evaluateAchievements → insertAchievements (onConflictDoNothing)
+      └─ awardAchievementXpIdempotent</pre>
+
+            <h3>Level Formula</h3>
+            <div class="formula">
+                level = max(1, floor(sqrt(totalXp / 100)) + 1) <span class="eq">// computed in SQL, not application
+                    code</span>
+                Level 2 → 100 XP
+                Level 3 → 400 XP
+                Level 5 → 1600 XP <span class="eq">// quadratic curve</span>
+            </div>
+
+            <h3>Achievement Tiers</h3>
+            <table>
+                <tr>
+                    <th>Tier</th>
+                    <th>Display</th>
+                    <th>XP range</th>
+                </tr>
+                <tr>
+                    <td>bronze</td>
+                    <td>Toast notification</td>
+                    <td>25–75</td>
+                </tr>
+                <tr>
+                    <td>silver</td>
+                    <td>Toast notification</td>
+                    <td>100–250</td>
+                </tr>
+                <tr>
+                    <td>gold</td>
+                    <td>Toast notification</td>
+                    <td>300–500</td>
+                </tr>
+                <tr>
+                    <td>platinum</td>
+                    <td>Cinematic unlock</td>
+                    <td>500–1000</td>
+                </tr>
+                <tr>
+                    <td>legendary</td>
+                    <td>Cinematic unlock</td>
+                    <td>—</td>
+                </tr>
+                <tr>
+                    <td>hidden</td>
+                    <td>Cinematic unlock (only revealed on earn)</td>
+                    <td>—</td>
+                </tr>
+            </table>
+            <p>Hidden achievements have their <code>id</code>, <code>name</code>, <code>desc</code>, <code>emoji</code>,
+                <code>tier</code> all stripped by <code>buildCatalog()</code> / <code>sanitizeAchievements()</code>
+                until earned. Client sees <code>{ hidden: true, locked: true, earned: false }</code> only.
+            </p>
+
+            <h3>Daily Goals Logic</h3>
+            <p>Generated per-user per-day on first dashboard fetch after midnight (IST). Adapts to recent performance:
+            </p>
+            <ul style="font-size:0.82rem;line-height:2;padding-left:20px;">
+                <li>New user (&lt;5 sessions): 15-min baseline, max 2 goals</li>
+                <li>Had a bad yesterday: reduce baseline to 60% of 7-day average</li>
+                <li>Completion rate 100%: add stretch goal</li>
+                <li>Upcoming eval within 3 days: replace streak goal with eval prep goal</li>
+            </ul>
+
+            <h3>Streak Freeze</h3>
+            <p>Users have <code>freezeCount</code> (default 2). <code>POST /focus/streak/freeze</code> decrements it and
+                inserts a <code>streak.freeze_used</code> event. Freeze does not modify <code>lastActiveDate</code> —
+                it's a UI feature only. Streak calculation is unchanged.</p>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s12">
+            <h2><span class="sec-num">12</span> Timer System</h2>
+
+            <h3>Two Coexisting Timer Modes</h3>
+            <table>
+                <tr>
+                    <th>Mode</th>
+                    <th>State location</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Server-owned timer</td>
+                    <td><code>timers</code> DB table + <code>serverTimer</code> React state</td>
+                    <td>Authoritative for all duration/XP calculations. Survives page refreshes.</td>
+                </tr>
+                <tr>
+                    <td>Legacy client-side timer</td>
+                    <td><code>focus_timer_state_v1</code> in localStorage</td>
+                    <td>Cross-page display mirror. GlobalTimerWatcher reads it to fire browser Notification API.</td>
+                </tr>
+            </table>
+
+            <h3>Timer State Machine</h3>
+            <pre class="flow">[no row in timers table]
+        │
+        ▼  POST /focus/timer/start
+   [status: 'running']
+        │
+        ├─ POST /focus/timer/pause  →  [status: 'paused']
+        │                                    │
+        │  POST /focus/timer/resume ←────────┘
+        │
+        ├─ POST /focus/timer/extend  →  plannedMinutes += addMinutes (capped 240)
+        │
+        ├─ POST /focus/timer/sync   →  returns current state (10s heartbeat)
+        │
+        └─ POST /focus/timer/end or /abort  →  [row deleted]  →  endSession or dropped</pre>
+
+            <h3>Elapsed Time Computation</h3>
+            <pre><span class="fn">computeElapsedSeconds</span>(timer):
+  baseSeconds = floor((now - startedAt) / 1000)
+  paused      = pausedElapsedSeconds
+  <span class="kw">if</span> status === 'paused' && pausedAt:
+    currentPauseSec = floor((now - pausedAt) / 1000)
+    <span class="kw">return</span> max(0, baseSeconds - paused - currentPauseSec)
+  <span class="kw">return</span> max(0, baseSeconds - paused)</pre>
+            <p>Client-supplied elapsed is never used for XP. Server recomputes from <code>startedAt</code> (immutable,
+                set on insert) minus accumulated <code>pausedElapsedSeconds</code>.</p>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s13">
+            <h2><span class="sec-num">13</span> Scalability &amp; Bottlenecks</h2>
+
+            <h3>Current Limits</h3>
+            <div class="warn">
+                <strong>In-memory rate limiting:</strong> <code>express-rate-limit</code> stores counters in process
+                memory. On multiple server instances, rate limits are per-instance, not global. Fix:
+                <code>rate-limit-redis</code> with a shared Redis instance.
+            </div>
+            <div class="warn">
+                <strong>IST hardcoded:</strong> <code>dates.js</code> uses <code>Asia/Kolkata</code> everywhere.
+                International users have streaks/goals in IST, not their local time.
+            </div>
+            <div class="warn">
+                <strong>No DB pool config:</strong> <code>db/index.js</code> uses Drizzle's default pool. Under heavy
+                concurrent load, connections could exhaust. Add <code>max: N</code> to pool config.
+            </div>
+            <div class="warn">
+                <strong>Achievement evaluation is the hot path:</strong> <code>evaluateAchievements</code> fires 10–20
+                queries per session end. Under load, this is the dominant cost of <code>POST /focus/timer/end</code>.
+            </div>
+
+            <h3>What's Already Optimized</h3>
+            <table>
+                <tr>
+                    <th>Optimization</th>
+                    <th>Where</th>
+                    <th>Impact</th>
+                </tr>
+                <tr>
+                    <td><code>TRIGGER_INDEX</code></td>
+                    <td>achievements.js</td>
+                    <td>Narrows evaluation candidates ~60–80%, skipping achievements that can't fire on the current
+                        event type.</td>
+                </tr>
+                <tr>
+                    <td>Lazy loaders in evaluator</td>
+                    <td>achievements.eval.js</td>
+                    <td>Each DB source (courses, sessions, etc.) loaded at most once per evaluation run via
+                        <code>??=</code>.
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>onConflictDoNothing</code></td>
+                    <td>gamification.js</td>
+                    <td>Duplicate achievement evaluation runs are safe and cheap — DB handles deduplication.</td>
+                </tr>
+                <tr>
+                    <td><code>primeCache()</code></td>
+                    <td>dataService.ts</td>
+                    <td>All course data loaded in one burst on first miss. Subsequent pages are instant.</td>
+                </tr>
+            </table>
+
+            <h3>Future Optimizations</h3>
+            <table>
+                <tr>
+                    <th>Optimization</th>
+                    <th>What it fixes</th>
+                </tr>
+                <tr>
+                    <td>Redis for rate limiting</td>
+                    <td>Required before horizontal scaling</td>
+                </tr>
+                <tr>
+                    <td>Achievement eval as background job (BullMQ)</td>
+                    <td>Move out of request path; session end returns immediately, achievements appear seconds later via
+                        polling</td>
+                </tr>
+                <tr>
+                    <td>Composite index on <code>(userId, type, occurredAt DESC)</code></td>
+                    <td>Events table as it grows with many users × many sessions</td>
+                </tr>
+                <tr>
+                    <td>Single <code>getCourses?withEvals=true</code> endpoint</td>
+                    <td>Replace N parallel <code>getCourse</code> calls in <code>primeCache()</code></td>
+                </tr>
+                <tr>
+                    <td><code>React.lazy</code> for heavy pages</td>
+                    <td>FocusTimerPage, ProgressPage — reduce initial bundle</td>
+                </tr>
+            </table>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s14">
+            <h2><span class="sec-num">14</span> Developer Modification Guide</h2>
+
+            <h3>Adding a New Backend Route</h3>
+            <ol style="font-size:0.82rem;line-height:2;padding-left:20px;margin-bottom:16px;">
+                <li>Create <code>src/modules/&lt;domain&gt;/&lt;domain&gt;.routes.js</code>,
+                    <code>.controller.js</code>, <code>.services.js</code>
+                </li>
+                <li>Import and mount in <code>src/index.js</code> with <code>authMiddleware</code> +
+                    <code>apiLimiter</code>
+                </li>
+                <li>Add a dedicated rate limiter in <code>rateLimiter.js</code> if endpoint could be abused</li>
+                <li>Add query functions to <code>db/queries.js</code> or <code>db/gamification.js</code></li>
+            </ol>
+
+            <h3>Adding a New Achievement</h3>
+            <ol style="font-size:0.82rem;line-height:2;padding-left:20px;margin-bottom:16px;">
+                <li>Open <code>src/modules/focus/achievements.js</code></li>
+                <li>Add entry to <code>ACHIEVEMENTS</code> array with <code>id</code>, <code>emoji</code>,
+                    <code>tier</code>, <code>xp</code>, <code>hidden</code>, <code>name</code>, <code>desc</code>,
+                    <code>rule</code>, <code>triggers</code>
+                </li>
+                <li>If new <code>rule.type</code> needed: add a <code>case</code> in <code>achievements.eval.js</code>
+                </li>
+                <li>Add trigger event to <code>triggers</code> array — <code>TRIGGER_INDEX</code> builds automatically
+                </li>
+                <li>If achievement needs a hook (fires on course creation etc.): call <code>evaluateAchievements</code>
+                    in relevant <code>hooks.service.js</code> function</li>
+            </ol>
+
+            <h3>Adding a New Page (Frontend)</h3>
+            <ol style="font-size:0.82rem;line-height:2;padding-left:20px;margin-bottom:16px;">
+                <li>Create <code>src/pages/NewPage.tsx</code></li>
+                <li>Add route in <code>App.tsx</code> (wrap in <code>&lt;ProtectedRoute&gt;</code> if auth-required)
+                </li>
+                <li>Fetch data via <code>dataService.ts</code> (reads) or <code>api.js</code> (mutations)</li>
+                <li>If page-visit achievement wanted: add to <code>VALID_PAGES</code> in
+                    <code>focus.controller.js</code>, then call <code>trackPageVisit('new_page')</code>
+                </li>
+            </ol>
+
+            <h3>Modifying XP/Level Formula</h3>
+            <div class="warn">Changing the level formula does not retroactively recalculate existing user levels. Run a
+                migration:
+                <code>UPDATE user_stats SET level = GREATEST(1, FLOOR(SQRT(total_xp / 100.0))::int + 1);</code>
+            </div>
+            <table>
+                <tr>
+                    <th>What to change</th>
+                    <th>Where</th>
+                </tr>
+                <tr>
+                    <td>XP per session</td>
+                    <td><code>computeXP</code> in <code>src/common/utils/xp.js</code></td>
+                </tr>
+                <tr>
+                    <td>Level from XP</td>
+                    <td>Inline SQL in <code>upsertStats</code> in <code>src/db/gamification.js</code></td>
+                </tr>
+                <tr>
+                    <td>Integrity score weights</td>
+                    <td><code>computeIntegrityScore</code> in <code>xp.js</code></td>
+                </tr>
+            </table>
+
+            <h3>Avoiding Cache Bugs (Frontend)</h3>
+            <table>
+                <tr>
+                    <th>After this mutation…</th>
+                    <th>Call this</th>
+                </tr>
+                <tr>
+                    <td>Create / delete / archive course</td>
+                    <td><code>invalidateAllCourseData()</code></td>
+                </tr>
+                <tr>
+                    <td>Create / update / delete eval</td>
+                    <td><code>invalidateCourseDetail(courseId)</code></td>
+                </tr>
+                <tr>
+                    <td>Any achievement / gamification data</td>
+                    <td>Nothing — not in sessionCache</td>
+                </tr>
+                <tr>
+                    <td>Logout</td>
+                    <td><code>invalidateOnLogout()</code> (called by AuthContext.logout)</td>
+                </tr>
+            </table>
+            <p>Never read <code>cacheGet</code> without checking <code>cacheHas</code> first — returns
+                <code>undefined</code> on miss, easily confused with a stored <code>undefined</code>.
+            </p>
+
+            <h3>Avoiding Achievement Bugs</h3>
+            <ul style="font-size:0.82rem;line-height:2;padding-left:20px;">
+                <li>Never call <code>insertAchievements</code> directly for business logic — always go through
+                    <code>evaluateAchievements</code>. The evaluator handles earned-set filtering and batch insert.
+                </li>
+                <li><code>awardAchievementXpIdempotent</code> checks
+                    <code>countEventsByType(userId, 'achievement.xp.&lt;id&gt;')</code> before awarding. This is the XP
+                    idempotency guard. Don't bypass it.
+                </li>
+                <li>Achievement triggers must be added to the <code>triggers</code> array in the definition, not just as
+                    <code>switch</code> cases. <code>TRIGGER_INDEX</code> is built from <code>triggers</code>.
+                </li>
+            </ul>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s15">
+            <h2><span class="sec-num">15</span> Optimization Guide</h2>
+
+            <h3>Frontend</h3>
+            <table>
+                <tr>
+                    <th>Opportunity</th>
+                    <th>Detail</th>
+                </tr>
+                <tr>
+                    <td>Re-render reduction</td>
+                    <td><code>AchievementContext</code> uses <code>useRef</code> for <code>seenRef</code>,
+                        <code>fetchingRef</code>, <code>prevLevelRef</code>, <code>prevXPRef</code> — no re-render on
+                        change. Only <code>setXPState</code> + <code>setPendingUnlocks</code> trigger renders.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Don't bypass cache</td>
+                    <td>Never call <code>api.getCourses()</code> directly — bypasses <code>dataService.ts</code> and
+                        breaks cache coherence.</td>
+                </tr>
+                <tr>
+                    <td>Memoize course stats</td>
+                    <td><code>computeStats</code> runs client-side on Dashboard + CoursePage on every render. Wrap in
+                        <code>useMemo</code> for large course lists.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Code splitting</td>
+                    <td>No <code>React.lazy</code> configured beyond Vite defaults. FocusTimerPage + ProgressPage are
+                        the heaviest pages; good candidates for lazy loading.</td>
+                </tr>
+            </table>
+
+            <h3>Backend</h3>
+            <table>
+                <tr>
+                    <th>Bottleneck</th>
+                    <th>Current state</th>
+                    <th>Fix</th>
+                </tr>
+                <tr>
+                    <td>Achievement evaluation on every session end</td>
+                    <td>10–20 queries per call, in-request path</td>
+                    <td>Move to background job (BullMQ); poll for results</td>
+                </tr>
+                <tr>
+                    <td>Rate limiter memory</td>
+                    <td>In-process; resets on restart; not shared across instances</td>
+                    <td>Redis-backed rate limiting</td>
+                </tr>
+                <tr>
+                    <td><code>getRecentSessions(userId, 20)</code> on every dashboard</td>
+                    <td>Covered by <code>idx_events_user_type</code> index</td>
+                    <td>Add <code>(userId, type, occurredAt DESC)</code> composite index at scale</td>
+                </tr>
+                <tr>
+                    <td><code>primeCache()</code> fires N parallel course fetches</td>
+                    <td>Each course detail is a separate DB query</td>
+                    <td>Add <code>getCourses?withEvals=true</code> endpoint to batch into one query</td>
+                </tr>
+            </table>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <section id="s16">
+            <h2><span class="sec-num">16</span> Environment &amp; Setup Reference</h2>
+
+            <h3>Backend Environment Variables</h3>
+            <table>
+                <tr>
+                    <th>Variable</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><code>DATABASE_URL</code></td>
+                    <td>PostgreSQL connection string</td>
+                </tr>
+                <tr>
+                    <td><code>JWT_SECRET</code></td>
+                    <td>Access token signing key</td>
+                </tr>
+                <tr>
+                    <td><code>REFRESH_SECRET</code></td>
+                    <td>Refresh token signing key (separate from JWT_SECRET)</td>
+                </tr>
+                <tr>
+                    <td><code>GOOGLE_CLIENT_ID</code></td>
+                    <td>Google OAuth client ID (for verifying idTokens)</td>
+                </tr>
+                <tr>
+                    <td><code>NODE_ENV</code></td>
+                    <td><code>production</code> enables <code>secure</code> flag on refresh token cookie</td>
+                </tr>
+            </table>
+
+            <h3>Frontend Environment Variables</h3>
+            <table>
+                <tr>
+                    <th>Variable</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><code>VITE_BASE_URL</code></td>
+                    <td>Backend base URL (e.g. <code>https://semsyncbackend.vercel.app</code>). Defaults to
+                        <code>''</code> (same-origin).
+                    </td>
+                </tr>
+            </table>
+
+            <h3>Drizzle</h3>
+            <p><code>drizzle.config.js</code> at repo root. Schema at <code>src/db/schema.js</code>. Run migrations with
+                <code>drizzle-kit generate</code> then <code>drizzle-kit migrate</code>.
+            </p>
+
+            <h3>CORS</h3>
+            <p>Hardcoded in <code>src/index.js</code>:</p>
+            <pre>origin: [<span class="str">"http://localhost:5173"</span>, <span class="str">"https://semsync.pages.dev"</span>]</pre>
+            <p>Update both values for new deployments.</p>
+
+            <h3>Deployment</h3>
+            <table>
+                <tr>
+                    <th>Target</th>
+                    <th>Platform</th>
+                    <th>Notes</th>
+                </tr>
+                <tr>
+                    <td>Frontend</td>
+                    <td>Cloudflare Pages (<code>semsync.pages.dev</code>)</td>
+                    <td><code>vercel.json</code> present but Cloudflare config takes precedence</td>
+                </tr>
+                <tr>
+                    <td>Backend</td>
+                    <td>Vercel (<code>semsyncbackend.vercel.app</code>)</td>
+                    <td>ESM — ensure Node version supports <code>"type":"module"</code></td>
+                </tr>
+            </table>
+
+            <div class="callout" style="margin-top:40px;">
+                <div class="callout-label">End of Documentation</div>
+                Architecture derives entirely from actual source code — no invented modules or flows.
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Highlight active nav link on scroll
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('nav a');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    navLinks.forEach(a => a.classList.remove('active'));
+                    const active = document.querySelector(`nav a[href="#${e.target.id}"]`);
+                    if (active) active.classList.add('active');
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+
+        sections.forEach(s => observer.observe(s));
+    </script>
+</body>
+
+</html>

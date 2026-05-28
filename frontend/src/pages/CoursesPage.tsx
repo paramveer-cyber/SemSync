@@ -1,232 +1,482 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import AddCourseModal from '../components/modals/AddCourseModal';
 import { deleteCourse } from '../lib/api';
-import { fetchCourses, fetchArchivedCourses, invalidateAllCourseData } from '../lib/dataService';
+import {
+    fetchCourses,
+    fetchArchivedCourses,
+    invalidateAllCourseData,
+} from '../lib/dataService';
 import { Plus, AlertTriangle, Trash2, Archive } from 'lucide-react';
 
+const deleteStyle = {
+    base: {
+        background: 'rgba(239,68,68,0.10)',
+        color: '#ef4444',
+        border: '1px solid rgba(239,68,68,0.22)',
+    },
+    hover: { background: '#ef4444', color: '#fff', borderColor: '#ef4444' },
+    leave: {
+        background: 'rgba(239,68,68,0.10)',
+        color: '#ef4444',
+        borderColor: 'rgba(239,68,68,0.22)',
+    },
+};
+
 export default function CoursesPage() {
-  const [tab, setTab] = useState<'active' | 'past'>('active');
-  const [courses, setCourses] = useState<any[]>([]);
-  const [archived, setArchived] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showAdd, setShowAdd] = useState(false);
+    const [tab, setTab] = useState<'active' | 'past'>('active');
+    const [courses, setCourses] = useState<any[]>([]);
+    const [archived, setArchived] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [showAdd, setShowAdd] = useState(false);
+    const [deleting, setDeleting] = useState<string | null>(null);
 
-  const loadActive = useCallback(async () => {
-    setLoading(true); setError('');
-    try { const c = await fetchCourses(); setCourses(c); }
-    catch (err: any) { setError(err.message); }
-    finally { setLoading(false); }
-  }, []);
+    const loadActive = useCallback(async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const c = await fetchCourses();
+            setCourses(c);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-  const loadArchived = useCallback(async () => {
-    setLoading(true); setError('');
-    try { const c = await fetchArchivedCourses(); setArchived(c); }
-    catch (err: any) { setError(err.message); }
-    finally { setLoading(false); }
-  }, []);
+    const loadArchived = useCallback(async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const c = await fetchArchivedCourses();
+            setArchived(c);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-  useEffect(() => { loadActive(); }, [loadActive]);
+    useEffect(() => {
+        loadActive();
+    }, [loadActive]);
+    useEffect(() => {
+        if (tab === 'past') loadArchived();
+    }, [tab, loadArchived]);
 
-  useEffect(() => {
-    if (tab === 'past') loadArchived();
-  }, [tab, loadArchived]);
+    const handleDelete = useCallback(
+        async (id: string, name: string) => {
+            if (!confirm(`Delete "${name}"?`)) return;
+            setDeleting(id);
+            try {
+                await deleteCourse(id);
+                invalidateAllCourseData();
+                if (tab === 'active')
+                    setCourses((p) => p.filter((c) => c.id !== id));
+                else setArchived((p) => p.filter((c) => c.id !== id));
+            } catch (err: any) {
+                alert('Failed: ' + err.message);
+            } finally {
+                setDeleting(null);
+            }
+        },
+        [tab],
+    );
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}"?`)) return;
-    try {
-      await deleteCourse(id);
-      invalidateAllCourseData();
-      if (tab === 'active') setCourses(p => p.filter(c => c.id !== id));
-      else setArchived(p => p.filter(c => c.id !== id));
-    }
-    catch (err: any) { alert('Failed: ' + err.message); }
-  };
+    const displayList = useMemo(
+        () => (tab === 'active' ? courses : archived),
+        [tab, courses, archived],
+    );
 
-  const displayList = tab === 'active' ? courses : archived;
+    const nodeCount = tab === 'active' ? courses.length : archived.length;
 
-  return (
-    <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
-      <Sidebar />
-      <main className="grow flex flex-col">
-        <Header title="Academic Tracks" subtitle="Directory_V2.0" />
-        <div className="p-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-            <div>
-              <span className="font-bold text-xs tracking-[0.3em] uppercase block mb-2" style={{ color: 'var(--color-brand)' }}>// DIRECTORY_V2.0</span>
-              <h2 className="text-7xl font-extrabold tracking-tighter uppercase leading-none" style={{ color: 'var(--color-text)' }}>Academic Tracks</h2>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="p-4 flex items-center space-x-4 rounded-lg" style={{ border: '1px solid var(--color-glass-border)' }}>
-                <div className="w-2 h-2 animate-pulse rounded-full" style={{ background: tab === 'active' ? 'var(--color-brand)' : '#a1a1aa' }} />
-                <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: 'var(--color-text-faint)' }}>
-                  {tab === 'active' ? `${courses.length} ACTIVE NODES` : `${archived.length} ARCHIVED NODES`}
-                </span>
-              </div>
-              {tab === 'active' && (
-                <button
-                  onClick={() => setShowAdd(true)}
-                  className="flex items-center gap-2 px-6 py-4 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 rounded-lg"
-                  style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)';
-                    (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-surface)';
-                    (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 18px var(--color-brand-glow)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-active-bg)';
-                    (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)';
-                    (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
-                  }}>
-                  <Plus className="w-4 h-4" />
-                  New Node
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-1 mb-10 p-1 rounded-lg w-fit" style={{ background: 'var(--color-surface-1)', border: '1px solid var(--color-glass-border)' }}>
-            {(['active', 'past'] as const).map(t => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className="px-6 py-2 text-[10px] font-black tracking-[0.2em] uppercase rounded-md cursor-pointer transition-all duration-150"
-                style={{
-                  background: tab === t ? 'var(--color-surface-2)' : 'transparent',
-                  color: tab === t ? 'var(--color-text)' : 'var(--color-text-faint)',
-                  border: tab === t ? '1px solid var(--color-glass-border)' : '1px solid transparent',
-                }}>
-                {t === 'active' ? 'Active Nodes' : 'Past Nodes'}
-              </button>
-            ))}
-          </div>
-
-          {error && (
-            <div className="px-6 py-4 flex items-center space-x-3 mb-8 rounded-lg"
-              style={{ border: '1px solid var(--color-danger)', background: 'rgba(239,68,68,0.05)' }}>
-              <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: 'var(--color-danger)' }} />
-              <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--color-danger)' }}>{error}</span>
-            </div>
-          )}
-
-          {loading ? (
-            <div className="flex items-center space-x-4 py-20">
-              <div className="w-px h-8 animate-pulse" style={{ background: 'var(--color-brand)' }} />
-              <span className="text-[10px] font-bold tracking-[0.3em] uppercase" style={{ color: 'var(--color-text-faint)' }}>Scanning nodes…</span>
-            </div>
-          ) : displayList.length === 0 ? (
-            <div className="border border-dashed p-20 text-center rounded-lg" style={{ borderColor: 'var(--color-glass-border)' }}>
-              <p className="text-[10px] font-bold tracking-[0.3em] uppercase mb-6" style={{ color: 'var(--color-text-faint)' }}>
-                {tab === 'active' ? 'No course nodes initialized' : 'No archived courses'}
-              </p>
-              {tab === 'active' && (
-                <button
-                  onClick={() => setShowAdd(true)}
-                  className="px-10 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 rounded-lg"
-                  style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)';
-                    (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-surface)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-active-bg)';
-                    (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)';
-                  }}>
-                  Initialize First Course
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {displayList.map((course, i) => (
-                <div
-                  key={course.id}
-                  className="p-8 group transition-all rounded-lg"
-                  style={{
-                    border: '1px solid var(--color-glass-border)',
-                    background: 'var(--color-surface-1)',
-                    opacity: tab === 'past' ? 0.8 : 1,
-                  }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-2)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-1)'}>
-
-                  <div className="flex justify-between items-start mb-14">
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-black tracking-[0.4em] uppercase" style={{ color: 'var(--color-text-faint)' }}>
-                        {tab === 'past' ? 'ARCHIVED' : `NODE_${String(i + 1).padStart(2, '0')}`}
-                      </span>
-                      {tab === 'past' && <Archive className="w-3 h-3" style={{ color: '#a1a1aa' }} />}
+    return (
+        <div
+            className='flex min-h-screen'
+            style={{ background: 'var(--color-surface)' }}
+        >
+            <Sidebar />
+            <main className='grow flex flex-col'>
+                <Header title='Academic Tracks' subtitle='Directory_V2.0' />
+                <div className='p-12'>
+                    <div className='flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6'>
+                        <div>
+                            <span
+                                className='font-bold text-xs tracking-[0.3em] uppercase block mb-2'
+                                style={{ color: 'var(--color-brand)' }}
+                            >
+                                // DIRECTORY_V2.0
+                            </span>
+                            <h2
+                                className='text-7xl font-extrabold tracking-tighter uppercase leading-none'
+                                style={{ color: 'var(--color-text)' }}
+                            >
+                                Academic Tracks
+                            </h2>
+                        </div>
+                        <div className='flex items-center space-x-4'>
+                            <div
+                                className='p-4 flex items-center space-x-4 rounded-lg'
+                                style={{
+                                    border: '1px solid var(--color-glass-border)',
+                                }}
+                            >
+                                <div
+                                    className='w-2 h-2 animate-pulse rounded-full'
+                                    style={{
+                                        background:
+                                            tab === 'active'
+                                                ? 'var(--color-brand)'
+                                                : '#a1a1aa',
+                                    }}
+                                />
+                                <span
+                                    className='text-[10px] font-bold tracking-widest uppercase'
+                                    style={{ color: 'var(--color-text-faint)' }}
+                                >
+                                    {nodeCount}{' '}
+                                    {tab === 'active' ? 'ACTIVE' : 'ARCHIVED'}{' '}
+                                    NODES
+                                </span>
+                            </div>
+                            {tab === 'active' && (
+                                <button
+                                    onClick={() => setShowAdd(true)}
+                                    className='flex items-center gap-2 px-6 py-4 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 rounded-lg'
+                                    style={{
+                                        border: '1px solid var(--color-brand)',
+                                        color: 'var(--color-brand)',
+                                        background: 'var(--color-active-bg)',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.background =
+                                            'var(--color-brand)';
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.color = 'var(--color-surface)';
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.boxShadow =
+                                            '0 4px 18px var(--color-brand-glow)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.background =
+                                            'var(--color-active-bg)';
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.color = 'var(--color-brand)';
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.boxShadow = 'none';
+                                    }}
+                                >
+                                    <Plus className='w-4 h-4' />
+                                    New Node
+                                </button>
+                            )}
+                        </div>
                     </div>
-                    {tab === 'past' ? (
-                      <button
-                        onClick={() => handleDelete(course.id, course.name)}
-                        title={`Delete ${course.name}`}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-0 group-hover:opacity-100"
-                        style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
-                        onMouseEnter={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
-                          (e.currentTarget as HTMLButtonElement).style.color = '#fff';
-                          (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
+
+                    <div
+                        className='flex gap-1 mb-10 p-1 rounded-lg w-fit'
+                        style={{
+                            background: 'var(--color-surface-1)',
+                            border: '1px solid var(--color-glass-border)',
                         }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
-                          (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
-                          (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
-                        }}>
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleDelete(course.id, course.name)}
-                        title={`Delete ${course.name}`}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-0 group-hover:opacity-100"
-                        style={{ background: 'rgba(239,68,68,0.10)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.22)' }}
-                        onMouseEnter={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = '#ef4444';
-                          (e.currentTarget as HTMLButtonElement).style.color = '#fff';
-                          (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444';
-                        }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
-                          (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
-                          (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.22)';
-                        }}>
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </button>
+                    >
+                        {(['active', 'past'] as const).map((t) => (
+                            <button
+                                key={t}
+                                onClick={() => setTab(t)}
+                                className='px-6 py-2 text-[10px] font-black tracking-[0.2em] uppercase rounded-md cursor-pointer transition-all duration-150'
+                                style={{
+                                    background:
+                                        tab === t
+                                            ? 'var(--color-surface-2)'
+                                            : 'transparent',
+                                    color:
+                                        tab === t
+                                            ? 'var(--color-text)'
+                                            : 'var(--color-text-faint)',
+                                    border:
+                                        tab === t
+                                            ? '1px solid var(--color-glass-border)'
+                                            : '1px solid transparent',
+                                }}
+                            >
+                                {t === 'active' ? 'Active Nodes' : 'Past Nodes'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {error && (
+                        <div
+                            className='px-6 py-4 flex items-center space-x-3 mb-8 rounded-lg'
+                            style={{
+                                border: '1px solid var(--color-danger)',
+                                background: 'rgba(239,68,68,0.05)',
+                            }}
+                        >
+                            <AlertTriangle
+                                className='w-4 h-4 shrink-0'
+                                style={{ color: 'var(--color-danger)' }}
+                            />
+                            <span
+                                className='text-[11px] font-bold uppercase tracking-widest'
+                                style={{ color: 'var(--color-danger)' }}
+                            >
+                                {error}
+                            </span>
+                        </div>
                     )}
-                  </div>
 
-                  <Link to={`/courses/${course.id}`}>
-                    <h3 className="text-2xl font-bold tracking-tighter mb-1 group-hover:text-[var(--color-brand)] transition-colors uppercase" style={{ color: 'var(--color-text)' }}>
-                      {course.name}
-                    </h3>
-                    <div className="flex items-center space-x-4 mb-10 text-[10px] font-mono" style={{ color: 'var(--color-text-faint)' }}>
-                      {course.credits && <span>{course.credits} CREDITS</span>}
-                      <span>TARGET: {course.targetGrade}%</span>
-                    </div>
-                    <div className="pt-4" style={{ borderTop: '1px solid var(--color-glass-border)' }}>
-                      <span className="text-[10px] font-bold tracking-widest uppercase group-hover:text-[var(--color-text)] transition-colors" style={{ color: 'var(--color-brand)' }}>
-                        {tab === 'past' ? '→ View Archive' : '→ Access Track'}
-                      </span>
-                    </div>
-                  </Link>
+                    {loading ? (
+                        <div className='flex items-center space-x-4 py-20'>
+                            <div
+                                className='w-px h-8 animate-pulse'
+                                style={{ background: 'var(--color-brand)' }}
+                            />
+                            <span
+                                className='text-[10px] font-bold tracking-[0.3em] uppercase'
+                                style={{ color: 'var(--color-text-faint)' }}
+                            >
+                                Scanning nodes…
+                            </span>
+                        </div>
+                    ) : displayList.length === 0 ? (
+                        <div
+                            className='border border-dashed p-20 text-center rounded-lg'
+                            style={{ borderColor: 'var(--color-glass-border)' }}
+                        >
+                            <p
+                                className='text-[10px] font-bold tracking-[0.3em] uppercase mb-6'
+                                style={{ color: 'var(--color-text-faint)' }}
+                            >
+                                {tab === 'active'
+                                    ? 'No course nodes initialized'
+                                    : 'No archived courses'}
+                            </p>
+                            {tab === 'active' && (
+                                <button
+                                    onClick={() => setShowAdd(true)}
+                                    className='px-10 py-3 text-sm font-black tracking-widest uppercase cursor-pointer transition-all duration-150 rounded-lg'
+                                    style={{
+                                        border: '1px solid var(--color-brand)',
+                                        color: 'var(--color-brand)',
+                                        background: 'var(--color-active-bg)',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.background =
+                                            'var(--color-brand)';
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.color = 'var(--color-surface)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.background =
+                                            'var(--color-active-bg)';
+                                        (
+                                            e.currentTarget as HTMLButtonElement
+                                        ).style.color = 'var(--color-brand)';
+                                    }}
+                                >
+                                    Initialize First Course
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                            {displayList.map((course, i) => {
+                                const isBeingDeleted = deleting === course.id;
+                                return (
+                                    <div
+                                        key={course.id}
+                                        className='p-8 group transition-all rounded-lg relative'
+                                        style={{
+                                            border: '1px solid var(--color-glass-border)',
+                                            background:
+                                                'var(--color-surface-1)',
+                                            opacity: isBeingDeleted
+                                                ? 0.5
+                                                : tab === 'past'
+                                                  ? 0.8
+                                                  : 1,
+                                            pointerEvents: isBeingDeleted
+                                                ? 'none'
+                                                : undefined,
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!isBeingDeleted)
+                                                (
+                                                    e.currentTarget as HTMLElement
+                                                ).style.background =
+                                                    'var(--color-surface-2)';
+                                        }}
+                                        onMouseLeave={(e) =>
+                                            ((
+                                                e.currentTarget as HTMLElement
+                                            ).style.background =
+                                                'var(--color-surface-1)')
+                                        }
+                                    >
+                                        {isBeingDeleted && (
+                                            <div
+                                                className='absolute inset-0 flex items-center justify-center rounded-lg z-10'
+                                                style={{
+                                                    background:
+                                                        'var(--color-surface-1)',
+                                                }}
+                                            >
+                                                <div className='flex items-center gap-3'>
+                                                    <div className='w-4 h-4 border border-red-500/30 border-t-red-500 animate-spin rounded-full' />
+                                                    <span className='text-[10px] font-bold tracking-widest uppercase text-red-400'>
+                                                        Deleting…
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className='flex justify-between items-start mb-14'>
+                                            <div className='flex items-center gap-3'>
+                                                <span
+                                                    className='text-[10px] font-black tracking-[0.4em] uppercase'
+                                                    style={{
+                                                        color: 'var(--color-text-faint)',
+                                                    }}
+                                                >
+                                                    {tab === 'past'
+                                                        ? 'ARCHIVED'
+                                                        : `NODE_${String(i + 1).padStart(2, '0')}`}
+                                                </span>
+                                                {tab === 'past' && (
+                                                    <Archive
+                                                        className='w-3 h-3'
+                                                        style={{
+                                                            color: '#a1a1aa',
+                                                        }}
+                                                    />
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    handleDelete(
+                                                        course.id,
+                                                        course.name,
+                                                    )
+                                                }
+                                                title={`Delete ${course.name}`}
+                                                className='flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-0 group-hover:opacity-100'
+                                                style={deleteStyle.base}
+                                                onMouseEnter={(e) =>
+                                                    Object.assign(
+                                                        (
+                                                            e.currentTarget as HTMLButtonElement
+                                                        ).style,
+                                                        deleteStyle.hover,
+                                                    )
+                                                }
+                                                onMouseLeave={(e) =>
+                                                    Object.assign(
+                                                        (
+                                                            e.currentTarget as HTMLButtonElement
+                                                        ).style,
+                                                        deleteStyle.leave,
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 className='w-3 h-3' />
+                                                Delete
+                                            </button>
+                                        </div>
+
+                                        <Link to={`/courses/${course.id}`}>
+                                            <h3
+                                                className='text-2xl font-bold tracking-tighter mb-1 group-hover:text-[var(--color-brand)] transition-colors uppercase'
+                                                style={{
+                                                    color: 'var(--color-text)',
+                                                }}
+                                            >
+                                                {course.name}
+                                            </h3>
+                                            <div
+                                                className='flex items-center space-x-4 mb-10 text-[10px] font-mono'
+                                                style={{
+                                                    color: 'var(--color-text-faint)',
+                                                }}
+                                            >
+                                                {course.credits && (
+                                                    <span>
+                                                        {course.credits} CREDITS
+                                                    </span>
+                                                )}
+                                                <span>
+                                                    TARGET: {course.targetGrade}
+                                                    %
+                                                </span>
+                                            </div>
+                                            <div
+                                                className='pt-4'
+                                                style={{
+                                                    borderTop:
+                                                        '1px solid var(--color-glass-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className='text-[10px] font-bold tracking-widest uppercase group-hover:text-[var(--color-text)] transition-colors'
+                                                    style={{
+                                                        color: 'var(--color-brand)',
+                                                    }}
+                                                >
+                                                    {tab === 'past'
+                                                        ? '→ View Archive'
+                                                        : '→ Access Track'}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
-              ))}
-            </div>
-          )}
+
+                <footer
+                    className='mt-auto px-8 py-8 flex justify-between items-center'
+                    style={{
+                        borderTop: '1px solid var(--color-glass-border)',
+                        background: 'var(--color-surface)',
+                    }}
+                >
+                    <span
+                        className='text-[10px] uppercase tracking-[0.2em]'
+                        style={{ color: 'var(--color-text-faint)' }}
+                    >
+                        © 2026 SEMSYNC
+                    </span>
+                </footer>
+            </main>
+
+            {showAdd && (
+                <AddCourseModal
+                    onClose={() => setShowAdd(false)}
+                    onCreated={(c) => {
+                        invalidateAllCourseData();
+                        setCourses((p) => [...p, c]);
+                        setShowAdd(false);
+                    }}
+                />
+            )}
         </div>
-
-        <footer className="mt-auto px-8 py-8 flex justify-between items-center" style={{ borderTop: '1px solid var(--color-glass-border)', background: 'var(--color-surface)' }}>
-          <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: 'var(--color-text-faint)' }}>© 2026 SEMSYNC</span>
-        </footer>
-      </main>
-
-      {showAdd && <AddCourseModal onClose={() => setShowAdd(false)} onCreated={c => { invalidateAllCourseData(); setCourses(p => [...p, c]); }} />}
-    </div>
-  );
+    );
 }

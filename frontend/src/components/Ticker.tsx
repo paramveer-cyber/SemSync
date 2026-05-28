@@ -1,6 +1,6 @@
 import Marquee from 'react-fast-marquee';
 
-function Ticker({items}) {
+function Ticker({items}: {items: string[]}) {
   return (
     <div
       className="border-y border-(--color-glass-border) py-3"

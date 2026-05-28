@@ -6,92 +6,38 @@ import {
   Timer, Play, Pause, RotateCcw, X, Plus, Zap, Coffee,
   ChevronDown, CheckCircle2, Link2, Target, AlertCircle, BookOpen
 } from 'lucide-react';
+import {
+  timerGet, timerStart, timerPause, timerResume, timerExtend,
+  timerSync, timerEnd, timerAbort, getGamificationDashboard,
+} from '../lib/api';
+import SessionComplete from '../components/SessionComplete';
+import AchievementUnlock from '../components/AchievementUnlock';
+import DailyGoals from '../components/DailyGoals';
+import StreakDisplay from '../components/StreakDisplay';
+import XPBar from '../components/XPBar';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-type TimerPhase = 'focus' | 'break' | 'idle';
-type TimerStatus = 'running' | 'paused' | 'idle';
-
-interface FocusSession {
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface ServerTimer {
   id: string;
-  date: string;
-  durationMinutes: number;
-  taskTitle?: string;
-  taskCategory?: string;
-  completedAt: number;
+  status: 'running' | 'paused';
+  startedAt: string;
+  plannedMinutes: number;
+  elapsedSeconds: number;
+  remainingSeconds: number;
+  nonce: string;
+  linkedTaskId: string | null;
+  linkedEvalId: string | null;
+  quickTitle: string | null;
+  quickCategory: string | null;
 }
-
-interface TimerTask {
-  id: string;
-  title: string;
-  category: string;
-}
-
-interface EvalItem {
-  id: string;
-  title: string;
-  courseName?: string;
-  type?: string;
-  date?: string;
-  weightage?: number;
-}
+type UIPhase = 'idle' | 'focus' | 'break';
+interface TimerTask { id: string; title: string; category: string; }
+interface EvalItem { id: string; title: string; courseName?: string; type?: string; date?: string; weightage?: number; }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const CATEGORIES = [
-  'Reading', 'Note Making', 'Question Solving', 'Coding', 'Debugging',
-  'Writing', 'Planning', 'Reviewing', 'Research', 'General'
-];
-
-const SESSIONS_KEY = 'focus_sessions_v1';
-const TASKS_KEY = 'architect_tasks_v1';
-const TIMER_STATE_KEY = 'focus_timer_state_v1';
-
-interface PersistedTimerState {
-  phase: TimerPhase;
-  status: TimerStatus;
-  secondsLeft: number;
-  totalSeconds: number;
-  selectedMinutes: number;
-  sessionStartMinutes: number;
-  savedAt: number; // wall-clock ms when state was saved
-  quickTitle: string;
-  quickCategory: string;
-  linkedTask: TimerTask | null;
-  linkedEval: EvalItem | null;
-}
-function saveTimerState(state: PersistedTimerState) {
-  try { localStorage.setItem(TIMER_STATE_KEY, JSON.stringify(state)); } catch { /* noop */ }
-}
-function loadTimerState(): PersistedTimerState | null {
-  try {
-    const raw = localStorage.getItem(TIMER_STATE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as PersistedTimerState;
-  } catch { return null; }
-}
-function clearTimerState() {
-  try { localStorage.removeItem(TIMER_STATE_KEY); } catch { /* noop */ }
-}
-
-function loadSessions(): FocusSession[] {
-  try { const r = localStorage.getItem(SESSIONS_KEY); return r ? JSON.parse(r) : []; } catch { return []; }
-}
-function saveSessions(s: FocusSession[]) {
-  try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(s)); } catch { /* noop */ }
-}
-function loadTasks(): TimerTask[] {
-  try {
-    const r = localStorage.getItem(TASKS_KEY);
-    if (!r) return [];
-    const tasks = JSON.parse(r);
-    return tasks.map((t: any) => ({ id: t.id, title: t.title, category: t.course || 'General' }));
-  } catch { return []; }
-}
-
-function toDateStr(ts: number) {
-  const d = new Date(ts);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
+const CATEGORIES = ['Reading','Note Making','Question Solving','Coding','Debugging','Writing','Planning','Reviewing','Research','General'];
+const BREAK_MINUTES = 5;
+const SYNC_INTERVAL_MS = 30_000;
 const QUOTES = [
   { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
   { text: "Focus is the art of knowing what to ignore.", author: "James Clear" },
@@ -100,141 +46,15 @@ const QUOTES = [
   { text: "Energy, not time, is the fundamental currency of high performance.", author: "Jim Loehr" },
   { text: "You don't rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
   { text: "The difference between ordinary and extraordinary is that little extra.", author: "Jimmy Johnson" },
-  { text: "Concentrate all your thoughts upon the work at hand.", author: "Alexander Graham Bell" },
   { text: "It's not about having time. It's about making time.", author: "Unknown" },
   { text: "The successful warrior is the average person with laser-like focus.", author: "Bruce Lee" },
 ];
-
-function ContributionChart({ sessions }: { sessions: FocusSession[] }) {
-  const weeks = 16;
-  const days = 7;
-  const today = Date.now();
-
-  const map: Record<string, number> = {};
-  sessions.forEach(s => {
-    map[s.date] = (map[s.date] || 0) + s.durationMinutes;
-  });
-
-  const cells: { date: string; minutes: number; ts: number }[] = [];
-  for (let i = weeks * days - 1; i >= 0; i--) {
-    const ts = today - i * 86_400_000;
-    const date = toDateStr(ts);
-    cells.push({ date, minutes: map[date] || 0, ts });
-  }
-
-  const maxMinutes = Math.max(...cells.map(c => c.minutes), 1);
-
-  function getColor(minutes: number) {
-    if (minutes === 0) return 'var(--color-glass-border)';
-    const intensity = minutes / maxMinutes;
-    if (intensity < 0.25) return 'var(--color-brand-glow)';
-    if (intensity < 0.5) return 'color-mix(in srgb, var(--color-brand) 60%, transparent)';
-    if (intensity < 0.75) return 'color-mix(in srgb, var(--color-brand) 80%, transparent)';
-    return 'var(--color-brand)';
-  }
-
-  const grid: typeof cells[] = [];
-  for (let w = 0; w < weeks; w++) {
-    grid.push(cells.slice(w * days, w * days + days));
-  }
-
-  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const totalHours = Math.round(sessions.reduce((a, s) => a + s.durationMinutes, 0) / 60 * 10) / 10;
-  const totalSessions = sessions.length;
-  const streak = (() => {
-    let s = 0;
-    for (let i = 0; i < 365; i++) {
-      const d = toDateStr(today - i * 86_400_000);
-      if (map[d]) s++;
-      else if (i > 0) break;
-    }
-    return s;
-  })();
-
-  const [hovered, setHovered] = useState<{ date: string; minutes: number } | null>(null);
-
-  return (
-    <div style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: 8 }}>
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <span className="text-[10px] font-black tracking-[0.25em] uppercase block mb-1" style={{ color: 'var(--color-brand)' }}>// FOCUS_LOG</span>
-          <h3 className="text-base font-extrabold tracking-tighter uppercase" style={{ color: 'var(--color-text)' }}>Contribution Chart</h3>
-        </div>
-        <div className="flex items-center gap-6">
-          {[
-            { label: 'TOTAL HRS', value: `${totalHours}h` },
-            { label: 'SESSIONS', value: totalSessions },
-            { label: 'DAY STREAK', value: streak },
-          ].map(m => (
-            <div key={m.label} className="text-right">
-              <p className="text-lg font-black font-mono" style={{ color: 'var(--color-brand)' }}>{m.value}</p>
-              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-[var(--color-text-muted)]">{m.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex gap-0.5 mb-1 pl-7">
-        {grid.map((_, wi) => (
-          <div key={wi} className="flex-1" />
-        ))}
-      </div>
-
-      <div className="flex gap-1">
-        <div className="flex flex-col gap-0.5 mr-1">
-          {dayLabels.map((d, i) => (
-            <div key={d} className="h-3 flex items-center">
-              {i % 2 === 0 && (
-                <span className="text-[8px] font-mono text-[var(--color-text-muted)]" style={{ width: '24px' }}>{d}</span>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-0.5 flex-1">
-          {grid.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-0.5 flex-1">
-              {week.map((cell, di) => (
-                <div
-                  key={di}
-                  className="relative rounded-[2px]"
-                  style={{ height: '12px', background: getColor(cell.minutes), cursor: cell.minutes > 0 ? 'pointer' : 'default', transition: 'opacity 0.1s' }}
-                  onMouseEnter={() => setHovered({ date: cell.date, minutes: cell.minutes })}
-                  onMouseLeave={() => setHovered(null)}
-                  title={cell.minutes > 0 ? `${cell.date}: ${Math.round(cell.minutes / 60 * 10) / 10}h` : cell.date}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mt-3">
-        {hovered ? (
-          <span className="text-[10px] font-mono" style={{ color: 'var(--color-brand)' }}>
-            {hovered.date} — {hovered.minutes > 0 ? `${Math.round(hovered.minutes / 60 * 10) / 10}h focused` : 'no sessions'}
-          </span>
-        ) : (
-          <span className="text-[10px] font-mono text-[var(--color-text-muted)]">hover to inspect</span>
-        )}
-        <div className="flex items-center gap-1.5">
-          <span className="text-[9px] font-mono text-[var(--color-text-muted)]">less</span>
-          {['var(--color-glass-border)', 'var(--color-brand-glow)', 'color-mix(in srgb, var(--color-brand) 60%, transparent)', 'color-mix(in srgb, var(--color-brand) 80%, transparent)', 'var(--color-brand)'].map((c, i) => (
-            <div key={i} className="rounded-[2px]" style={{ width: 10, height: 10, background: c }} />
-          ))}
-          <span className="text-[9px] font-mono text-[var(--color-text-muted)]">more</span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function QuoteCard() {
   const [idx] = useState(() => Math.floor(Math.random() * QUOTES.length));
   const q = QUOTES[idx];
   return (
-    <div className="flex flex-col justify-between rounded-lg"
-      style={{ border: '1px solid var(--color-brand)', background: 'var(--color-active-bg)', padding: '20px 24px' }}>
+    <div className="flex flex-col justify-between rounded-lg" style={{ border: '1px solid var(--color-brand)', background: 'var(--color-active-bg)', padding: '20px 24px' }}>
       <div className="flex items-start gap-3 mb-3">
         <Zap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-brand)' }} />
         <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-brand)' }}>FOCUS PROTOCOL</span>
@@ -245,292 +65,342 @@ function QuoteCard() {
   );
 }
 
-function TimerArc({ progress, phase }: { progress: number; phase: TimerPhase }) {
-  const r = 130;
-  const cx = 150;
-  const cy = 150;
-  const startAngle = -220;
-  const endAngle = 40;
+function TimerArc({ progress, phase }: { progress: number; phase: UIPhase }) {
+  const r = 130; const cx = 150; const cy = 150;
+  const startAngle = -220; const endAngle = 40;
   const totalAngle = endAngle - startAngle;
-
-  function polarToXY(angle: number) {
-    const rad = (angle * Math.PI) / 180;
-    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-  }
-
-  function describeArc(fromAngle: number, toAngle: number) {
-    const s = polarToXY(fromAngle);
-    const e = polarToXY(toAngle);
-    const largeArc = toAngle - fromAngle > 180 ? 1 : 0;
-    return `M ${s.x} ${s.y} A ${r} ${r} 0 ${largeArc} 1 ${e.x} ${e.y}`;
-  }
-
+  const polarToXY = (angle: number) => { const rad = (angle * Math.PI) / 180; return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }; };
+  const describeArc = (fa: number, ta: number) => { const s = polarToXY(fa); const e = polarToXY(ta); const la = ta - fa > 180 ? 1 : 0; return `M ${s.x} ${s.y} A ${r} ${r} 0 ${la} 1 ${e.x} ${e.y}`; };
   const fillAngle = startAngle + totalAngle * (1 - progress);
   const color = phase === 'break' ? '#3b82f6' : 'var(--color-brand)';
-
   return (
     <svg width="300" height="300" viewBox="0 0 300 300" fill="none">
       <path d={describeArc(startAngle, endAngle)} stroke="var(--color-glass-border)" strokeWidth="12" fill="none" strokeLinecap="round" />
-      {progress > 0 && (
-        <path d={describeArc(startAngle, fillAngle)} stroke={color} strokeWidth="12" fill="none" strokeLinecap="round"
-          style={{ filter: `drop-shadow(0 0 8px ${color}88)`, transition: 'all 1s linear' }} />
-      )}
-      {progress > 0 && (() => {
-        const dot = polarToXY(fillAngle);
-        return <circle cx={dot.x} cy={dot.y} r="6" fill={color} style={{ filter: `drop-shadow(0 0 6px ${color})` }} />;
-      })()}
+      {progress > 0 && <path d={describeArc(startAngle, fillAngle)} stroke={color} strokeWidth="12" fill="none" strokeLinecap="round" style={{ filter: `drop-shadow(0 0 8px ${color}88)`, transition: 'all 1s linear' }} />}
+      {progress > 0 && (() => { const dot = polarToXY(fillAngle); return <circle cx={dot.x} cy={dot.y} r="6" fill={color} style={{ filter: `drop-shadow(0 0 6px ${color})` }} />; })()}
     </svg>
   );
 }
 
 export default function FocusTimerPage() {
-  const FOCUS_CHIPS = [25, 45, 60];
-  const BREAK_MINUTES = 5;
-  const EXTEND_MINUTES = 5;
+  const FOCUS_CHIPS = [10, 25, 45, 60];
 
-  const [sessions, setSessions] = useState<FocusSession[]>(loadSessions);
-  const [tasks] = useState<TimerTask[]>(loadTasks);
+  const [serverTimer, setServerTimer] = useState<ServerTimer | null>(null);
+  const [timerLoaded, setTimerLoaded] = useState(false);
+  const [displaySeconds, setDisplaySeconds] = useState(0);
+  const localTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pendingOpRef = useRef<string | null>(null);
+  const rollbackRef = useRef<{ timer: ServerTimer | null; display: number } | null>(null);
+  const [finalizing, setFinalizing] = useState(false);
+
+  const [breakPhase, setBreakPhase] = useState(false);
+  const [breakSecondsLeft, setBreakSecondsLeft] = useState(BREAK_MINUTES * 60);
+  const breakIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [sessionResult, setSessionResult] = useState<any>(null);
+  const [pendingAchievements, setPendingAchievements] = useState<any[]>([]);
+  const [showSessionComplete, setShowSessionComplete] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [gamifData, setGamifData] = useState<any>(null);
+
+  const interactionCountRef = useRef(0);
+  const invisibleRef = useRef(0);
+  const invisStartRef = useRef<number | null>(null);
+
   const [evals, setEvals] = useState<EvalItem[]>([]);
-  const [linkedTask, setLinkedTask] = useState<TimerTask | null>(() => loadTimerState()?.linkedTask ?? null);
-  const [linkedEval, setLinkedEval] = useState<EvalItem | null>(() => loadTimerState()?.linkedEval ?? null);
-
-  // ── Committed task (shown in badge, used for logging) ──
-  const [quickTitle, setQuickTitle] = useState(() => loadTimerState()?.quickTitle ?? '');
-  const [quickCategory, setQuickCategory] = useState(() => loadTimerState()?.quickCategory ?? CATEGORIES[0]);
-
-  // ── Draft task (bound to input while typing) ──
+  const [tasks] = useState<TimerTask[]>(() => {
+    try { const r = localStorage.getItem('architect_tasks_v1'); if (!r) return []; return JSON.parse(r).map((t: any) => ({ id: t.id, title: t.title, category: t.course || 'General' })); } catch { return []; }
+  });
+  const [linkedTask, setLinkedTask] = useState<TimerTask | null>(null);
+  const [linkedEval, setLinkedEval] = useState<EvalItem | null>(null);
+  const [quickTitle, setQuickTitle] = useState('');
+  const [quickCategory, setQuickCategory] = useState(CATEGORIES[0]);
   const [draftTitle, setDraftTitle] = useState('');
   const [draftCategory, setDraftCategory] = useState(CATEGORIES[0]);
-
   const [showTaskPicker, setShowTaskPicker] = useState(false);
   const [showEvalPicker, setShowEvalPicker] = useState(false);
   const [showQuickTask, setShowQuickTask] = useState(false);
   const [taskError, setTaskError] = useState(false);
+  const [selectedMinutes, setSelectedMinutes] = useState(25);
 
-  const [selectedMinutes, setSelectedMinutes] = useState(() => {
-    const s = loadTimerState(); return s ? s.selectedMinutes : 25;
-  });
-  const [phase, setPhase] = useState<TimerPhase>(() => {
-    const s = loadTimerState(); return s ? s.phase : 'idle';
-  });
-  const [status, setStatus] = useState<TimerStatus>(() => {
-    const s = loadTimerState();
-    if (!s) return 'idle';
-    return s.status; // restore exactly — secondsLeft already accounts for elapsed time
-  });
-  const [secondsLeft, setSecondsLeft] = useState(() => {
-    const s = loadTimerState();
-    if (!s) return 25 * 60;
-    if (s.status === 'running') {
-      // subtract wall-clock elapsed time
-      const elapsed = Math.floor((Date.now() - s.savedAt) / 1000);
-      const adjusted = s.secondsLeft - elapsed;
-      return Math.max(adjusted, 0);
-    }
-    return s.secondsLeft;
-  });
-  const [totalSeconds, setTotalSeconds] = useState(() => {
-    const s = loadTimerState(); return s ? s.totalSeconds : 25 * 60;
-  });
-  const [sessionStartMinutes, setSessionStartMinutes] = useState(() => {
-    const s = loadTimerState(); return s ? s.sessionStartMinutes : 25;
-  });
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const playTone = (freq: number, dur: number, type: OscillatorType = 'sine', gain = 0.25) => {
+    try {
+      if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = audioCtxRef.current; const osc = ctx.createOscillator(); const gn = ctx.createGain();
+      osc.connect(gn); gn.connect(ctx.destination); osc.frequency.setValueAtTime(freq, ctx.currentTime); osc.type = type;
+      gn.gain.setValueAtTime(0, ctx.currentTime); gn.gain.linearRampToValueAtTime(gain, ctx.currentTime + 0.01);
+      gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur); osc.start(); osc.stop(ctx.currentTime + dur);
+    } catch { /* noop */ }
+  };
+  const playSessionComplete = () => { playTone(523, 0.15); setTimeout(() => playTone(659, 0.15), 150); setTimeout(() => playTone(784, 0.3), 300); };
+  const playGoldUnlock = () => { [392, 494, 587, 784].forEach((f, i) => setTimeout(() => playTone(f, 0.2 + i * 0.1), i * 100)); };
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const sessionStartRef = useRef<number>(0);
-
-  // Persist timer state to localStorage whenever it changes so navigation doesn't reset it
+  // Integrity tracking
   useEffect(() => {
-    if (phase === 'idle' && status === 'idle') {
-      clearTimerState();
-    } else {
-      saveTimerState({
-        phase, status, secondsLeft, totalSeconds,
-        selectedMinutes, sessionStartMinutes,
-        savedAt: Date.now(),
-        quickTitle, quickCategory, linkedTask, linkedEval,
-      });
-    }
-  }, [phase, status, secondsLeft, totalSeconds, selectedMinutes, sessionStartMinutes, quickTitle, quickCategory, linkedTask, linkedEval]);
-
-  // Ask for notification permission on mount
+    const onVis = () => { if (document.hidden) { invisStartRef.current = Date.now(); } else if (invisStartRef.current) { invisibleRef.current += (Date.now() - invisStartRef.current) / 1000; invisStartRef.current = null; } };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
+    const th = (() => { let last = 0; return () => { const now = Date.now(); if (now - last > 200) { last = now; interactionCountRef.current++; } }; })();
+    window.addEventListener('mousemove', th); window.addEventListener('keydown', th);
+    return () => { window.removeEventListener('mousemove', th); window.removeEventListener('keydown', th); };
   }, []);
 
-  // Fetch ALL evals (including past deadlines) from course details
+  // Apply server timer → set display
+  function applyServerTimer(t: ServerTimer) {
+    setServerTimer(t);
+    setDisplaySeconds(Math.max(0, t.remainingSeconds));
+  }
+
+  // Load active timer on mount
+  useEffect(() => {
+    timerGet().then((res: any) => { if (res?.timer) applyServerTimer(res.timer); setTimerLoaded(true); }).catch(() => setTimerLoaded(true));
+    getGamificationDashboard().then((d: any) => setGamifData(d)).catch(() => {});
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+  }, []);
+
+  // Fetch evals
   useEffect(() => {
     (async () => {
       try {
-        const courseList = await fetchCourses();
-        const details = await Promise.all(courseList.map((c: any) => fetchCourse(c.id).catch(() => null)));
-        const gathered: EvalItem[] = [];
-        details.forEach((d, i) => {
-          if (!d) return;
-          (d.evaluations ?? []).forEach((ev: any) => {
-            gathered.push({ id: ev.id, title: ev.title, courseName: courseList[i]?.name ?? '', type: ev.type, date: ev.date, weightage: ev.weightage });
-          });
-        });
-        setEvals(gathered);
+        const cl = await fetchCourses();
+        const details = await Promise.all(cl.map((c: any) => fetchCourse(c.id).catch(() => null)));
+        const g: EvalItem[] = [];
+        details.forEach((d, i) => { if (!d) return; (d.evaluations ?? []).forEach((ev: any) => g.push({ id: ev.id, title: ev.title, courseName: cl[i]?.name ?? '', type: ev.type, date: ev.date, weightage: ev.weightage })); });
+        setEvals(g);
       } catch { /* silent */ }
     })();
   }, []);
 
-  const clearTimer = () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  const handleTimerExpiredRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const handleTimerExpired = useCallback(async () => {
+    if (!serverTimer) return;
+    setServerTimer(null); setDisplaySeconds(0); setFinalizing(true);
+    try {
+      const result: any = await timerEnd({ nonce: serverTimer.nonce, invisibleSeconds: Math.round(invisibleRef.current), interactionCount: interactionCountRef.current });
+      interactionCountRef.current = 0; invisibleRef.current = 0;
+      setFinalizing(false);
+      if (result && !result.dropped) {
+        playSessionComplete();
+        setSessionResult({ ...result, actualMinutes: result.actualMinutes });
+        setShowSessionComplete(true);
+        if (result.newAchievements?.length) setPendingAchievements(result.newAchievements);
+        setGamifData((prev: any) => ({ ...prev, stats: result.stats ?? prev?.stats, streak: result.streak ?? prev?.streak }));
+        getGamificationDashboard().then((d: any) => setGamifData((prev: any) => ({ ...prev, goals: d.goals ?? prev?.goals }))).catch(() => {});
+      }
+      if ('Notification' in window && Notification.permission === 'granted') new Notification('Focus Complete!', { body: 'Great work! Take a break 🌱' });
+      setBreakPhase(true);
+    } catch { setFinalizing(false); setBreakPhase(true); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverTimer]);
+  useEffect(() => { handleTimerExpiredRef.current = handleTimerExpired; }, [handleTimerExpired]);
 
-  const commitSession = useCallback((minutes: number) => {
-    if (minutes < 1) return;
-    const newSession: FocusSession = {
-      id: Math.random().toString(36).slice(2),
-      date: toDateStr(Date.now()),
-      durationMinutes: minutes,
-      taskTitle: linkedEval?.title ?? linkedTask?.title ?? (quickTitle || undefined),
-      taskCategory: linkedEval?.courseName ?? linkedTask?.category ?? (quickCategory || undefined),
-      completedAt: Date.now(),
-    };
-    setSessions(prev => {
-      const updated = [newSession, ...prev];
-      saveSessions(updated);
-      return updated;
-    });
-  }, [linkedEval, linkedTask, quickTitle, quickCategory]);
-
+  // Local tick
   useEffect(() => {
-    if (status === 'running') {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft(prev => {
-          if (prev <= 1) {
-            clearTimer();
-            if (phase === 'focus') {
-              commitSession(sessionStartMinutes);
-              setPhase('break');
-              setStatus('running');
-              const breakSecs = BREAK_MINUTES * 60;
-              setTotalSeconds(breakSecs);
-              setSecondsLeft(breakSecs);
+    if (localTickRef.current) clearInterval(localTickRef.current);
+    if (!serverTimer || serverTimer.status !== 'running') return;
+    localTickRef.current = setInterval(() => {
+      setDisplaySeconds(prev => {
+        const next = Math.max(0, prev - 1);
+        if (next === 0) { clearInterval(localTickRef.current!); localTickRef.current = null; handleTimerExpiredRef.current?.(); }
+        return next;
+      });
+    }, 1000);
+    return () => { if (localTickRef.current) clearInterval(localTickRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverTimer?.id, serverTimer?.status]);
 
-              if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Focus Complete!', { body: 'Great work! Take a 5 minute break and Touch grass 🌱' });
-              }
-            } else if (phase === 'break') {
-              setPhase('idle');
-              setStatus('idle');
-              setSecondsLeft(selectedMinutes * 60);
-              setTotalSeconds(selectedMinutes * 60);
-              clearTimerState();
+  // Server sync heartbeat
+  useEffect(() => {
+    if (!serverTimer) return;
+    const id = setInterval(async () => {
+      try {
+        const res: any = await timerSync();
+        if (res?.timer) applyServerTimer(res.timer);
+        else { setServerTimer(null); setDisplaySeconds(0); }
+      } catch { /* keep local tick */ }
+    }, SYNC_INTERVAL_MS);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverTimer?.id]);
 
-              if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Break Over!', { body: 'Ready to focus again?' });
-              }
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return clearTimer;
-  }, [status, phase, selectedMinutes, totalSeconds, sessionStartMinutes, commitSession]);
+  // Break countdown
+  useEffect(() => {
+    if (!breakPhase) { if (breakIntervalRef.current) clearInterval(breakIntervalRef.current); return; }
+    setBreakSecondsLeft(BREAK_MINUTES * 60);
+    breakIntervalRef.current = setInterval(() => {
+      setBreakSecondsLeft(prev => {
+        if (prev <= 1) { clearInterval(breakIntervalRef.current!); setBreakPhase(false); if ('Notification' in window && Notification.permission === 'granted') new Notification('Break Over!', { body: 'Ready to focus again?' }); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (breakIntervalRef.current) clearInterval(breakIntervalRef.current); };
+  }, [breakPhase]);
 
-  const start = () => {
-    if (!linkedEval && !linkedTask && !quickTitle.trim()) {
-      setTaskError(true);
-      setTimeout(() => setTaskError(false), 3000);
-      return;
-    }
+  // ── Actions ────────────────────────────────────────────────────────────────
+  const acquireOp = (op: string) => {
+    if (pendingOpRef.current) return false;
+    pendingOpRef.current = op;
+    return true;
+  };
+  const releaseOp = () => { pendingOpRef.current = null; };
 
-    if (status === 'idle' && phase === 'idle') {
-      const secs = selectedMinutes * 60;
-      setTotalSeconds(secs);
-      setSecondsLeft(secs);
-      setSessionStartMinutes(selectedMinutes);
-      setPhase('focus');
-      setStatus('running');
-      sessionStartRef.current = Date.now();
-    } else if (status === 'paused') {
-      setStatus('running');
-    }
+  const saveRollback = (timer: ServerTimer | null, display: number) => {
+    rollbackRef.current = { timer, display };
+  };
+  const rollback = () => {
+    if (!rollbackRef.current) return;
+    const { timer, display } = rollbackRef.current;
+    setServerTimer(timer);
+    setDisplaySeconds(display);
+    rollbackRef.current = null;
   };
 
-  const pause = () => { if (status === 'running') setStatus('paused'); };
-
-  const dismiss = () => {
-    clearTimer();
-    if (phase === 'focus' && status !== 'idle') {
-      const elapsed = Math.round((totalSeconds - secondsLeft) / 60);
-      if (elapsed >= 1) commitSession(elapsed);
-    }
-    setPhase('idle');
-    setStatus('idle');
-    setSecondsLeft(selectedMinutes * 60);
-    setTotalSeconds(selectedMinutes * 60);
-    clearTimerState();
+  const start = async () => {
+    if (!linkedEval && !linkedTask && !quickTitle.trim()) { setTaskError(true); setTimeout(() => setTaskError(false), 3000); return; }
+    if (!acquireOp('start')) return;
+    const optimisticTimer: ServerTimer = {
+      id: 'optimistic',
+      status: 'running',
+      startedAt: new Date().toISOString(),
+      plannedMinutes: selectedMinutes,
+      elapsedSeconds: 0,
+      remainingSeconds: selectedMinutes * 60,
+      nonce: 'optimistic',
+      linkedTaskId: linkedTask?.id ?? null,
+      linkedEvalId: linkedEval?.id ?? null,
+      quickTitle: quickTitle || null,
+      quickCategory: quickCategory || null,
+    };
+    saveRollback(null, selectedMinutes * 60);
+    applyServerTimer(optimisticTimer);
+    try {
+      const res: any = await timerStart({ plannedMinutes: selectedMinutes, linkedTaskId: linkedTask?.id ?? null, linkedEvalId: linkedEval?.id ?? null, linkedEvalDueDate: linkedEval?.date ?? null, quickTitle: quickTitle || null, quickCategory: quickCategory || null });
+      if (res?.timer) applyServerTimer(res.timer);
+      rollbackRef.current = null;
+    } catch { rollback(); } finally { releaseOp(); }
   };
 
-  const reset = () => {
-    clearTimer();
-    setPhase('idle');
-    setStatus('idle');
-    setSecondsLeft(selectedMinutes * 60);
-    setTotalSeconds(selectedMinutes * 60);
-    clearTimerState();
+  const pause = async () => {
+    if (!serverTimer || serverTimer.status !== 'running') return;
+    if (!acquireOp('pause')) return;
+    saveRollback(serverTimer, displaySeconds);
+    const optimistic = { ...serverTimer, status: 'paused' as const, remainingSeconds: displaySeconds };
+    setServerTimer(optimistic);
+    if (localTickRef.current) clearInterval(localTickRef.current);
+    try {
+      const res: any = await timerPause();
+      if (res?.timer) applyServerTimer(res.timer);
+      rollbackRef.current = null;
+    } catch { rollback(); } finally { releaseOp(); }
   };
 
-  const extend = () => {
-    if (phase === 'focus') {
-      const add = EXTEND_MINUTES * 60;
-      setSecondsLeft(p => p + add);
-      setTotalSeconds(p => p + add);
-      setSessionStartMinutes(p => p + EXTEND_MINUTES);
-    }
+  const resume = async () => {
+    if (!serverTimer || serverTimer.status !== 'paused') return;
+    if (!acquireOp('resume')) return;
+    saveRollback(serverTimer, displaySeconds);
+    const optimistic = { ...serverTimer, status: 'running' as const };
+    setServerTimer(optimistic);
+    try {
+      const res: any = await timerResume();
+      if (res?.timer) applyServerTimer(res.timer);
+      rollbackRef.current = null;
+    } catch { rollback(); } finally { releaseOp(); }
   };
 
-  const selectChip = (min: number) => {
-    if (status === 'running' || phase !== 'idle') return;
-    setSelectedMinutes(min);
-    setSecondsLeft(min * 60);
-    setTotalSeconds(min * 60);
-    setStatus('idle');
+  const extend = async () => {
+    if (!serverTimer || serverTimer.status !== 'running') return;
+    if (!acquireOp('extend')) return;
+    saveRollback(serverTimer, displaySeconds);
+    const optimistic = { ...serverTimer, plannedMinutes: serverTimer.plannedMinutes + 5, remainingSeconds: displaySeconds + 300 };
+    setServerTimer(optimistic);
+    setDisplaySeconds(prev => prev + 300);
+    try {
+      const res: any = await timerExtend(5);
+      if (res?.timer) applyServerTimer(res.timer);
+      rollbackRef.current = null;
+    } catch { rollback(); } finally { releaseOp(); }
   };
 
-  // Commit draft → quickTitle/quickCategory
-  const commitQuickTask = () => {
-    if (draftTitle.trim()) {
-      setQuickTitle(draftTitle.trim());
-      setQuickCategory(draftCategory);
-      setShowQuickTask(false);
-      setTaskError(false);
-    }
+  const dismiss = async () => {
+    if (!serverTimer) return;
+    if (!acquireOp('dismiss')) return;
+    saveRollback(serverTimer, displaySeconds);
+    if (localTickRef.current) { clearInterval(localTickRef.current); localTickRef.current = null; }
+    const snap = { nonce: serverTimer.nonce, invisibleSeconds: Math.round(invisibleRef.current), interactionCount: interactionCountRef.current };
+    setServerTimer(null);
+    setDisplaySeconds(0);
+    try {
+      const result: any = await timerEnd(snap);
+      interactionCountRef.current = 0; invisibleRef.current = 0;
+      rollbackRef.current = null;
+      if (result && !result.dropped) { playSessionComplete(); setSessionResult({ ...result, actualMinutes: result.actualMinutes }); setShowSessionComplete(true); if (result.newAchievements?.length) setPendingAchievements(result.newAchievements); setGamifData((prev: any) => ({ ...prev, stats: result.stats ?? prev?.stats, streak: result.streak ?? prev?.streak })); }
+    } catch { rollback(); } finally { releaseOp(); }
   };
 
-  // Clear committed quick task and reset drafts
-  const clearQuickTask = () => {
-    setQuickTitle('');
-    setQuickCategory(CATEGORIES[0]);
-    setDraftTitle('');
-    setDraftCategory(CATEGORIES[0]);
+  const reset = async () => {
+    if (!acquireOp('reset')) return;
+    if (localTickRef.current) { clearInterval(localTickRef.current); localTickRef.current = null; }
+    const snapTimer = serverTimer;
+    setServerTimer(null);
+    setDisplaySeconds(selectedMinutes * 60);
+    try {
+      if (snapTimer) await timerAbort({ nonce: snapTimer.nonce });
+    } catch { } finally { releaseOp(); }
   };
 
-  const mins = Math.floor(secondsLeft / 60);
-  const secs = secondsLeft % 60;
-  const progress = totalSeconds > 0 ? secondsLeft / totalSeconds : 1;
+  const commitQuickTask = () => { if (draftTitle.trim()) { setQuickTitle(draftTitle.trim()); setQuickCategory(draftCategory); setShowQuickTask(false); setTaskError(false); } };
+  const clearQuickTask = () => { setQuickTitle(''); setQuickCategory(CATEGORIES[0]); setDraftTitle(''); setDraftCategory(CATEGORIES[0]); };
+  const selectChip = (min: number) => { if (serverTimer) return; setSelectedMinutes(min); setDisplaySeconds(min * 60); };
 
+  // ── Derived display ────────────────────────────────────────────────────────
+  const isRunning = !!serverTimer && serverTimer.status === 'running';
+  const isPaused  = !!serverTimer && serverTimer.status === 'paused';
+  const isActive  = !!serverTimer;
+  const liveRemaining = isPaused ? (serverTimer?.remainingSeconds ?? 0) : displaySeconds;
+  const totalSecs = (serverTimer?.plannedMinutes ?? selectedMinutes) * 60;
+  const progress  = totalSecs > 0 ? liveRemaining / totalSecs : 1;
+  const mins = Math.floor(liveRemaining / 60);
+  const secs = liveRemaining % 60;
+  const phase: UIPhase = breakPhase ? 'break' : isActive ? 'focus' : 'idle';
   const phaseColor = phase === 'break' ? '#3b82f6' : 'var(--color-brand)';
   const phaseLabel = phase === 'idle' ? 'STANDBY' : phase === 'break' ? 'BREAK' : 'DEEP_FOCUS';
+  const taskLabel = serverTimer?.linkedEvalId
+    ? (evals.find(e => e.id === serverTimer.linkedEvalId)?.title ?? serverTimer.linkedEvalId)
+    : serverTimer?.linkedTaskId
+    ? (tasks.find(t => t.id === serverTimer.linkedTaskId)?.title ?? serverTimer.linkedTaskId)
+    : serverTimer?.quickTitle ?? null;
 
-  const taskLabel = linkedEval ? linkedEval.title : linkedTask ? linkedTask.title : quickTitle || null;
+  if (!timerLoaded) {
+    return (
+      <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
+        <Sidebar />
+        <main className="grow flex items-center justify-center">
+          <p className="text-[10px] font-mono tracking-widest uppercase text-[var(--color-text-muted)]">syncing timer...</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
       <Sidebar />
       <main className="grow flex flex-col overflow-hidden">
-        <Header title="Focus Timer" subtitle="Focus_Protocol_V1" />
+        <Header title="Focus Timer" subtitle="Focus_Protocol_V2" />
+
+        {showSessionComplete && sessionResult && (
+          <SessionComplete result={sessionResult} hasAchievements={pendingAchievements.length > 0}
+            onContinue={() => { setShowSessionComplete(false); if (pendingAchievements.length > 0) { pendingAchievements.forEach(a => { if (a.tier === 'gold' || a.tier === 'platinum') playGoldUnlock(); }); setShowAchievements(true); } }} />
+        )}
+        {showAchievements && pendingAchievements.length > 0 && (
+          <AchievementUnlock achievements={pendingAchievements} onDone={() => { setShowAchievements(false); setPendingAchievements([]); }} />
+        )}
 
         <div className="grow overflow-y-auto p-8">
           <div className="mb-8">
-            <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-2" style={{ color: 'var(--color-brand)' }}>// FOCUS_PROTOCOL_V1</span>
+            <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-2" style={{ color: 'var(--color-brand)' }}>// FOCUS_PROTOCOL_V2</span>
             <h2 className="text-7xl font-extrabold tracking-tighter uppercase leading-none text-[var(--color-text)]">Focus Timer</h2>
           </div>
 
@@ -539,49 +409,35 @@ export default function FocusTimerPage() {
               <QuoteCard />
 
               <div className="relative" style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '32px', borderRadius: 8 }}>
-
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3 mt-2">
                     <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: phaseColor }} />
                     <span className="text-[10px] font-black tracking-[0.3em] uppercase" style={{ color: phaseColor }}>{phaseLabel}</span>
                   </div>
-                  {phase === 'break' && (
-                    <span className="text-[10px] font-mono px-3 py-1 text-blue-400 border border-blue-500/40 bg-blue-500/10 rounded-lg">
-                      <Coffee className="w-3 h-3 inline mr-1" />TOUCH GRASS 🌱
-                    </span>
-                  )}
-                  {phase === 'focus' && taskLabel && (
-                    <span className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1 truncate max-w-xs text-green-400 border border-green-500/40 bg-green-500/10 rounded-lg">
-                      <Link2 className="w-3 h-3 shrink-0" />{taskLabel}
-                    </span>
-                  )}
+                  {phase === 'break' && <span className="text-[10px] font-mono px-3 py-1 text-blue-400 border border-blue-500/40 bg-blue-500/10 rounded-lg"><Coffee className="w-3 h-3 inline mr-1" />TOUCH GRASS 🌱</span>}
+                  {phase === 'focus' && taskLabel && <span className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1 truncate max-w-xs text-green-400 border border-green-500/40 bg-green-500/10 rounded-lg"><Link2 className="w-3 h-3 shrink-0" />{taskLabel}</span>}
                 </div>
 
                 <div className="flex items-center justify-center mb-8">
                   <div className="relative w-[300px] h-[300px]">
-                    <TimerArc progress={progress} phase={phase} />
+                    <TimerArc progress={breakPhase ? breakSecondsLeft / (BREAK_MINUTES * 60) : progress} phase={phase} />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-[10px] font-mono tracking-[0.2em] uppercase mb-1 text-[var(--color-text-muted)]">CYCLE TIME</span>
                       <span className="text-7xl font-black font-mono tracking-tighter text-[var(--color-text)]" style={{ textShadow: `0 0 30px ${phaseColor}44` }}>
-                        {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+                        {breakPhase ? `${String(Math.floor(breakSecondsLeft/60)).padStart(2,'0')}:${String(breakSecondsLeft%60).padStart(2,'0')}` : `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`}
                       </span>
-                      {phase === 'focus' && (
-                        <span className="text-[10px] font-mono tracking-widest mt-2 text-[var(--color-text-muted)]">
-                          {Math.round((1 - progress) * 100)}% COMPLETE
-                        </span>
-                      )}
+                      {phase === 'focus' && <span className="text-[10px] font-mono tracking-widest mt-2 text-[var(--color-text-muted)]">{Math.round((1 - progress) * 100)}% COMPLETE</span>}
+                      {isPaused && <span className="text-[10px] font-mono tracking-widest mt-1 text-amber-500">PAUSED</span>}
                     </div>
                   </div>
                 </div>
 
-                {phase === 'idle' && (
+                {!isActive && !breakPhase && (
                   <div className="flex items-center justify-center gap-3 mb-8">
                     {FOCUS_CHIPS.map(m => (
                       <button key={m} onClick={() => selectChip(m)}
                         className="px-5 py-2 rounded-lg text-sm font-black tracking-widest uppercase transition-all duration-150 cursor-pointer"
-                        style={selectedMinutes === m
-                          ? { border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'rgba(34,197,94,0.15)' }
-                          : { border: '1px solid var(--color-glass-border)', color: 'var(--color-text)', background: 'transparent' }}>
+                        style={selectedMinutes === m ? { border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'rgba(34,197,94,0.15)' } : { border: '1px solid var(--color-glass-border)', color: 'var(--color-text)', background: 'transparent' }}>
                         {m}m
                       </button>
                     ))}
@@ -589,252 +445,214 @@ export default function FocusTimerPage() {
                 )}
 
                 <div className="flex items-center justify-center gap-3">
-                  {status !== 'running' && phase !== 'break' ? (
+                  {!isActive && !breakPhase && (
                     <button onClick={start}
                       className="flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150"
                       style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-brand)'; (e.currentTarget as HTMLButtonElement).style.color = '#000'; }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,197,94,0.12)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-brand)'; }}>
-                      <Play className="w-4 h-4" />
-                      {status === 'paused' ? 'RESUME' : 'INITIATE'}
+                      <Play className="w-4 h-4" />INITIATE
                     </button>
-                  ) : phase === 'break' ? (
+                  )}
+                  {isPaused && (
+                    <button onClick={resume}
+                      className="flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer"
+                      style={{ border: '1px solid var(--color-brand)', color: 'var(--color-brand)', background: 'var(--color-active-bg)' }}>
+                      <Play className="w-4 h-4" />RESUME
+                    </button>
+                  )}
+                  {breakPhase && (
                     <button disabled className="flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm opacity-50 cursor-not-allowed text-blue-400 border border-blue-500/40 bg-blue-500/10">
                       <Coffee className="w-4 h-4" />MANDATORY 5M DELAY
                     </button>
-                  ) : (
+                  )}
+                  {isRunning && (
                     <button onClick={pause}
-                      className="flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-[var(--color-text)] border border-[var(--color-glass-border)] bg-[var(--color-surface-3)]/50 hover:bg-[var(--color-surface-3)]/50">
+                      className="flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-[var(--color-text)] border border-[var(--color-glass-border)] bg-[var(--color-surface-3)]/50">
                       <Pause className="w-4 h-4" />SUSPEND
                     </button>
                   )}
-
-                  {phase === 'focus' && (
+                  {isRunning && (
                     <button onClick={extend}
-                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-amber-500 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20">
+                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-amber-500 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20">
                       <Plus className="w-4 h-4" />5M
                     </button>
                   )}
-
-                  {phase === 'focus' ? (
+                  {isActive && (
                     <button onClick={dismiss}
-                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-red-500 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20">
+                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-red-500 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20">
                       <X className="w-4 h-4" />ABORT
                     </button>
-                  ) : phase === 'idle' ? (
+                  )}
+                  {!isActive && !breakPhase && displaySeconds > 0 && (
                     <button onClick={reset}
-                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150 text-[var(--color-text-muted)] border border-[var(--color-glass-border)] hover:bg-[var(--color-surface-3)]/50">
+                      className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-[var(--color-text-muted)] border border-[var(--color-glass-border)] hover:bg-[var(--color-surface-3)]/50">
                       <RotateCcw className="w-4 h-4" />RESET
                     </button>
-                  ) : null}
+                  )}
                 </div>
               </div>
-
-              <ContributionChart sessions={sessions} />
             </div>
 
+            {/* Right column */}
             <div className="flex flex-col gap-5">
-              <div style={{
-                border: taskError ? '1px solid #ef4444' : '1px solid var(--color-glass-border)',
-                background: 'var(--color-surface-1)',
-                padding: '24px',
-                borderRadius: '5px',
-                transition: 'border-color 0.3s ease'
-              }}>
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4" style={{ color: 'var(--color-brand)' }} />
-                    <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-brand)' }}>LINK TASK</span>
-                  </div>
-                  {taskError && <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />}
-                </div>
+              {gamifData?.streak && <StreakDisplay current={gamifData.streak.currentStreak ?? 0} longest={gamifData.streak.longestStreak ?? 0} freezeCount={gamifData.streak.freezeCount ?? 0} />}
+              {gamifData?.stats && <XPBar totalXp={gamifData.stats.totalXp ?? 0} level={gamifData.stats.level ?? 1} />}
+              {gamifData?.goals && <DailyGoals goals={gamifData.goals} />}
 
-                {/* Committed task badges */}
-                {linkedEval ? (
-                  <div className="mb-4 p-3 border border-[var(--color-brand)]/40 bg-[var(--color-brand-glow)] rounded-lg">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ background: 'var(--color-active-bg)', color: 'var(--color-brand)', border: '1px solid var(--color-brand)' }}>
-                            {linkedEval.type ?? 'eval'}
-                          </span>
+              {/* Task link — only when idle */}
+              {!isActive && !breakPhase && (
+                <div style={{ border: taskError ? '1px solid #ef4444' : '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: '5px', transition: 'border-color 0.3s ease' }}>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4" style={{ color: 'var(--color-brand)' }} />
+                      <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-brand)' }}>LINK TASK</span>
+                    </div>
+                    {taskError && <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />}
+                  </div>
+
+                  {linkedEval ? (
+                    <div className="mb-4 p-3 border border-[var(--color-brand)]/40 bg-[var(--color-brand-glow)] rounded-lg">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5"><span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ background: 'var(--color-active-bg)', color: 'var(--color-brand)', border: '1px solid var(--color-brand)' }}>{linkedEval.type ?? 'eval'}</span></div>
+                          <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{linkedEval.title}</p>
+                          <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{linkedEval.courseName ?? '—'}{linkedEval.weightage != null ? ` · ${linkedEval.weightage}%` : ''}</p>
                         </div>
-                        <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{linkedEval.title}</p>
-                        <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{linkedEval.courseName ?? '—'}{linkedEval.weightage != null ? ` · ${linkedEval.weightage}%` : ''}</p>
+                        <button onClick={() => setLinkedEval(null)} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]"><X className="w-3.5 h-3.5" /></button>
                       </div>
-                      <button onClick={() => setLinkedEval(null)} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
                     </div>
-                  </div>
-                ) : linkedTask ? (
-                  <div className="mb-4 p-3 border border-green-500/40 bg-green-500/10 rounded-lg">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{linkedTask.title}</p>
-                        <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{linkedTask.category}</p>
+                  ) : linkedTask ? (
+                    <div className="mb-4 p-3 border border-green-500/40 bg-green-500/10 rounded-lg">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{linkedTask.title}</p>
+                          <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{linkedTask.category}</p>
+                        </div>
+                        <button onClick={() => setLinkedTask(null)} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]"><X className="w-3.5 h-3.5" /></button>
                       </div>
-                      <button onClick={() => setLinkedTask(null)} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
                     </div>
-                  </div>
-                ) : quickTitle ? (
-                  <div className="mb-4 p-3 border border-blue-500/40 bg-blue-500/10 rounded-lg">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{quickTitle}</p>
-                        <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{quickCategory}</p>
+                  ) : quickTitle ? (
+                    <div className="mb-4 p-3 border border-blue-500/40 bg-blue-500/10 rounded-lg">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-black uppercase text-[var(--color-text)] truncate">{quickTitle}</p>
+                          <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{quickCategory}</p>
+                        </div>
+                        <button onClick={clearQuickTask} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]"><X className="w-3.5 h-3.5" /></button>
                       </div>
-                      <button onClick={clearQuickTask} className="shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
                     </div>
-                  </div>
-                ) : null}
-
-                {/* Pickers — visible when no committed link */}
-                {!linkedEval && !linkedTask && !quickTitle && (
-                  <div className="space-y-2">
-                    {evals.length > 0 && (
-                      <>
-                        <button onClick={() => { setShowEvalPicker(p => !p); setShowTaskPicker(false); setShowQuickTask(false); }}
-                          className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:border-[var(--color-glass-border)]">
-                          <span className="flex items-center gap-2"><BookOpen className="w-3.5 h-3.5" />Link Eval</span>
-                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showEvalPicker ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {showEvalPicker && (
-                          <div className="overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
-                            {evals.map(ev => (
-                              <button key={ev.id} onClick={() => { setLinkedEval(ev); setShowEvalPicker(false); setTaskError(false); }}
-                                className="w-full text-left px-4 py-3 text-xs cursor-pointer transition-all border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-active-bg)] hover:text-[var(--color-text)] last:border-0">
-                                <div className="flex items-center gap-1.5 mb-0.5">
-                                  <span className="text-[8px] font-bold uppercase px-1 py-0.5 rounded" style={{ background: 'var(--color-active-bg)', color: 'var(--color-brand)' }}>{ev.type ?? 'eval'}</span>
-                                  {ev.weightage != null && <span className="text-[8px] font-mono text-[var(--color-text-faint)]">{ev.weightage}%</span>}
-                                </div>
-                                <p className="font-bold uppercase truncate">{ev.title}</p>
-                                <p className="text-[10px] font-mono mt-0.5">{ev.courseName ?? '—'}</p>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {tasks.length > 0 && (
-                      <button onClick={() => { setShowTaskPicker(p => !p); setShowEvalPicker(false); setShowQuickTask(false); }}
-                        className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:border-[var(--color-glass-border)]">
-                        <span className="flex items-center gap-2"><Link2 className="w-3.5 h-3.5" />Link Task</span>
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showTaskPicker ? 'rotate-180' : ''}`} />
-                      </button>
-                    )}
-
-                    {showTaskPicker && (
-                      <div className="overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
-                        {tasks.map(t => (
-                          <button key={t.id} onClick={() => { setLinkedTask(t); setShowTaskPicker(false); setTaskError(false); }}
-                            className="w-full text-left px-4 py-3 text-xs cursor-pointer transition-all border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-green-500/10 hover:text-[var(--color-text)] last:border-0">
-                            <p className="font-bold uppercase truncate">{t.title}</p>
-                            <p className="text-[10px] font-mono mt-0.5">{t.category}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {evals.length > 0 && (
+                        <>
+                          <button onClick={() => { setShowEvalPicker(p => !p); setShowTaskPicker(false); setShowQuickTask(false); }}
+                            className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer border border-[var(--color-glass-border)] text-[var(--color-text-muted)]">
+                            <span className="flex items-center gap-2"><BookOpen className="w-3.5 h-3.5" />Link Eval</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showEvalPicker ? 'rotate-180' : ''}`} />
                           </button>
-                        ))}
-                      </div>
-                    )}
-
-                    <button onClick={() => { setShowQuickTask(p => !p); setShowTaskPicker(false); setShowEvalPicker(false); }}
-                      className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:border-[var(--color-glass-border)]">
-                      <span className="flex items-center gap-2"><Plus className="w-3.5 h-3.5" />Quick Task</span>
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showQuickTask ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {showQuickTask && (
-                      <div className="p-3 space-y-2 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
-                        <input
-                          className="w-full px-3 py-2 text-xs placeholder:text-[var(--color-text-faint)] focus:outline-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg"
-                          placeholder="Task title..."
-                          value={draftTitle}
-                          onChange={e => setDraftTitle(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') commitQuickTask();
-                          }}
-                        />
-                        <select
-                          className="w-full px-3 py-2 text-xs focus:outline-none appearance-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg"
-                          value={draftCategory}
-                          onChange={e => setDraftCategory(e.target.value)}
-                        >
-                          {CATEGORIES.map(c => (
-                            <option key={c} value={c} style={{ background: "var(--color-surface-1)" }}>{c}</option>
-                          ))}
-                        </select>
-                        <button type='button' onClick={commitQuickTask}
-                          className="w-full py-2 text-xs font-black tracking-widest uppercase cursor-pointer transition-all border border-green-500 text-green-500 bg-green-500/10 hover:bg-green-500 hover: rounded-lg">
-                          SET TASK
+                          {showEvalPicker && (
+                            <div className="overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
+                              {evals.map(ev => (
+                                <button key={ev.id} onClick={() => { setLinkedEval(ev); setShowEvalPicker(false); setTaskError(false); }}
+                                  className="w-full text-left px-4 py-3 text-xs cursor-pointer border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-active-bg)] hover:text-[var(--color-text)] last:border-0">
+                                  <div className="flex items-center gap-1.5 mb-0.5"><span className="text-[8px] font-bold uppercase px-1 py-0.5 rounded" style={{ background: 'var(--color-active-bg)', color: 'var(--color-brand)' }}>{ev.type ?? 'eval'}</span>{ev.weightage != null && <span className="text-[8px] font-mono text-[var(--color-text-faint)]">{ev.weightage}%</span>}</div>
+                                  <p className="font-bold uppercase truncate">{ev.title}</p>
+                                  <p className="text-[10px] font-mono mt-0.5">{ev.courseName ?? '—'}</p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {tasks.length > 0 && (
+                        <button onClick={() => { setShowTaskPicker(p => !p); setShowEvalPicker(false); setShowQuickTask(false); }}
+                          className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer border border-[var(--color-glass-border)] text-[var(--color-text-muted)]">
+                          <span className="flex items-center gap-2"><Link2 className="w-3.5 h-3.5" />Link Task</span>
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showTaskPicker ? 'rotate-180' : ''}`} />
                         </button>
-                      </div>
-                    )}
+                      )}
+                      {showTaskPicker && (
+                        <div className="overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
+                          {tasks.map(t => (
+                            <button key={t.id} onClick={() => { setLinkedTask(t); setShowTaskPicker(false); setTaskError(false); }}
+                              className="w-full text-left px-4 py-3 text-xs cursor-pointer border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-green-500/10 hover:text-[var(--color-text)] last:border-0">
+                              <p className="font-bold uppercase truncate">{t.title}</p>
+                              <p className="text-[10px] font-mono mt-0.5">{t.category}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <button onClick={() => { setShowQuickTask(p => !p); setShowTaskPicker(false); setShowEvalPicker(false); }}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer border border-[var(--color-glass-border)] text-[var(--color-text-muted)]">
+                        <span className="flex items-center gap-2"><Plus className="w-3.5 h-3.5" />Quick Task</span>
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showQuickTask ? 'rotate-180' : ''}`} />
+                      </button>
+                      {showQuickTask && (
+                        <div className="p-3 space-y-2 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg">
+                          <input className="w-full px-3 py-2 text-xs placeholder:text-[var(--color-text-faint)] focus:outline-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg"
+                            placeholder="Task title..." value={draftTitle} onChange={e => setDraftTitle(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') commitQuickTask(); }} />
+                          <select className="w-full px-3 py-2 text-xs focus:outline-none appearance-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg"
+                            value={draftCategory} onChange={e => setDraftCategory(e.target.value)}>
+                            {CATEGORIES.map(c => <option key={c} value={c} style={{ background: 'var(--color-surface-1)' }}>{c}</option>)}
+                          </select>
+                          <button type="button" onClick={commitQuickTask}
+                            className="w-full py-2 text-xs font-black tracking-widest uppercase cursor-pointer border border-green-500 text-green-500 bg-green-500/10 hover:bg-green-500 rounded-lg">
+                            SET TASK
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {taskError && <p className="text-xs font-bold text-red-500 mt-3 animate-pulse">⚠ Task selection is mandatory to initiate focus.</p>}
+                  {(linkedEval || linkedTask || quickTitle) && <p className="text-[10px] font-mono mt-3 text-[var(--color-text-muted)]">Session will be logged under this {linkedEval ? 'eval' : 'task'}</p>}
+                </div>
+              )}
+
+              {/* Active session info */}
+              {(isActive || finalizing) && (
+                <div style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: 8 }}>
+                  <span className="text-[11px] font-black tracking-[0.15em] uppercase block mb-4 text-[var(--color-text-muted)]">// SESSION INFO [Synced Every ~30s]</span>
+                  {finalizing ? (
+                    <div className="flex items-center gap-2 text-[11px] font-mono text-amber-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                      Finalizing...
+                    </div>
+                  ) : (
+                  <div className="space-y-2 text-[11px] font-mono text-[var(--color-text-muted)]">
+                    <div className="flex justify-between"><span>Planned</span><span className="text-[var(--color-text)]">{serverTimer?.plannedMinutes}m</span></div>
+                    <div className="flex justify-between"><span>Elapsed</span><span className="text-[var(--color-text)]">{Math.floor((serverTimer?.elapsedSeconds ?? 0)/60)}m {(serverTimer?.elapsedSeconds ?? 0)%60}s</span></div>
+                    <div className="flex justify-between"><span>Status</span><span className={isPaused ? 'text-amber-500' : 'text-green-500'}>{isPaused ? 'PAUSED' : 'RUNNING'}</span></div>
                   </div>
-                )}
+                  )}
+                </div>
+              )}
 
-                {taskError && (
-                  <p className="text-xs font-bold text-red-500 mt-3 animate-pulse">
-                    ⚠ Task selection is mandatory to initiate focus.
-                  </p>
-                )}
-
-                {(linkedEval || linkedTask || quickTitle) && (
-                  <p className="text-[10px] font-mono mt-3 text-[var(--color-text-muted)]">Session will be logged under this {linkedEval ? 'eval' : 'task'}</p>
-                )}
-              </div>
-
+              {/* Recent sessions from backend */}
               <div style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: 8 }}>
                 <span className="text-[10px] font-black tracking-[0.25em] uppercase block mb-4 text-[var(--color-text-muted)]">// RECENT SESSIONS</span>
-                {sessions.length === 0 ? (
+                {!gamifData?.recentSessions?.length ? (
                   <div className="flex flex-col items-center justify-center py-8 border border-dashed border-[var(--color-glass-border)] rounded-lg">
                     <Timer className="w-8 h-8 mb-2 text-[var(--color-text-faint)]" />
                     <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--color-text-faint)]">No sessions yet</p>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    {sessions.slice(0, 20).map(s => (
+                    {(gamifData.recentSessions as any[]).slice(0, 20).map((s: any) => (
                       <div key={s.id} className="flex items-center justify-between px-3 py-2.5 border border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 rounded-lg">
                         <div className="min-w-0">
-                          <p className="text-xs font-bold uppercase text-[var(--color-text)] truncate">
-                            {s.taskTitle || 'Free Focus'}
-                          </p>
-                          <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">
-                            {s.date} · {s.taskCategory || '—'}
-                          </p>
+                          <p className="text-xs font-bold uppercase text-[var(--color-text)] truncate">{s.metadata?.quick_title || 'Focus Session'}</p>
+                          <p className="text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]">{s.metadata?.local_date ?? ''}</p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0 ml-3">
                           <CheckCircle2 className="w-3 h-3 text-green-500" />
-                          <span className="text-xs font-black font-mono text-green-500">{s.durationMinutes}m</span>
+                          <span className="text-xs font-black font-mono text-green-500">{s.metadata?.duration_minutes ?? '?'}m</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-
-              {(() => {
-                const todayStr = toDateStr(Date.now());
-                const todaySessions = sessions.filter(s => s.date === todayStr);
-                const todayMins = todaySessions.reduce((a, s) => a + s.durationMinutes, 0);
-                if (todaySessions.length === 0) return null;
-                return (
-                  <div className="px-5 py-4 flex items-center justify-between border border-green-500/20 bg-green-500/10 rounded-lg">
-                    <div>
-                      <p className="text-[10px] font-black tracking-[0.25em] uppercase mb-1 text-[var(--color-text-muted)]">TODAY'S OUTPUT</p>
-                      <p className="text-2xl font-black font-mono text-green-500">{Math.round(todayMins / 60 * 10) / 10}h</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-black tracking-[0.25em] uppercase mb-1 text-[var(--color-text-muted)]">CYCLES</p>
-                      <p className="text-2xl font-black font-mono text-green-500">{todaySessions.length}</p>
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
           </div>
         </div>

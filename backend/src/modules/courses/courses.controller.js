@@ -1,14 +1,8 @@
 import {
-    getAllCourses,
-    getArchivedCourses,
-    getCourseById,
-    createCourse,
-    updateCourse,
-    deleteCourse,
-    archiveCourse,
-    computeStats,
+    getAllCourses, getArchivedCourses, getCourseById,
+    createCourse, updateCourse, deleteCourse, archiveCourse, computeStats,
 } from "./courses.services.js";
-import ApiError from "../../common/utils/api-error.js";
+import { onCourseCreated, onCourseArchived, onCourseUpdated } from "../focus/focus.service.js";
 
 export const listCourses = async (req, res, next) => {
     try {
@@ -16,18 +10,22 @@ export const listCourses = async (req, res, next) => {
         return res.status(200).json({ courses: data });
     } catch (err) { next(err); }
 };
+
 export const listArchivedCourses = async (req, res, next) => {
     try {
         const data = await getArchivedCourses(req.user.userId);
         return res.status(200).json({ courses: data });
     } catch (err) { next(err); }
 };
+
 export const doArchiveCourse = async (req, res, next) => {
     try {
         const course = await archiveCourse(req.params.id, req.user.userId);
+        onCourseArchived(req.user.userId).catch(() => {});
         return res.status(200).json({ course });
     } catch (err) { next(err); }
 };
+
 export const getCourse = async (req, res, next) => {
     try {
         const course = await getCourseById(req.params.id, req.user.userId);
@@ -40,23 +38,16 @@ export const getCourse = async (req, res, next) => {
 export const addCourse = async (req, res, next) => {
     try {
         const { name, credits, targetGrade } = req.body;
-        if (!name || typeof name !== "string" || !name.trim())
-            throw ApiError.badRequest("Course name is required");
-        if (targetGrade !== undefined && (typeof targetGrade !== "number" || targetGrade < 0 || targetGrade > 100))
-            throw ApiError.badRequest("targetGrade must be a number between 0 and 100");
-
-        const course = await createCourse(req.user.userId, { name: name.trim(), credits, targetGrade });
+        const course = await createCourse(req.user.userId, { name, credits, targetGrade });
+        onCourseCreated(req.user.userId).catch(() => {});
         return res.status(201).json({ course });
     } catch (err) { next(err); }
 };
 
 export const editCourse = async (req, res, next) => {
     try {
-        const { targetGrade } = req.body;
-        if (targetGrade !== undefined && (typeof targetGrade !== "number" || targetGrade < 0 || targetGrade > 100))
-            throw ApiError.badRequest("targetGrade must be a number between 0 and 100");
-
         const course = await updateCourse(req.params.id, req.user.userId, req.body);
+        onCourseUpdated(req.user.userId).catch(() => {});
         return res.status(200).json({ course });
     } catch (err) { next(err); }
 };

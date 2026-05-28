@@ -343,6 +343,11 @@ export default function SettingsPage() {
   const [deleteTypeValue, setDeleteTypeValue] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Track settings page visits for lore_keeper achievement
+  useEffect(() => {
+    import('../lib/api').then(({ trackPageVisit }) => trackPageVisit('settings').catch(() => {}));
+  }, []);
   const DELETE_PHRASE = 'delete my account';
 
   const handleReplayTutorial = () => {
