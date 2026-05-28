@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { authLogout } from '../lib/api';
+import { authLogout, doRefresh } from '../lib/api';
 import { invalidateOnLogout } from '../lib/dataService';
-import { setToken, clearToken } from '../lib/tokenStore.js';
+import { setToken, clearToken, getToken } from '../lib/tokenStore.js';
 
 const BASE = import.meta.env.VITE_BASE_URL ?? '';
 
@@ -22,13 +22,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    fetch(`${BASE}/auth/refresh`, { method: 'POST', credentials: 'include' })
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(async (data) => {
-        setToken(data.token);
-        window.dispatchEvent(new Event('auth:login'));
+    doRefresh()
+      .then(async () => {
+        const token = getToken();
         const meRes = await fetch(`${BASE}/auth/me`, {
-          headers: { Authorization: `Bearer ${data.token}` },
+          headers: { Authorization: `Bearer ${token}` },
           credentials: 'include',
         });
         if (!meRes.ok) throw new Error();

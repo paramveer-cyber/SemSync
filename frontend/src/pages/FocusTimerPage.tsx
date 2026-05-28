@@ -16,7 +16,6 @@ import DailyGoals from '../components/DailyGoals';
 import StreakDisplay from '../components/StreakDisplay';
 import XPBar from '../components/XPBar';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface ServerTimer {
   id: string;
   status: 'running' | 'paused';
@@ -36,7 +35,7 @@ interface EvalItem { id: string; title: string; courseName?: string; type?: stri
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = ['Reading','Note Making','Question Solving','Coding','Debugging','Writing','Planning','Reviewing','Research','General'];
-const BREAK_MINUTES = 5;
+const BREAK_MINUTES = 3;
 const SYNC_INTERVAL_MS = 30_000;
 const QUOTES = [
   { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
@@ -64,7 +63,7 @@ function QuoteCard() {
     </div>
   );
 }
-
+ 
 function TimerArc({ progress, phase }: { progress: number; phase: UIPhase }) {
   const r = 130; const cx = 150; const cy = 150;
   const startAngle = -220; const endAngle = 40;
@@ -81,10 +80,10 @@ function TimerArc({ progress, phase }: { progress: number; phase: UIPhase }) {
     </svg>
   );
 }
-
+ 
 export default function FocusTimerPage() {
-  const FOCUS_CHIPS = [10, 25, 45, 60];
-
+  const FOCUS_CHIPS = [1, 25, 45, 60];
+ 
   const [serverTimer, setServerTimer] = useState<ServerTimer | null>(null);
   const [timerLoaded, setTimerLoaded] = useState(false);
   const [displaySeconds, setDisplaySeconds] = useState(0);
@@ -92,21 +91,21 @@ export default function FocusTimerPage() {
   const pendingOpRef = useRef<string | null>(null);
   const rollbackRef = useRef<{ timer: ServerTimer | null; display: number } | null>(null);
   const [finalizing, setFinalizing] = useState(false);
-
+ 
   const [breakPhase, setBreakPhase] = useState(false);
   const [breakSecondsLeft, setBreakSecondsLeft] = useState(BREAK_MINUTES * 60);
   const breakIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+ 
   const [sessionResult, setSessionResult] = useState<any>(null);
   const [pendingAchievements, setPendingAchievements] = useState<any[]>([]);
   const [showSessionComplete, setShowSessionComplete] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [gamifData, setGamifData] = useState<any>(null);
-
+ 
   const interactionCountRef = useRef(0);
   const invisibleRef = useRef(0);
   const invisStartRef = useRef<number | null>(null);
-
+ 
   const [evals, setEvals] = useState<EvalItem[]>([]);
   const [tasks] = useState<TimerTask[]>(() => {
     try { const r = localStorage.getItem('architect_tasks_v1'); if (!r) return []; return JSON.parse(r).map((t: any) => ({ id: t.id, title: t.title, category: t.course || 'General' })); } catch { return []; }
@@ -122,7 +121,7 @@ export default function FocusTimerPage() {
   const [showQuickTask, setShowQuickTask] = useState(false);
   const [taskError, setTaskError] = useState(false);
   const [selectedMinutes, setSelectedMinutes] = useState(25);
-
+ 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const playTone = (freq: number, dur: number, type: OscillatorType = 'sine', gain = 0.25) => {
     try {
@@ -135,7 +134,7 @@ export default function FocusTimerPage() {
   };
   const playSessionComplete = () => { playTone(523, 0.15); setTimeout(() => playTone(659, 0.15), 150); setTimeout(() => playTone(784, 0.3), 300); };
   const playGoldUnlock = () => { [392, 494, 587, 784].forEach((f, i) => setTimeout(() => playTone(f, 0.2 + i * 0.1), i * 100)); };
-
+ 
   // Integrity tracking
   useEffect(() => {
     const onVis = () => { if (document.hidden) { invisStartRef.current = Date.now(); } else if (invisStartRef.current) { invisibleRef.current += (Date.now() - invisStartRef.current) / 1000; invisStartRef.current = null; } };
@@ -147,20 +146,20 @@ export default function FocusTimerPage() {
     window.addEventListener('mousemove', th); window.addEventListener('keydown', th);
     return () => { window.removeEventListener('mousemove', th); window.removeEventListener('keydown', th); };
   }, []);
-
+ 
   // Apply server timer → set display
   function applyServerTimer(t: ServerTimer) {
     setServerTimer(t);
     setDisplaySeconds(Math.max(0, t.remainingSeconds));
   }
-
+ 
   // Load active timer on mount
   useEffect(() => {
     timerGet().then((res: any) => { if (res?.timer) applyServerTimer(res.timer); setTimerLoaded(true); }).catch(() => setTimerLoaded(true));
     getGamificationDashboard().then((d: any) => setGamifData(d)).catch(() => {});
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
   }, []);
-
+ 
   // Fetch evals
   useEffect(() => {
     (async () => {
@@ -173,7 +172,8 @@ export default function FocusTimerPage() {
       } catch { /* silent */ }
     })();
   }, []);
-
+ 
+  // handleTimerExpired defined with useCallback, ref-forwarded into tick
   const handleTimerExpiredRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const handleTimerExpired = useCallback(async () => {
     if (!serverTimer) return;
@@ -196,7 +196,7 @@ export default function FocusTimerPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverTimer]);
   useEffect(() => { handleTimerExpiredRef.current = handleTimerExpired; }, [handleTimerExpired]);
-
+ 
   // Local tick
   useEffect(() => {
     if (localTickRef.current) clearInterval(localTickRef.current);
@@ -211,7 +211,7 @@ export default function FocusTimerPage() {
     return () => { if (localTickRef.current) clearInterval(localTickRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverTimer?.id, serverTimer?.status]);
-
+ 
   // Server sync heartbeat
   useEffect(() => {
     if (!serverTimer) return;
@@ -225,7 +225,7 @@ export default function FocusTimerPage() {
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverTimer?.id]);
-
+ 
   // Break countdown
   useEffect(() => {
     if (!breakPhase) { if (breakIntervalRef.current) clearInterval(breakIntervalRef.current); return; }
@@ -238,7 +238,7 @@ export default function FocusTimerPage() {
     }, 1000);
     return () => { if (breakIntervalRef.current) clearInterval(breakIntervalRef.current); };
   }, [breakPhase]);
-
+ 
   // ── Actions ────────────────────────────────────────────────────────────────
   const acquireOp = (op: string) => {
     if (pendingOpRef.current) return false;
@@ -246,7 +246,7 @@ export default function FocusTimerPage() {
     return true;
   };
   const releaseOp = () => { pendingOpRef.current = null; };
-
+ 
   const saveRollback = (timer: ServerTimer | null, display: number) => {
     rollbackRef.current = { timer, display };
   };
@@ -257,7 +257,7 @@ export default function FocusTimerPage() {
     setDisplaySeconds(display);
     rollbackRef.current = null;
   };
-
+ 
   const start = async () => {
     if (!linkedEval && !linkedTask && !quickTitle.trim()) { setTaskError(true); setTimeout(() => setTaskError(false), 3000); return; }
     if (!acquireOp('start')) return;
@@ -282,7 +282,7 @@ export default function FocusTimerPage() {
       rollbackRef.current = null;
     } catch { rollback(); } finally { releaseOp(); }
   };
-
+ 
   const pause = async () => {
     if (!serverTimer || serverTimer.status !== 'running') return;
     if (!acquireOp('pause')) return;
@@ -296,7 +296,7 @@ export default function FocusTimerPage() {
       rollbackRef.current = null;
     } catch { rollback(); } finally { releaseOp(); }
   };
-
+ 
   const resume = async () => {
     if (!serverTimer || serverTimer.status !== 'paused') return;
     if (!acquireOp('resume')) return;
@@ -309,7 +309,7 @@ export default function FocusTimerPage() {
       rollbackRef.current = null;
     } catch { rollback(); } finally { releaseOp(); }
   };
-
+ 
   const extend = async () => {
     if (!serverTimer || serverTimer.status !== 'running') return;
     if (!acquireOp('extend')) return;
@@ -323,7 +323,7 @@ export default function FocusTimerPage() {
       rollbackRef.current = null;
     } catch { rollback(); } finally { releaseOp(); }
   };
-
+ 
   const dismiss = async () => {
     if (!serverTimer) return;
     if (!acquireOp('dismiss')) return;
@@ -339,7 +339,7 @@ export default function FocusTimerPage() {
       if (result && !result.dropped) { playSessionComplete(); setSessionResult({ ...result, actualMinutes: result.actualMinutes }); setShowSessionComplete(true); if (result.newAchievements?.length) setPendingAchievements(result.newAchievements); setGamifData((prev: any) => ({ ...prev, stats: result.stats ?? prev?.stats, streak: result.streak ?? prev?.streak })); }
     } catch { rollback(); } finally { releaseOp(); }
   };
-
+ 
   const reset = async () => {
     if (!acquireOp('reset')) return;
     if (localTickRef.current) { clearInterval(localTickRef.current); localTickRef.current = null; }
@@ -350,11 +350,11 @@ export default function FocusTimerPage() {
       if (snapTimer) await timerAbort({ nonce: snapTimer.nonce });
     } catch { } finally { releaseOp(); }
   };
-
+ 
   const commitQuickTask = () => { if (draftTitle.trim()) { setQuickTitle(draftTitle.trim()); setQuickCategory(draftCategory); setShowQuickTask(false); setTaskError(false); } };
   const clearQuickTask = () => { setQuickTitle(''); setQuickCategory(CATEGORIES[0]); setDraftTitle(''); setDraftCategory(CATEGORIES[0]); };
   const selectChip = (min: number) => { if (serverTimer) return; setSelectedMinutes(min); setDisplaySeconds(min * 60); };
-
+ 
   // ── Derived display ────────────────────────────────────────────────────────
   const isRunning = !!serverTimer && serverTimer.status === 'running';
   const isPaused  = !!serverTimer && serverTimer.status === 'paused';
@@ -372,7 +372,7 @@ export default function FocusTimerPage() {
     : serverTimer?.linkedTaskId
     ? (tasks.find(t => t.id === serverTimer.linkedTaskId)?.title ?? serverTimer.linkedTaskId)
     : serverTimer?.quickTitle ?? null;
-
+ 
   if (!timerLoaded) {
     return (
       <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
@@ -383,13 +383,13 @@ export default function FocusTimerPage() {
       </div>
     );
   }
-
+ 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
       <Sidebar />
       <main className="grow flex flex-col overflow-hidden">
         <Header title="Focus Timer" subtitle="Focus_Protocol_V2" />
-
+ 
         {showSessionComplete && sessionResult && (
           <SessionComplete result={sessionResult} hasAchievements={pendingAchievements.length > 0}
             onContinue={() => { setShowSessionComplete(false); if (pendingAchievements.length > 0) { pendingAchievements.forEach(a => { if (a.tier === 'gold' || a.tier === 'platinum') playGoldUnlock(); }); setShowAchievements(true); } }} />
@@ -397,17 +397,17 @@ export default function FocusTimerPage() {
         {showAchievements && pendingAchievements.length > 0 && (
           <AchievementUnlock achievements={pendingAchievements} onDone={() => { setShowAchievements(false); setPendingAchievements([]); }} />
         )}
-
+ 
         <div className="grow overflow-y-auto p-8">
           <div className="mb-8">
             <span className="text-[10px] font-black tracking-[0.3em] uppercase block mb-2" style={{ color: 'var(--color-brand)' }}>// FOCUS_PROTOCOL_V2</span>
             <h2 className="text-7xl font-extrabold tracking-tighter uppercase leading-none text-[var(--color-text)]">Focus Timer</h2>
           </div>
-
+ 
           <div className="grid grid-cols-[1fr_320px] gap-6">
             <div className="flex flex-col gap-5">
               <QuoteCard />
-
+ 
               <div className="relative" style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '32px', borderRadius: 8 }}>
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3 mt-2">
@@ -417,7 +417,7 @@ export default function FocusTimerPage() {
                   {phase === 'break' && <span className="text-[10px] font-mono px-3 py-1 text-blue-400 border border-blue-500/40 bg-blue-500/10 rounded-lg"><Coffee className="w-3 h-3 inline mr-1" />TOUCH GRASS 🌱</span>}
                   {phase === 'focus' && taskLabel && <span className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1 truncate max-w-xs text-green-400 border border-green-500/40 bg-green-500/10 rounded-lg"><Link2 className="w-3 h-3 shrink-0" />{taskLabel}</span>}
                 </div>
-
+ 
                 <div className="flex items-center justify-center mb-8">
                   <div className="relative w-[300px] h-[300px]">
                     <TimerArc progress={breakPhase ? breakSecondsLeft / (BREAK_MINUTES * 60) : progress} phase={phase} />
@@ -431,7 +431,7 @@ export default function FocusTimerPage() {
                     </div>
                   </div>
                 </div>
-
+ 
                 {!isActive && !breakPhase && (
                   <div className="flex items-center justify-center gap-3 mb-8">
                     {FOCUS_CHIPS.map(m => (
@@ -443,7 +443,7 @@ export default function FocusTimerPage() {
                     ))}
                   </div>
                 )}
-
+ 
                 <div className="flex items-center justify-center gap-3">
                   {!isActive && !breakPhase && (
                     <button onClick={start}
@@ -484,7 +484,7 @@ export default function FocusTimerPage() {
                       <X className="w-4 h-4" />ABORT
                     </button>
                   )}
-                  {!isActive && !breakPhase && displaySeconds > 0 && (
+                  {!isActive && !breakPhase && displaySeconds > 0 && displaySeconds !== selectedMinutes * 60 && (
                     <button onClick={reset}
                       className="flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-[var(--color-text-muted)] border border-[var(--color-glass-border)] hover:bg-[var(--color-surface-3)]/50">
                       <RotateCcw className="w-4 h-4" />RESET
@@ -493,13 +493,13 @@ export default function FocusTimerPage() {
                 </div>
               </div>
             </div>
-
+ 
             {/* Right column */}
             <div className="flex flex-col gap-5">
               {gamifData?.streak && <StreakDisplay current={gamifData.streak.currentStreak ?? 0} longest={gamifData.streak.longestStreak ?? 0} freezeCount={gamifData.streak.freezeCount ?? 0} />}
               {gamifData?.stats && <XPBar totalXp={gamifData.stats.totalXp ?? 0} level={gamifData.stats.level ?? 1} />}
               {gamifData?.goals && <DailyGoals goals={gamifData.goals} />}
-
+ 
               {/* Task link — only when idle */}
               {!isActive && !breakPhase && (
                 <div style={{ border: taskError ? '1px solid #ef4444' : '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: '5px', transition: 'border-color 0.3s ease' }}>
@@ -510,7 +510,7 @@ export default function FocusTimerPage() {
                     </div>
                     {taskError && <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />}
                   </div>
-
+ 
                   {linkedEval ? (
                     <div className="mb-4 p-3 border border-[var(--color-brand)]/40 bg-[var(--color-brand-glow)] rounded-lg">
                       <div className="flex items-start justify-between gap-2">
@@ -608,11 +608,11 @@ export default function FocusTimerPage() {
                   {(linkedEval || linkedTask || quickTitle) && <p className="text-[10px] font-mono mt-3 text-[var(--color-text-muted)]">Session will be logged under this {linkedEval ? 'eval' : 'task'}</p>}
                 </div>
               )}
-
+ 
               {/* Active session info */}
               {(isActive || finalizing) && (
                 <div style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: 8 }}>
-                  <span className="text-[11px] font-black tracking-[0.15em] uppercase block mb-4 text-[var(--color-text-muted)]">// SESSION INFO [Synced Every ~30s]</span>
+                  <span className="text-[10px] font-black tracking-[0.25em] uppercase block mb-4 text-[var(--color-text-muted)]">// SESSION INFO</span>
                   {finalizing ? (
                     <div className="flex items-center gap-2 text-[11px] font-mono text-amber-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
@@ -627,7 +627,7 @@ export default function FocusTimerPage() {
                   )}
                 </div>
               )}
-
+ 
               {/* Recent sessions from backend */}
               <div style={{ border: '1px solid var(--color-glass-border)', background: 'var(--color-surface-1)', padding: '24px', borderRadius: 8 }}>
                 <span className="text-[10px] font-black tracking-[0.25em] uppercase block mb-4 text-[var(--color-text-muted)]">// RECENT SESSIONS</span>
@@ -660,3 +660,7 @@ export default function FocusTimerPage() {
     </div>
   );
 }
+ 
+
+
+

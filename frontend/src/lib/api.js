@@ -9,7 +9,7 @@ const headers = () => ({
 
 let refreshInFlight = null;
 
-const doRefresh = async () => {
+export const doRefresh = async () => {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
     try {
@@ -89,7 +89,6 @@ export const focusSessionEnd = (data) => request('POST', '/focus/session/end', d
 export const getGamificationDashboard = () => request('GET', '/focus/dashboard');
 export const useStreakFreeze = () => request('POST', '/focus/streak/freeze');
 
-// ─── Server-owned timer API ────────────────────────────────────────────────
 export const timerGet = () => request('GET', '/focus/timer');
 export const timerStart = (data) => request('POST', '/focus/timer/start', data);
 export const timerPause = () => request('POST', '/focus/timer/pause');
