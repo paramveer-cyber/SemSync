@@ -82,7 +82,7 @@ function TimerArc({ progress, phase }: { progress: number; phase: UIPhase }) {
 }
  
 export default function FocusTimerPage() {
-  const FOCUS_CHIPS = [1, 25, 45, 60];
+  const FOCUS_CHIPS = [10, 25, 45, 60];
  
   const [serverTimer, setServerTimer] = useState<ServerTimer | null>(null);
   const [timerLoaded, setTimerLoaded] = useState(false);
