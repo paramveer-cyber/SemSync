@@ -34,7 +34,9 @@ export const courses = pgTable("courses", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: updatedAt(),
 
-});
+}, (t) => [
+    index("idx_courses_user_archived").on(t.userId, t.isArchived),
+]);
 
 export const evaluations = pgTable("evaluations", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -49,7 +51,9 @@ export const evaluations = pgTable("evaluations", {
     score: real("score"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: updatedAt(),
-});
+}, (t) => [
+    index("idx_evaluations_course").on(t.courseId),
+]);
 
 export const usersRelations = relations(users, ({ many, one }) => ({
     courses: many(courses),
@@ -73,8 +77,9 @@ export const events = pgTable("events", {
     occurredAt: timestamp("occurred_at").defaultNow().notNull(),
     metadata: jsonb("metadata").notNull().default({}),
 }, (t) => [
-    index("idx_events_user_type").on(t.userId, t.type),
+    index("idx_events_user_type_time").on(t.userId, t.type, t.occurredAt),
     index("idx_events_user_time").on(t.userId, t.occurredAt),
+    index("idx_events_local_date").using("btree", t.userId, t.type, sql`((metadata->>'local_date'))`),
 ]);
 
 export const userStats = pgTable("user_stats", {
@@ -126,40 +131,22 @@ export const eventsRelations = relations(events, ({ one }) => ({
     user: one(users, { fields: [events.userId], references: [users.id] }),
 }));
 
-/**
- * timers — server-owned active timer state.
- *
- * One row per active/paused timer per user. Completed or aborted timers are
- * deleted (their outcome is recorded in the events table as session.completed
- * or session.aborted). This keeps the table tiny and queries O(1).
- *
- * Security properties:
- *  - startedAt is set by the server on POST /timer/start — client cannot forge it.
- *  - pausedAt / pausedElapsedSeconds track cumulative paused time so the server
- *    can compute exact elapsed study time = (now - startedAt) - pausedElapsedSeconds.
- *  - status is the authoritative phase: 'running' | 'paused'.
- *  - plannedMinutes is stored at start so the server controls the duration contract.
- *  - nonce is a per-start random token returned to the client; used as an idempotency
- *    key on /timer/end so duplicate end requests are ignored.
- */
 export const timers = pgTable("timers", {
     id: uuid("id").defaultRandom().primaryKey(),
     userId: uuid("user_id")
         .notNull()
         .references(() => users.id, { onDelete: "cascade" })
-        .unique(), // enforce one active timer per user at DB level
-    status: text("status").notNull().default("running"), // 'running' | 'paused'
+        .unique(),
+    status: text("status").notNull().default("running"),
     startedAt: timestamp("started_at").defaultNow().notNull(),
     plannedMinutes: integer("planned_minutes").notNull(),
-    pausedAt: timestamp("paused_at"),                        // set when paused
-    pausedElapsedSeconds: integer("paused_elapsed_seconds").notNull().default(0), // cumulative pause time
-    // Optional link metadata (stored for session.completed event, not used for auth)
+    pausedAt: timestamp("paused_at"),
+    pausedElapsedSeconds: integer("paused_elapsed_seconds").notNull().default(0),
     linkedTaskId: text("linked_task_id"),
     linkedEvalId: text("linked_eval_id"),
     linkedEvalDueDate: timestamp("linked_eval_due_date"),
     quickTitle: text("quick_title"),
     quickCategory: text("quick_category"),
-    // Anti-replay nonce: returned to client on start, must match on end
     nonce: text("nonce").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: updatedAt(),

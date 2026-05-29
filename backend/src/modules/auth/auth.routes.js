@@ -4,10 +4,10 @@ import {
     getMe,
     logout,
     getClassroomToken,
-    saveClassroomToken,
     clearClassroomToken,
     refresh,
     deleteAccount,
+    connectingClassroom,
 } from "./auth.controller.js";
 import { authMiddleware } from "./auth.middleware.js";
 import {
@@ -16,7 +16,7 @@ import {
     logoutLimiter,
 } from "../../common/middlewares/rateLimiter.js";
 import { validate } from "../../common/middlewares/validate.js";
-import { googleAuthBody, saveClassroomTokenBody } from "./auth.model.js";
+import { googleAuthBody } from "./auth.model.js";
 
 const router = express.Router();
 
@@ -26,8 +26,8 @@ router.post("/logout", logoutLimiter, logout);
 
 router.get("/me", authMiddleware, getMe);
 
+router.post("/classroom-connect", authMiddleware, connectingClassroom)
 router.get("/classroom-token", authMiddleware, getClassroomToken);
-router.post("/classroom-token", authMiddleware, validate(saveClassroomTokenBody), saveClassroomToken);
 router.delete("/classroom-token", authMiddleware, clearClassroomToken);
 
 router.delete("/account", authMiddleware, deleteAccount);

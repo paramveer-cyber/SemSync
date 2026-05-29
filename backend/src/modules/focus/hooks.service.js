@@ -8,13 +8,6 @@ import { awardAchievementXpIdempotent } from "../../common/utils/xp.js";
 import { evaluateAchievements, isAboveTarget, isCourseConfigured } from "./utils/achievements.eval.js";
 import { pushAchievements } from "../../common/sse.js";
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
-
-/**
- * Load user state, run targeted achievement evaluation, award XP.
- * triggerEvent: the event type that caused this evaluation — used to narrow
- * which achievements are checked (via TRIGGER_INDEX in registry).
- */
 async function runEval(userId, triggerEvent, sessionMeta = {}) {
     const { today, weekStart } = getISTContext();
     const [stats, streak, earned] = await Promise.all([
@@ -29,19 +22,15 @@ async function runEval(userId, triggerEvent, sessionMeta = {}) {
     return newAchievements;
 }
 
-/** Same as runEval but also evaluates qualifier-event achievements after inserting a qualifier event. */
 async function emitQualifier(userId, qualifierType, meta = {}) {
     await insertEvent({ userId, type: qualifierType, metadata: meta });
     return runEval(userId, qualifierType);
 }
 
-// ─── Public hooks ─────────────────────────────────────────────────────────────
-
 export async function onCourseCreated(userId) {
     const earned = await getEarnedAchievements(userId);
     const earnedSet = new Set(earned.map(e => e.achievementId));
 
-    // Blueprint: no sessions yet, all courses now configured
     const sessions = await countEventsByType(userId, "session.completed");
     if (sessions === 0 && !earnedSet.has("the_blueprint")) {
         const courses = await findCoursesByUser(userId);
@@ -50,7 +39,6 @@ export async function onCourseCreated(userId) {
         }
     }
 
-    // Optimist: 3+ courses with target >= 90
     if (!earnedSet.has("the_optimist")) {
         const courses = await findCoursesByUser(userId);
         if (courses.filter(c => (c.targetGrade ?? 0) >= 90).length >= 3) {
@@ -83,7 +71,6 @@ export async function onEvalCreated(userId, evalData) {
     const earned = await getEarnedAchievements(userId);
     const earnedSet = new Set(earned.map(e => e.achievementId));
 
-    // Panic mode: eval added < 24h before deadline
     if (evalData?.date && !earnedSet.has("panic_mode")) {
         const hoursUntil = (new Date(evalData.date).getTime() - Date.now()) / 3600000;
         if (hoursUntil >= 0 && hoursUntil < 24) {
@@ -91,7 +78,6 @@ export async function onEvalCreated(userId, evalData) {
         }
     }
 
-    // Blueprint: no sessions yet, all courses now configured
     const sessions = await countEventsByType(userId, "session.completed");
     if (sessions === 0 && !earnedSet.has("the_blueprint")) {
         const courses = await findCoursesByUser(userId);
@@ -104,12 +90,17 @@ export async function onEvalCreated(userId, evalData) {
 }
 
 export async function onEvalScoreUpdated(userId, evalData, prevScore) {
+    const isUpdate = prevScore !== null && prevScore !== undefined;
+
+    const priorUpdateCount = isUpdate && evalData?.id
+        ? await countScoreEventsForEval(userId, evalData.id)
+        : 0;
+
     await insertEvent({ userId, type: "eval.score_entered", metadata: { eval_id: evalData?.id } });
 
     const earned = await getEarnedAchievements(userId);
     const earnedSet = new Set(earned.map(e => e.achievementId));
 
-    // Retroactive: score entered for eval that happened > 1 week ago
     if (evalData?.date && !earnedSet.has("retroactive")) {
         const daysSince = (Date.now() - new Date(evalData.date).getTime()) / 86400000;
         if (daysSince > 7) {
@@ -117,15 +108,10 @@ export async function onEvalScoreUpdated(userId, evalData, prevScore) {
         }
     }
 
-    // Revisionist: same eval score updated 3+ times
-    if (prevScore !== null && prevScore !== undefined && evalData?.id && !earnedSet.has("revisionist")) {
-        const updates = await countScoreEventsForEval(userId, evalData.id);
-        if (updates >= 3) {
-            await emitQualifier(userId, "achievement.revisionist_qualified");
-        }
+    if (isUpdate && !earnedSet.has("revisionist") && priorUpdateCount >= 3) {
+        await emitQualifier(userId, "achievement.revisionist_qualified");
     }
 
-    // Spite mode trigger: score below course target
     if (evalData?.score !== null && evalData?.course?.targetGrade) {
         const pct = (evalData.score / evalData.maxScore) * 100;
         if (pct < evalData.course.targetGrade) {
@@ -157,7 +143,6 @@ export async function onTaskCompleted(userId) {
     const earned = await getEarnedAchievements(userId);
     const earnedSet = new Set(earned.map(e => e.achievementId));
 
-    // No-backlog: 10 tasks completed within 48-hour window
     if (!earnedSet.has("no_backlog")) {
         const recent = await countRecentEventsByType(userId, "task.completed", 48 * 3600);
         if (recent >= 10) {
@@ -165,7 +150,6 @@ export async function onTaskCompleted(userId) {
         }
     }
 
-    // Valedictorian: 200+ sessions, 100+ tasks done, all courses above target
     if (!earnedSet.has("valedictorian")) {
         const [stats, courses] = await Promise.all([
             getStats(userId), findCoursesByUser(userId),
@@ -182,11 +166,8 @@ export async function onStreakFrozen(userId) {
     await insertEvent({ userId, type: "streak.freeze_used", metadata: {} });
 }
 
-// ─── Called from session.service after session events are inserted ─────────────
-// Separate export so session.service can pass full sessionMeta context.
 export { runEval as runSessionEval };
 
-// ─── Private ──────────────────────────────────────────────────────────────────
 
 async function _checkValedictorian(userId, stats, courses) {
     if ((stats?.totalSessions ?? 0) < 200) return false;

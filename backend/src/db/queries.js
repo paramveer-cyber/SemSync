@@ -20,20 +20,24 @@ export const setUserRefreshToken = (id, token) =>
 export const setUserGoogleToken = (id, accessToken, expiry) =>
     db.update(users).set({ googleAccessToken: accessToken, googleTokenExpiry: expiry }).where(eq(users.id, id));
 
-export const clearUserGoogleToken = (id) =>
-    db.update(users).set({ googleAccessToken: null, googleTokenExpiry: null }).where(eq(users.id, id));
+export const setUserGoogleRefreshToken = (id, refreshToken) =>
+    db.update(users).set({ googleRefreshToken: refreshToken }).where(eq(users.id, id))
 
+export const clearUserGoogleToken = (id) =>
+    db.update(users).set({ googleAccessToken: null, googleTokenExpiry: null, googleRefreshToken: null }).where(eq(users.id, id));
 
 export const findCoursesByUser = (userId) =>
     db.query.courses.findMany({
         where: and(eq(courses.userId, userId), eq(courses.isArchived, false)),
         orderBy: (c, { asc }) => [asc(c.createdAt)],
+        with: { evaluations: true },
     });
 
 export const findArchivedCoursesByUser = (userId) =>
     db.query.courses.findMany({
         where: and(eq(courses.userId, userId), eq(courses.isArchived, true)),
         orderBy: (c, { desc }) => [desc(c.updatedAt)],
+        with: { evaluations: true },
     });
 
 export const findCourseById = (courseId, userId) =>

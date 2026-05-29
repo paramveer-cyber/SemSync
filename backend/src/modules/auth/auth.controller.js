@@ -1,4 +1,4 @@
-import { verifyGoogleToken, findOrCreateUser, generateTokens } from "./auth.services.js";
+import { verifyGoogleToken, findOrCreateUser, generateTokens, verifyGoogleClassroomAuthCode } from "./auth.services.js";
 import { verifyRefreshToken } from "../../common/utils/tokenLogic.js";
 import {
     findUserById,
@@ -9,6 +9,7 @@ import {
     deleteUserById,
 } from "../../db/queries.js";
 import ApiError from "../../common/utils/api-error.js";
+import { hashPassword, verifyPassword } from "../../common/utils/hash.js";
 
 const COOKIE_OPTS = {
     httpOnly: true,
@@ -49,8 +50,7 @@ export const refresh = async (req, res) => {
 
         const user = await findUserById(decoded.userId);
         if (!user) return res.status(401).json({ message: "User not found" });
-
-        if (user.refreshToken !== token) {
+        if (!(await verifyPassword(token, user.refreshToken))) {
             await setUserRefreshToken(user.id, null);
             res.clearCookie("refreshToken");
             return res.status(401).json({ message: "Refresh token reuse detected" });
@@ -92,36 +92,83 @@ export const logout = async (req, res) => {
     }
 };
 
+export const connectingClassroom = async (req, res) => {
+    try {
+        const { authCode } = req.body;
+        if (!authCode) return res.status(400).json({ message: "Missing authCode" });
+
+        const userId = req.user.userId;
+        const { access_token, expires_in } = await verifyGoogleClassroomAuthCode({ authCode, id: userId });
+        if (!access_token) {
+            await clearUserGoogleToken(userId);
+            return res.status(400).json({ message: "Failed to exchange auth code" });
+        }
+
+        const expiry = new Date(Date.now() + expires_in * 1000);
+        await setUserGoogleToken(userId, access_token, expiry);
+
+        return res.status(201).json({ ok: true });
+    } catch (err) {
+        console.error("[auth/classroom-connect]", err.message);
+        if (err instanceof ApiError) return res.status(err.statusCode).json({ message: err.message });
+        return res.status(500).json({ message: "Failed to connect classroom" });
+    }
+};
+
 export const getClassroomToken = async (req, res) => {
     try {
         const user = await findUserById(req.user.userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        const { googleAccessToken, googleTokenExpiry } = user;
-        if (!googleAccessToken || !googleTokenExpiry) return res.status(200).json({ token: null, expiry: null });
-        if (new Date(googleTokenExpiry).getTime() < Date.now()) return res.status(200).json({ token: null, expiry: null });
+        const { googleAccessToken, googleRefreshToken, googleTokenExpiry } = user;
+        if (!googleAccessToken || !googleRefreshToken || !googleTokenExpiry) {
+            return res.status(200).json({ token: null, expiry: null });
+        }
 
-        return res.status(200).json({ token: googleAccessToken, expiry: new Date(googleTokenExpiry).getTime() });
+        const fiveMinFromNow = new Date(Date.now() + 5 * 60 * 1000);
+        if (new Date(googleTokenExpiry) > fiveMinFromNow) {
+            return res.status(200).json({ token: googleAccessToken, expiry: new Date(googleTokenExpiry).getTime() });
+        }
+
+        const refreshRes = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                refresh_token: googleRefreshToken,
+                client_id: process.env.GOOGLE_CLIENT_ID,
+                client_secret: process.env.GOOGLE_CLIENT_SECRET,
+                grant_type: "refresh_token",
+            }),
+        });
+        const refreshData = await refreshRes.json();
+
+        if (!refreshData.access_token) {
+            console.error("[classroom-token GET] refresh failed", refreshData);
+            await clearUserGoogleToken(req.user.userId);
+            return res.status(200).json({ token: null, expiry: null });
+        }
+
+        const newExpiry = new Date(Date.now() + refreshData.expires_in * 1000);
+        await setUserGoogleToken(req.user.userId, refreshData.access_token, newExpiry);
+
+        return res.status(200).json({ token: refreshData.access_token, expiry: newExpiry.getTime() });
     } catch (err) {
         console.error("[auth/classroom-token GET]", err.message);
         return res.status(500).json({ message: "Failed to fetch classroom token" });
     }
 };
 
-export const saveClassroomToken = async (req, res) => {
-    try {
-        const { accessToken, expiresIn } = req.body;
-        const expiry = new Date(Date.now() + (expiresIn ?? 3600) * 1000);
-        await setUserGoogleToken(req.user.userId, accessToken, expiry);
-        return res.status(200).json({ ok: true, expiry: expiry.getTime() });
-    } catch (err) {
-        console.error("[auth/classroom-token POST]", err.message);
-        return res.status(500).json({ message: "Failed to save classroom token" });
-    }
-};
-
 export const clearClassroomToken = async (req, res) => {
     try {
+        const user = await findUserById(req.user.userId);
+        if (user?.googleRefreshToken) {
+            try {
+                await fetch(`https://oauth2.googleapis.com/revoke?token=${user.googleRefreshToken}`, { method: "POST" });
+            } catch (revokeErr) {
+                //silent
+            }
+
+        }
         await clearUserGoogleToken(req.user.userId);
         return res.status(200).json({ ok: true });
     } catch (err) {

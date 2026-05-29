@@ -6,24 +6,9 @@ import {
 import { findCoursesByUser, findArchivedCoursesByUser } from "../../../db/queries.js";
 import { ACHIEVEMENTS, ACHIEVEMENT_MAP, TRIGGER_INDEX } from "../achievements.js";
 
-// ─── Master evaluator ─────────────────────────────────────────────────────────
-//
-// ctx: {
-//   stats        — from getStats()
-//   streak       — from getStreak()
-//   earnedSet    — Set<achievementId> already unlocked
-//   sessionMeta  — object with session-level context (may be {})
-//   triggerEvent  — optional single event type; narrows candidates via TRIGGER_INDEX
-//   triggerEvents — optional array of event types; union of all matching candidates
-//                   If neither provided, all unearned achievements are evaluated.
-// }
-//
-// Returns achievements that were newly inserted (duplicates skipped by DB).
-//
 export async function evaluateAchievements(userId, ctx, tx) {
     const { stats, streak, earnedSet, sessionMeta, triggerEvent, triggerEvents } = ctx;
 
-    // Narrow candidates by trigger(s) if provided
     let candidates;
     const triggers = triggerEvents ?? (triggerEvent ? [triggerEvent] : null);
     if (triggers?.length) {
@@ -40,12 +25,11 @@ export async function evaluateAchievements(userId, ctx, tx) {
 
     if (!candidates.length) return [];
 
-    // Lazy loaders — each DB call fires at most once per evaluation run
     let _courses = null, _archived = null, _allSessions = null;
-    const getCourses  = async () => (_courses  ??= await findCoursesByUser(userId));
+    const getCourses = async () => (_courses ??= await findCoursesByUser(userId));
     const getArchived = async () => (_archived ??= await findArchivedCoursesByUser(userId));
     const getSessions = async () => (_allSessions ??= await getAllSessions(userId));
-    const evtCount    = (type) => countEventsByType(userId, type);
+    const evtCount = (type) => countEventsByType(userId, type);
 
     const unlocked = [];
 
@@ -83,7 +67,9 @@ export async function evaluateAchievements(userId, ctx, tx) {
                 break;
 
             case "comeback":
-                q = (sessionMeta?.daysSinceLastSession ?? 0) >= rule.inactiveDays;
+                q = sessionMeta?.daysSinceLastSession !== null &&
+                    sessionMeta?.daysSinceLastSession !== undefined &&
+                    sessionMeta.daysSinceLastSession >= rule.inactiveDays;
                 break;
 
             case "session_before_eval":
@@ -169,8 +155,10 @@ export async function evaluateAchievements(userId, ctx, tx) {
             case "all_evals_above_target_in_course": {
                 const cs = await getCourses();
                 q = cs.some(c => {
-                    const evs = (c.evaluations ?? []).filter(e => e.score !== null);
-                    return evs.length > 0 && evs.every(e => (e.score / e.maxScore) * 100 > (c.targetGrade ?? 50));
+                    const evs = c.evaluations ?? [];
+                    return evs.length > 0 &&
+                        evs.every(e => e.score !== null) &&
+                        evs.every(e => (e.score / e.maxScore) * 100 > (c.targetGrade ?? 50));
                 });
                 break;
             }
@@ -220,8 +208,6 @@ export async function evaluateAchievements(userId, ctx, tx) {
     return unlocked.filter(a => insertedIds.has(a.id));
 }
 
-// ─── Streak / window checkers ─────────────────────────────────────────────────
-
 function checkWeeklySessions(sessions, weeks) {
     if (!sessions.length) return false;
     const weekSet = new Set(sessions.map(s => isoWeek(new Date(s.occurredAt))));
@@ -243,34 +229,48 @@ function isoWeek(d) {
 }
 
 function weekDiff(a, b) {
-    const parse = s => { const [y, w] = s.split("-W"); return Number(y) * 53 + Number(w); };
-    return parse(a) - parse(b);
+    const parseWeekToAbsolute = s => {
+        const [year, week] = s.split("-W").map(Number);
+        return year * 54 + week;
+    };
+    return parseWeekToAbsolute(a) - parseWeekToAbsolute(b);
 }
 
-function checkSameWindowDays(sessions, days) {
+function checkSameWindowDays(sessions, requiredDays) {
     if (!sessions.length) return false;
-    const dayMap = new Map();
-    for (const s of sessions) {
-        const d = s.occurredAt.toISOString().slice(0, 10);
-        const w = Math.floor((s.metadata?.hour_of_day ?? new Date(s.occurredAt).getHours()) / 2);
-        if (!dayMap.has(d)) dayMap.set(d, new Set());
-        dayMap.get(d).add(w);
+
+    const sessionsByDay = new Map();
+    for (const session of sessions) {
+        const istDate = session.metadata?.local_date
+            ?? new Date(session.occurredAt).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+        const istHour = session.metadata?.hour_of_day
+            ?? parseInt(new Date(session.occurredAt).toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: "Asia/Kolkata" }), 10);
+        const twoHourWindow = Math.floor(istHour / 2);
+
+        if (!sessionsByDay.has(istDate)) sessionsByDay.set(istDate, new Set());
+        sessionsByDay.get(istDate).add(twoHourWindow);
     }
 
-    const sortedDays = [...dayMap.keys()].sort().reverse();
-    if (sortedDays.length < days) return false;
+    const sortedDays = [...sessionsByDay.keys()].sort().reverse();
+    if (sortedDays.length < requiredDays) return false;
 
-    for (const w of [...dayMap.get(sortedDays[0])]) {
-        let streak = 0;
+    const allWindows = new Set(
+        sortedDays.flatMap(day => [...sessionsByDay.get(day)])
+    );
+
+    for (const window of allWindows) {
+        let consecutiveDays = 0;
         for (let i = 0; i < sortedDays.length; i++) {
             if (i > 0) {
-                const diff = Math.round((new Date(sortedDays[i - 1] + "T12:00:00Z") - new Date(sortedDays[i] + "T12:00:00Z")) / 86400000);
-                if (diff !== 1) break;
+                const dayGap = Math.round(
+                    (new Date(sortedDays[i - 1] + "T12:00:00Z") - new Date(sortedDays[i] + "T12:00:00Z")) / 86400000
+                );
+                if (dayGap !== 1) break;
             }
-            if (dayMap.get(sortedDays[i]).has(w)) streak++;
+            if (sessionsByDay.get(sortedDays[i]).has(window)) consecutiveDays++;
             else break;
         }
-        if (streak >= days) return true;
+        if (consecutiveDays >= requiredDays) return true;
     }
     return false;
 }
@@ -324,14 +324,16 @@ function checkLinkedSessionsStreak(sessions, days) {
     return streak >= days;
 }
 
-// ─── Course / eval helpers ────────────────────────────────────────────────────
-
 export function isAboveTarget(course) {
-    const evs = (course.evaluations ?? []).filter(e => e.score !== null);
-    if (!evs.length) return false;
-    const earned = evs.reduce((s, e) => s + (e.score / e.maxScore) * e.weightage, 0);
-    const weight = evs.reduce((s, e) => s + e.weightage, 0);
-    return weight > 0 && (earned / weight) * 100 >= (course.targetGrade ?? 50);
+    const allEvs = course.evaluations ?? [];
+    if (!allEvs.length) return false;
+    const totalWeight = allEvs.reduce((s, e) => s + e.weightage, 0);
+    const scoredEvs = allEvs.filter(e => e.score !== null);
+    if (!scoredEvs.length) return false;
+    const scoredWeight = scoredEvs.reduce((s, e) => s + e.weightage, 0);
+    if (scoredWeight < totalWeight) return false;
+    const earned = scoredEvs.reduce((s, e) => s + (e.score / e.maxScore) * e.weightage, 0);
+    return totalWeight > 0 && (earned / totalWeight) * 100 >= (course.targetGrade ?? 50);
 }
 
 export function isCourseConfigured(c) {

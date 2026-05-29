@@ -153,7 +153,20 @@ export const upsertStreak = async (userId, today, yesterday, tx) => {
 export const useStreakFreeze = async (userId) => {
     const streak = await getStreak(userId);
     if (!streak || streak.freezeCount <= 0) return false;
-    await db.update(userStreaks).set({ freezeCount: streak.freezeCount - 1 }).where(eq(userStreaks.userId, userId));
+    if (!streak.lastActiveDate) return false;
+
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    if (streak.lastActiveDate === today) return false;
+
+    const yesterday = (() => {
+        const d = new Date(today + "T12:00:00Z");
+        d.setUTCDate(d.getUTCDate() - 1);
+        return d.toISOString().slice(0, 10);
+    })();
+
+    await db.update(userStreaks)
+        .set({ freezeCount: streak.freezeCount - 1, lastActiveDate: yesterday })
+        .where(eq(userStreaks.userId, userId));
     return true;
 };
 

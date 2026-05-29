@@ -12,7 +12,7 @@ export default function AboutPage() {
                 <Header title='About' subtitle='Project Origins' />
                 <div className='grow overflow-y-auto p-8 max-w-3xl'>
                     <div
-                        className='p-8 rounded-lg text-[var(--color-text-muted)] space-y-6'
+                        className='p-8 rounded-lg space-y-6'
                         style={{
                             border: '1px solid var(--color-glass-border)',
                             background: 'var(--color-surface-1)',
@@ -41,7 +41,7 @@ export default function AboutPage() {
                             enjoyed building it.
                         </p>
 
-                        <div className='mt-8 pt-6 border-t border-[var(--color-glass-border)]'>
+                        <div className='mt-8 pt-6 border-t' style={{ borderColor: 'var(--color-glass-border)' }}>
                             <h3
                                 className='text-sm font-bold uppercase tracking-widest mb-4'
                                 style={{ color: 'var(--color-text)' }}
@@ -74,7 +74,7 @@ export default function AboutPage() {
                             </div>
                         </div>
 
-                        <div className='mt-8 pt-6 border-t border-[var(--color-glass-border)]'>
+                        <div className='mt-8 pt-6 border-t' style={{ borderColor: 'var(--color-glass-border)' }}>
                             <h3
                                 className='text-sm font-bold uppercase tracking-widest mb-4'
                                 style={{ color: 'var(--color-text)' }}
@@ -112,7 +112,7 @@ export default function AboutPage() {
                             </ul>
                         </div>
 
-                        <div className='mt-8 pt-6 border-t border-[var(--color-glass-border)]'>
+                        <div className='mt-8 pt-6 border-t' style={{ borderColor: 'var(--color-glass-border)' }}>
                             <h3
                                 className='text-sm font-bold uppercase tracking-widest mb-4'
                                 style={{ color: 'var(--color-text)' }}
@@ -141,7 +141,7 @@ export default function AboutPage() {
                                 </li>
                             </ol>
                         </div>
-                        <div className='mt-8 pt-6 border-t border-[var(--color-glass-border)]'>
+                        <div className='mt-8 pt-6 border-t' style={{ borderColor: 'var(--color-glass-border)' }}>
                             If you spot a bug or have a feature request, feel
                             free to reach out to either of us through the
                             provided links, if it's good and doable, we'll

@@ -73,7 +73,7 @@ export async function endSession(userId, body) {
 
     const daysSinceLastSession = lastSessionDate
         ? Math.floor((Date.now() - new Date(lastSessionDate).getTime()) / 86400000)
-        : 999;
+        : null;
     const hoursBeforeEval  = parseHoursBeforeEval(linkedEvalDueDate);
     const earnedSet        = new Set(earned.map(e => e.achievementId));
 
@@ -82,7 +82,7 @@ export async function endSession(userId, body) {
     });
 
     const isLinked   = !!(linkedTaskId || linkedEvalId);
-    const isComeback = daysSinceLastSession >= 3;
+    const isComeback = daysSinceLastSession !== null && daysSinceLastSession >= 3;
     const allTriggerEvents = [
         "session.completed",
         ...(isLinked   ? ["session.linked_completed"] : []),
@@ -106,12 +106,17 @@ export async function endSession(userId, body) {
             actualMinutes, plannedMinutes, integrityScore, rawXp,
             invisibleSeconds, interactionCount, hourOfDay, today,
             daysSinceLastSession, linkedTaskId, linkedEvalId,
-            specialEventTypes,
+            specialEventTypes, streakStatus: txStreakStatus,
         });
+
+        const updatedStreak = {
+            currentStreak: txStreakStatus.currentStreak,
+            longestStreak: existingStreak?.longestStreak ?? txStreakStatus.currentStreak,
+        };
 
         const txAchievements = await evaluateAchievements(userId, {
             stats: statsRow,
-            streak: existingStreak,
+            streak: updatedStreak,
             earnedSet,
             sessionMeta: {
                 actualMinutes, integrityScore, hourOfDay,
@@ -172,7 +177,11 @@ async function collectSpecialEventTypes(userId, { existingStreak, daysSinceLastS
     const checks = [];
 
     if (existingStreak?.currentStreak >= 14 && (existingStreak.longestStreak ?? 0) >= 21) {
-        specialTypes.push("achievement.phoenix_qualified");
+        checks.push(
+            countEventsByType(userId, "streak.broken").then(brokenCount => {
+                if (brokenCount > 0) specialTypes.push("achievement.phoenix_qualified");
+            })
+        );
     }
 
     if (existingStreak?.currentStreak >= 21) {
@@ -209,14 +218,17 @@ async function writeSessionEvents(userId, tx, ctx) {
         actualMinutes, plannedMinutes, integrityScore, rawXp,
         invisibleSeconds, interactionCount, hourOfDay, today,
         daysSinceLastSession, linkedTaskId, linkedEvalId,
-        specialEventTypes,
+        specialEventTypes, streakStatus,
     } = ctx;
 
     const isLinked = !!(linkedTaskId || linkedEvalId);
     const eventRows = [];
 
-    if (daysSinceLastSession >= 3) {
+    if (daysSinceLastSession !== null && daysSinceLastSession >= 3) {
         eventRows.push({ userId, type: "session.comeback", metadata: { days_away: daysSinceLastSession } });
+    }
+    if (streakStatus?.wasBroken && streakStatus.previousStreak > 0) {
+        eventRows.push({ userId, type: "streak.broken", metadata: { previous_streak: streakStatus.previousStreak, days_away: daysSinceLastSession } });
     }
     if (isLinked) {
         eventRows.push({ userId, type: "session.linked_completed", metadata: { linked_task: linkedTaskId, linked_eval: linkedEvalId } });

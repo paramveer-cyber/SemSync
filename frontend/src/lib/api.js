@@ -79,8 +79,8 @@ export const updateEval = (id, data) => request('PATCH', `/evaluations/${id}`, d
 export const deleteEval = (id) => request('DELETE', `/evaluations/${id}`);
 export const getUpcomingEvals = () => request('GET', '/evaluations/upcoming');
 
+export const sendClassroomAuthCode = (authCode) => request('POST', '/auth/classroom-connect', { authCode });
 export const getClassroomToken = () => request('GET', '/auth/classroom-token');
-export const saveClassroomToken = (accessToken, expiresIn) => request('POST', '/auth/classroom-token', { accessToken, expiresIn });
 export const clearClassroomToken = () => request('DELETE', '/auth/classroom-token');
 export const deleteAccount = () => request('DELETE', '/auth/account');
 
