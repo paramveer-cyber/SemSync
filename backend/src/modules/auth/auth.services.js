@@ -43,7 +43,7 @@ export const findOrCreateUser = async (payload) => {
 export const verifyGoogleClassroomAuthCode = async (payload) => {
     if (!payload.authCode || !payload.id) throw ApiError.badRequest();
 
-    const data = await fetch("https://oauth2.googleapis.com/token", {
+    const data = await fetch("https://accounts.google.com/o/oauth2/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
@@ -54,10 +54,9 @@ export const verifyGoogleClassroomAuthCode = async (payload) => {
             grant_type: "authorization_code",
         }),
     })
-    const tokenData = await data.json();
-    const { access_token, expires_in, refresh_token } = tokenData;
+    const { access_token, expires_in, refresh_token } = await data.json();
     if (!access_token || !expires_in || !refresh_token) {
-        throw ApiError.unknown(JSON.stringify(tokenData))
+        throw ApiError.unknown("An error occured! Try logging in again")
     }
     await setUserGoogleRefreshToken(payload.id, refresh_token);
     return { access_token, expires_in };
