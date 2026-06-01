@@ -43,7 +43,7 @@ export const findOrCreateUser = async (payload) => {
 export const verifyGoogleClassroomAuthCode = async (payload) => {
     if (!payload.authCode || !payload.id) throw ApiError.badRequest();
 
-    const data = await fetch("https://accounts.google.com/o/oauth2/token", {
+    const data = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
