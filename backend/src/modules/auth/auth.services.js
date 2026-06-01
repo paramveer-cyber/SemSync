@@ -54,9 +54,10 @@ export const verifyGoogleClassroomAuthCode = async (payload) => {
             grant_type: "authorization_code",
         }),
     })
-    const { access_token, expires_in, refresh_token } = await data.json();
+    const data = await data.json();
+    const { access_token, expires_in, refresh_token } = data;
     if (!access_token || !expires_in || !refresh_token) {
-        throw ApiError.unknown("An error occured! Try logging in again")
+        throw ApiError.unknown(JSON.stringify(data))
     }
     await setUserGoogleRefreshToken(payload.id, refresh_token);
     return { access_token, expires_in };
