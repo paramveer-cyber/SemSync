@@ -83,6 +83,7 @@ export const sendClassroomAuthCode = (authCode) => request('POST', '/auth/classr
 export const getClassroomToken = () => request('GET', '/auth/classroom-token');
 export const clearClassroomToken = () => request('DELETE', '/auth/classroom-token');
 export const deleteAccount = () => request('DELETE', '/auth/account');
+export const exportUserData = () => request('GET', '/auth/export');
 
 export const focusSessionStart = () => request('POST', '/focus/session/start');
 export const focusSessionEnd = (data) => request('POST', '/focus/session/end', data);
@@ -97,7 +98,6 @@ export const timerExtend = (addMinutes) => request('POST', '/focus/timer/extend'
 export const timerSync = () => request('POST', '/focus/timer/sync');
 export const timerEnd = (data) => request('POST', '/focus/timer/end', data);
 export const timerAbort = (data) => request('POST', '/focus/timer/abort', data);
-
 
 export const trackPageVisit = (page) => request('POST', '/focus/track/page', { page });
 export const trackTask = (action) => request('POST', '/focus/track/task', { action });

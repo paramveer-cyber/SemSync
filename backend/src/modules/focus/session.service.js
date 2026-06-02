@@ -41,10 +41,8 @@ export async function endSession(userId, body) {
         if (!startEvent) return { dropped: true, reason: "invalid_token" };
         if (startEvent.metadata?.consumed) return { dropped: true, reason: "duplicate_session" };
 
-        actualMinutes = Math.min(
-            Math.floor((Date.now() - new Date(startEvent.occurredAt).getTime()) / 60_000),
-            240
-        );
+        const wallClockMinutes = Math.floor((Date.now() - new Date(startEvent.occurredAt).getTime()) / 60_000);
+        actualMinutes = Math.min(wallClockMinutes, rawPlanned, 240);
     }
 
     if (actualMinutes < 10) return { dropped: true, reason: "session_too_short" };
@@ -61,12 +59,13 @@ export async function endSession(userId, body) {
     if (todayCount >= 20) return { dropped: true, reason: "daily_cap_reached" };
 
     const maxInvisibleSeconds = actualMinutes * 60;
-    const invisibleSeconds    = Math.min(Math.max(Math.floor(Number(rawInvis) || 0), 0), maxInvisibleSeconds);
-    const interactionCount    = Math.min(Math.max(Math.floor(Number(rawInteractions) || 0), 0), maxInvisibleSeconds * 5);
-    const plannedMinutes      = Math.min(Math.max(Math.floor(Number(rawPlanned) || actualMinutes), 1), 360);
+    const invisibleSeconds = Math.min(Math.max(Math.floor(Number(rawInvis) || 0), 0), maxInvisibleSeconds);
+    const interactionCount = Math.min(Math.max(Math.floor(Number(rawInteractions) || 0), 0), maxInvisibleSeconds * 5);
+    const plannedMinutes = Math.min(Math.max(rawPlanned, 1), 360);
+    actualMinutes = Math.min(actualMinutes, plannedMinutes);
 
     const isFullyInvisible = invisibleSeconds >= maxInvisibleSeconds * 0.95;
-    const integrityScore   = isFullyInvisible
+    const integrityScore = isFullyInvisible
         ? 0
         : computeIntegrityScore({ plannedMinutes, actualMinutes, invisibleSeconds, interactionCount });
     const rawXp = computeXP({ actualMinutes, integrityScore, plannedMinutes });
@@ -74,19 +73,19 @@ export async function endSession(userId, body) {
     const daysSinceLastSession = lastSessionDate
         ? Math.floor((Date.now() - new Date(lastSessionDate).getTime()) / 86400000)
         : null;
-    const hoursBeforeEval  = parseHoursBeforeEval(linkedEvalDueDate);
-    const earnedSet        = new Set(earned.map(e => e.achievementId));
+    const hoursBeforeEval = parseHoursBeforeEval(linkedEvalDueDate);
+    const earnedSet = new Set(earned.map(e => e.achievementId));
 
     const specialEventTypes = await collectSpecialEventTypes(userId, {
         existingStreak, daysSinceLastSession, hourOfDay, today,
     });
 
-    const isLinked   = !!(linkedTaskId || linkedEvalId);
+    const isLinked = !!(linkedTaskId || linkedEvalId);
     const isComeback = daysSinceLastSession !== null && daysSinceLastSession >= 3;
     const allTriggerEvents = [
         "session.completed",
-        ...(isLinked   ? ["session.linked_completed"] : []),
-        ...(isComeback ? ["session.comeback"]         : []),
+        ...(isLinked ? ["session.linked_completed"] : []),
+        ...(isComeback ? ["session.comeback"] : []),
         ...specialEventTypes,
     ];
 
@@ -203,7 +202,7 @@ async function collectSpecialEventTypes(userId, { existingStreak, daysSinceLastS
             countEventsByTypeAndDate(userId, "achievement.morning_session", today),
             countEventsByTypeAndDate(userId, "achievement.evening_session", today),
         ]).then(([morningCount, eveningCount]) => {
-            const morningTotal = hourOfDay < 8  ? morningCount + 1 : morningCount;
+            const morningTotal = hourOfDay < 8 ? morningCount + 1 : morningCount;
             const eveningTotal = hourOfDay >= 21 ? eveningCount + 1 : eveningCount;
             if (morningTotal > 0 && eveningTotal > 0) specialTypes.push("achievement.both_barrels_qualified");
         })

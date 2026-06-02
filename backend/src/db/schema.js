@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, real, boolean, date, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, integer, real, boolean, date, jsonb, index, uniqueIndex, pgEnum } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
 const updatedAt = () =>
@@ -6,6 +6,8 @@ const updatedAt = () =>
         .default(sql`now()`)
         .notNull()
         .$onUpdate(() => new Date());
+
+export const userRoles = pgEnum("user_role", ["user", "admin"]);
 
 export const users = pgTable("users", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -16,7 +18,9 @@ export const users = pgTable("users", {
     googleAccessToken: text("google_access_token"),
     googleRefreshToken: text("google_refresh_token"),
     googleTokenExpiry: timestamp("google_token_expiry"),
+    role: userRoles("role").notNull().default("user"),
     refreshToken: text("refresh_token"),
+    exportLastRequestedAt: timestamp("export_last_requested_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: updatedAt(),
 

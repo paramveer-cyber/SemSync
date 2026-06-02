@@ -8,6 +8,7 @@ import {
     refresh,
     deleteAccount,
     connectingClassroom,
+    exportUserData,
 } from "./auth.controller.js";
 import { authMiddleware } from "./auth.middleware.js";
 import {
@@ -31,5 +32,6 @@ router.get("/classroom-token", authMiddleware, getClassroomToken);
 router.delete("/classroom-token", authMiddleware, clearClassroomToken);
 
 router.delete("/account", authMiddleware, deleteAccount);
+router.get("/export", authMiddleware, exportUserData);
 
 export default router;

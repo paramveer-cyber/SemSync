@@ -1,7 +1,20 @@
 import { OAuth2Client } from "google-auth-library";
 import ApiError from "../../common/utils/api-error.js";
 import { generateToken, generateRefreshToken } from "../../common/utils/tokenLogic.js";
-import { findUserByGoogleId, insertUser, setUserGoogleRefreshToken, setUserRefreshToken } from "../../db/queries.js";
+import {
+    findUserByGoogleId,
+    insertUser,
+    setUserGoogleRefreshToken,
+    setUserRefreshToken,
+    findUserById,
+    findAllCoursesByUser,
+    findUserStatsByUser,
+    findUserStreaksByUser,
+    findAchievementsByUser,
+    findDailyGoalsByUser,
+    findRecentEventsByUser,
+    stampExportRequestedAt,
+} from "../../db/queries.js";
 import { hashPassword } from "../../common/utils/hash.js"
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -61,3 +74,46 @@ export const verifyGoogleClassroomAuthCode = async (payload) => {
     await setUserGoogleRefreshToken(payload.id, refresh_token);
     return { access_token, expires_in };
 }
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+export const gatherUserExportData = async (userId) => {
+    const user = await findUserById(userId);
+    if (!user) throw ApiError.notFound("User not found");
+
+    if (user.exportLastRequestedAt) {
+        const timeSinceLast = Date.now() - new Date(user.exportLastRequestedAt).getTime();
+        if (timeSinceLast < SEVEN_DAYS_MS) {
+            const nextAllowed = new Date(new Date(user.exportLastRequestedAt).getTime() + SEVEN_DAYS_MS);
+            throw new ApiError(429, `Export available once every 7 days. Next allowed: ${nextAllowed.toDateString()}`);
+        }
+    }
+
+    const [allCourses, stats, streaks, achievements, goals, recentEvents] = await Promise.all([
+        findAllCoursesByUser(userId),
+        findUserStatsByUser(userId),
+        findUserStreaksByUser(userId),
+        findAchievementsByUser(userId),
+        findDailyGoalsByUser(userId),
+        findRecentEventsByUser(userId, 500),
+    ]);
+
+    await stampExportRequestedAt(userId);
+
+    return {
+        exportedAt: new Date().toISOString(),
+        exportVersion: "1.0",
+        profile: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatarUrl: user.avatarUrl,
+            createdAt: user.createdAt,
+        },
+        courses: allCourses,
+        stats,
+        streaks,
+        achievements,
+        dailyGoals: goals,
+        recentEvents,
+    };
+};

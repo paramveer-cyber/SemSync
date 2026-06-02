@@ -94,3 +94,12 @@ export const timerEndLimiter = rateLimit({
     keyGenerator: clientIp,
     handler: (req, res) => json(res, 429, "Too many timer end requests. Slow down."),
 });
+
+export const adminLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: clientIp,
+    handler: (req, res) => json(res, 429, "Too many admin requests. Slow down."),
+});

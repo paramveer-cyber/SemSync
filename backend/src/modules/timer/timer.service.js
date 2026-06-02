@@ -42,7 +42,7 @@ export async function startTimer(userId, body) {
         return { timer: serializeTimer(existing), alreadyActive: true };
     }
 
-    const plannedMinutes = Math.min(Math.max(Math.floor(Number(body.plannedMinutes) || 25), 1), 240);
+    const plannedMinutes = body.plannedMinutes;
     const nonce = crypto.randomBytes(16).toString("hex");
 
     const timer = await insertTimer({
@@ -125,7 +125,7 @@ export async function endTimer(userId, body) {
 
     await deleteTimer(userId);
 
-    if (body.abort || actualMinutes < 1) {
+    if (actualMinutes < 1) {
         return { dropped: true, reason: "session_too_short" };
     }
 
@@ -151,5 +151,9 @@ export async function endTimer(userId, body) {
 }
 
 export async function abortTimer(userId, body) {
-    return endTimer(userId, { ...body, abort: true });
+    const timer = await getActiveTimer(userId);
+    if (!timer) return { dropped: true, reason: "no_active_timer" };
+    if (body.nonce !== timer.nonce) return { dropped: true, reason: "invalid_nonce" };
+    await deleteTimer(userId);
+    return { dropped: true, reason: "aborted" };
 }

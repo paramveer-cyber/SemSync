@@ -1,4 +1,4 @@
-import { verifyGoogleToken, findOrCreateUser, generateTokens, verifyGoogleClassroomAuthCode } from "./auth.services.js";
+import { verifyGoogleToken, findOrCreateUser, generateTokens, verifyGoogleClassroomAuthCode, gatherUserExportData } from "./auth.services.js";
 import { verifyRefreshToken } from "../../common/utils/tokenLogic.js";
 import {
     findUserById,
@@ -188,5 +188,16 @@ export const deleteAccount = async (req, res) => {
     } catch (err) {
         console.error("[auth/delete-account]", err.message);
         return res.status(500).json({ message: "Failed to delete account" });
+    }
+};
+
+export const exportUserData = async (req, res) => {
+    try {
+        const exportData = await gatherUserExportData(req.user.userId);
+        return res.status(200).json(exportData);
+    } catch (err) {
+        if (err instanceof ApiError) return res.status(err.statusCode).json({ message: err.message });
+        console.error("[auth/export]", err);
+        return res.status(500).json({ message: "Failed to export data" });
     }
 };

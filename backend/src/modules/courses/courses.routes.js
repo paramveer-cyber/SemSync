@@ -5,12 +5,12 @@ import { createCourseBody, updateCourseBody } from "./courses.model.js";
 
 const router = express.Router();
 
-router.get("/",             listCourses);
-router.get("/archived",     listArchivedCourses);
-router.post("/",            validate(createCourseBody), addCourse);
-router.get("/:id",          getCourse);
-router.patch("/:id",        validate(updateCourseBody), editCourse);
-router.delete("/:id",       removeCourse);
+router.get("/", listCourses);
+router.get("/archived", listArchivedCourses);
+router.post("/", validate(createCourseBody), addCourse);
+router.get("/:id", getCourse);
+router.patch("/:id", validate(updateCourseBody), editCourse);
+router.delete("/:id", removeCourse);
 router.post("/:id/archive", doArchiveCourse);
 
 export default router;

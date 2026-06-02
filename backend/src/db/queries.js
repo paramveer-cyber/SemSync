@@ -1,5 +1,5 @@
 import { db } from "./index.js";
-import { users, courses, evaluations } from "./schema.js";
+import { users, courses, evaluations, userStats, userStreaks, userAchievements, dailyGoals, events } from "./schema.js";
 import { eq, and, gte, asc } from "drizzle-orm";
 
 export const findUserById = (id) =>
@@ -99,3 +99,32 @@ export const findUpcomingEvalsByUser = (userId) =>
 
 export const deleteUserById = (id) =>
     db.delete(users).where(eq(users.id, id));
+
+export const getUserRoleById = (id) => db.query.users.findFirst({ where: eq(users.id, id) });
+
+export const checkIfAdmin = async (id) => (await getUserRoleById(id)).role === "admin";
+
+export const findAllCoursesByUser = (userId) =>
+    db.query.courses.findMany({
+        where: eq(courses.userId, userId),
+        orderBy: (course, { asc }) => [asc(course.createdAt)],
+        with: { evaluations: true },
+    });
+
+export const findUserStatsByUser = (userId) =>
+    db.select().from(userStats).where(eq(userStats.userId, userId)).then(rows => rows[0] ?? null);
+
+export const findUserStreaksByUser = (userId) =>
+    db.select().from(userStreaks).where(eq(userStreaks.userId, userId)).then(rows => rows[0] ?? null);
+
+export const findAchievementsByUser = (userId) =>
+    db.select().from(userAchievements).where(eq(userAchievements.userId, userId));
+
+export const findDailyGoalsByUser = (userId) =>
+    db.select().from(dailyGoals).where(eq(dailyGoals.userId, userId));
+
+export const findRecentEventsByUser = (userId, limit = 500) =>
+    db.select().from(events).where(eq(events.userId, userId)).limit(limit);
+
+export const stampExportRequestedAt = (userId) =>
+    db.update(users).set({ exportLastRequestedAt: new Date() }).where(eq(users.id, userId));
