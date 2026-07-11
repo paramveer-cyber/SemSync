@@ -33,18 +33,6 @@ export const getCatalogForUser = async (userId) => {
         }
 
         if (definition.hidden) {
-            achievements.push({
-                id: "HIDDEN",
-                name: "HIDDEN",
-                desc: "This achievement is hidden, explore the site to uncover it!",
-                emoji: "🔮",
-                tier: definition.tier,
-                xp: definition.xp,
-                completed: false,
-                earnedAt: null,
-                progress: 0,
-                target: definition.target,
-            });
             hiddenLockedCount += 1;
             continue;
         }
