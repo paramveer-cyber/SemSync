@@ -337,8 +337,9 @@ export async function endTimer(userId, body) {
     if (!timer) return { dropped: true, reason: "no_active_timer" };
     if (body.nonce !== timer.nonce) return { dropped: true, reason: "invalid_nonce" };
 
-    const elapsedSeconds = computeElapsedSeconds(timer);
-    const actualMinutes = Math.floor(elapsedSeconds / 60);
+    const plannedMinutes = timer.plannedMinutes;
+    const cappedElapsedSeconds = Math.min(computeElapsedSeconds(timer), plannedMinutes * 60);
+    const actualMinutes = Math.floor(cappedElapsedSeconds / 60);
 
     await deleteTimer(userId);
 
@@ -346,12 +347,11 @@ export async function endTimer(userId, body) {
         return { dropped: true, reason: "session_too_short" };
     }
 
-    const plannedMinutes = timer.plannedMinutes;
     const linkedTaskId = timer.linkedTaskId ?? null;
     const linkedEvalId = timer.linkedEvalId ?? null;
     const linkedEvalDueDate = timer.linkedEvalDueDate?.toISOString() ?? null;
 
-    if (actualMinutes === plannedMinutes) {
+    if (actualMinutes >= plannedMinutes) {
         const result = await completeSession(userId, { actualMinutes, plannedMinutes, linkedTaskId, linkedEvalId, linkedEvalDueDate });
         return { ...result, actualMinutes };
     }
