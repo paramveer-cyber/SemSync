@@ -5,11 +5,13 @@ import {
     THEMES,
     buildCustomThemeVars,
 } from '../context/ThemeContext';
+import { useTypography } from '../context/TypographyContext';
 import {
     Bell,
     BellOff,
     BookOpen,
     Palette,
+    Type,
     Sun,
     Moon,
     Monitor,
@@ -319,6 +321,98 @@ function ThemeSwatch({
                 </div>
             )}
         </div>
+    );
+}
+
+function TypographyCard({
+    name,
+    headingFont,
+    bodyFont,
+    selected,
+    onClick,
+}: {
+    name: string;
+    headingFont: string;
+    bodyFont: string;
+    selected: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            title={name}
+            style={{
+                position: 'relative',
+                padding: '10px 8px',
+                background: 'var(--color-surface)',
+                border: selected
+                    ? '2px solid var(--color-brand)'
+                    : '1px solid var(--color-glass-border)',
+                borderRadius: 8,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+                minHeight: 68,
+                transition: 'all 0.15s',
+                boxShadow: selected
+                    ? '0 0 0 3px var(--color-brand-glow)'
+                    : 'none',
+            }}
+        >
+            <span
+                style={{
+                    fontFamily: headingFont,
+                    fontWeight: 700,
+                    fontSize: 18,
+                    color: 'var(--color-text)',
+                    lineHeight: 1,
+                }}
+            >
+                Ag
+            </span>
+            <span
+                style={{
+                    fontFamily: bodyFont,
+                    fontSize: 9,
+                    fontWeight: 600,
+                    color: 'var(--color-text-muted)',
+                    textAlign: 'center',
+                    lineHeight: 1.2,
+                }}
+            >
+                {name}
+            </span>
+
+            {selected && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 5,
+                        right: 5,
+                        width: 13,
+                        height: 13,
+                        borderRadius: '50%',
+                        background: 'var(--color-brand)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <svg width='7' height='6' viewBox='0 0 8 7' fill='none'>
+                        <path
+                            d='M1 3.5L3 5.5L7 1'
+                            stroke='white'
+                            strokeWidth='1.4'
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                        />
+                    </svg>
+                </div>
+            )}
+        </button>
     );
 }
 
@@ -792,6 +886,11 @@ export default function SettingsPage() {
         updateCustomTheme,
         deleteCustomTheme,
     } = useTheme();
+    const {
+        typography,
+        setTypography,
+        presets: typographyPresets,
+    } = useTypography();
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [showTutorial, setShowTutorial] = useState(false);
@@ -941,6 +1040,29 @@ export default function SettingsPage() {
             trackPageVisit('settings').catch(() => {}),
         );
     }, []);
+
+    useEffect(() => {
+        const PREVIEW_LINK_ID = 'semsync-typography-preview-link';
+        const families = Array.from(
+            new Set(
+                typographyPresets.flatMap((p) =>
+                    p.googleFamilies.map((f) => f.split(':')[0]),
+                ),
+            ),
+        );
+        if (!families.length) return;
+        const href = `https://fonts.googleapis.com/css2?${families
+            .map((f) => `family=${f}:wght@700`)
+            .join('&')}&display=swap`;
+        const link = document.createElement('link');
+        link.id = PREVIEW_LINK_ID;
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+        return () => {
+            link.remove();
+        };
+    }, [typographyPresets]);
 
     const DELETE_PHRASE = 'delete my account';
 
@@ -1442,6 +1564,42 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
+                    {/* typography */}
+                    <div
+                        style={{
+                            gridColumn: 'span 2',
+                            border: '1px solid var(--color-glass-border)',
+                            borderRadius: 10,
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <SectionHeader
+                            icon={Type}
+                            title='Typography'
+                            color='var(--color-brand)'
+                        />
+                        <div
+                            className='px-5 py-4'
+                            style={{
+                                background: 'var(--color-surface-1)',
+                                display: 'grid',
+                                gridTemplateColumns: '1fr 1fr 1fr 1fr',
+                                gap: 8,
+                            }}
+                        >
+                            {typographyPresets.map((p) => (
+                                <TypographyCard
+                                    key={p.id}
+                                    name={p.name}
+                                    headingFont={p.headingFont}
+                                    bodyFont={p.bodyFont}
+                                    selected={typography.id === p.id}
+                                    onClick={() => setTypography(p.id)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
                     {/* app guide */}
                     <div
                         style={{
@@ -1507,107 +1665,6 @@ export default function SettingsPage() {
                                 <PlayCircle style={{ width: 14, height: 14 }} />
                                 Replay Tutorial
                             </button>
-                        </div>
-                    </div>
-
-                    {/* academic preferences */}
-                    <div
-                        style={{
-                            gridColumn: 'span 2',
-                            border: '1px solid var(--color-glass-border)',
-                            borderRadius: 10,
-                            overflow: 'hidden',
-                        }}
-                    >
-                        <SectionHeader
-                            icon={BookOpen}
-                            title='Academic Preferences'
-                            color='var(--color-done)'
-                        />
-                        <div
-                            className='px-5 py-4'
-                            style={{
-                                background: 'var(--color-surface-1)',
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: 16,
-                            }}
-                        >
-                            <div
-                                className='flex items-center justify-between'
-                                style={{ flex: 1, minWidth: 200 }}
-                            >
-                                <div>
-                                    <p
-                                        className='text-sm font-medium'
-                                        style={{ color: 'var(--color-text)' }}
-                                    >
-                                        Grade Display
-                                    </p>
-                                    <p
-                                        className='text-xs mt-0.5'
-                                        style={{
-                                            color: 'var(--color-text-muted)',
-                                        }}
-                                    >
-                                        How grades are shown throughout the app
-                                    </p>
-                                </div>
-                                <span
-                                    className='text-xs font-bold px-3 py-1.5 uppercase tracking-widest'
-                                    style={{
-                                        background: 'rgba(139,92,246,0.12)',
-                                        color: '#a78bfa',
-                                        border: '1px solid rgba(139,92,246,0.25)',
-                                        borderRadius: 5,
-                                    }}
-                                >
-                                    Percentage (%)
-                                </span>
-                            </div>
-
-                            <div
-                                style={{
-                                    width: 1,
-                                    background: 'var(--color-glass-border)',
-                                    alignSelf: 'stretch',
-                                }}
-                            />
-
-                            <div
-                                className='flex items-center justify-between'
-                                style={{ flex: 1, minWidth: 200 }}
-                            >
-                                <div>
-                                    <p
-                                        className='text-sm font-medium'
-                                        style={{ color: 'var(--color-text)' }}
-                                    >
-                                        Remaining Weight Formula
-                                    </p>
-                                    <p
-                                        className='text-xs mt-0.5'
-                                        style={{
-                                            color: 'var(--color-text-muted)',
-                                        }}
-                                    >
-                                        100% − evaluated weight, regardless of
-                                        score
-                                    </p>
-                                </div>
-                                <span
-                                    className='text-xs font-bold px-3 py-1.5 uppercase tracking-widest'
-                                    style={{
-                                        background: 'var(--color-active-bg)',
-                                        color: 'var(--color-brand)',
-                                        border: '1px solid var(--color-brand)',
-                                        borderRadius: 5,
-                                        opacity: 0.9,
-                                    }}
-                                >
-                                    Active
-                                </span>
-                            </div>
                         </div>
                     </div>
 
