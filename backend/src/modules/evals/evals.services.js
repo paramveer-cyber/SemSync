@@ -8,6 +8,7 @@ import {
     deleteEvalById,
     findUpcomingEvalsByUser,
 } from "../../db/queries.js";
+import { computeAllCoursesAboveTarget } from "../courses/courses.services.js";
 
 const VALID_TYPES = ["quiz", "midsem", "endsem", "assignment", "lab", "project", "viva", "other"];
 
@@ -99,4 +100,48 @@ export const getUpcomingEvals = async (userId) => {
     }
     upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
     return upcoming;
+};
+
+const pctOf = (evalRow) => (evalRow.score / evalRow.maxScore) * 100;
+
+export const computeEvalAchievementFlags = async (evalId, userId, scoreEntered) => {
+    const evalRow = await findEvalById(evalId);
+    if (!evalRow || evalRow.course.userId !== userId) return { scoreEntered };
+
+    const course = evalRow.course;
+    const courseEvals = await findEvalsByCoure(course.id);
+    const scoredEvals = courseEvals.filter((e) => e.score != null);
+
+    const aboveTarget = evalRow.score != null && pctOf(evalRow) >= course.targetGrade;
+    const allEvalsScoredInCourse = courseEvals.length > 0 && courseEvals.every((e) => e.score != null);
+    const allScoredEvalsAboveTargetInCourse = scoredEvals.length > 0
+        && scoredEvals.every((e) => pctOf(e) >= course.targetGrade);
+
+    const sortedByDateDesc = [...scoredEvals].sort((a, b) => new Date(b.date) - new Date(a.date));
+    let consecutiveAboveTargetInCourse = 0;
+    for (const e of sortedByDateDesc) {
+        if (pctOf(e) >= course.targetGrade) consecutiveAboveTargetInCourse += 1;
+        else break;
+    }
+
+    let earnedWeight = 0, currentGrade = 0;
+    for (const e of courseEvals) {
+        if (e.score != null) {
+            currentGrade += (e.score / e.maxScore) * e.weightage;
+            earnedWeight += e.weightage;
+        }
+    }
+    const courseAboveTargetOverall = earnedWeight > 0 && scoredEvals.length >= 2 && currentGrade >= course.targetGrade;
+
+    const allActiveCoursesAboveTarget = await computeAllCoursesAboveTarget(userId);
+
+    return {
+        scoreEntered,
+        aboveTarget,
+        allEvalsScoredInCourse,
+        allScoredEvalsAboveTargetInCourse,
+        consecutiveAboveTargetInCourse,
+        courseAboveTargetOverall,
+        allActiveCoursesAboveTarget,
+    };
 };

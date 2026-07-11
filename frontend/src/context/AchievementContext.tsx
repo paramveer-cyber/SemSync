@@ -7,7 +7,8 @@ import {
     useState,
     ReactNode,
 } from 'react';
-import { getGamificationDashboard } from '../lib/api';
+import { getGamificationDashboard, getAchievementCatalog } from '../lib/api';
+import { cacheGet, cacheSet, cacheHas, dedupe, CACHE_KEYS } from '../lib/sessionCache';
 import { getToken } from '../lib/tokenStore';
 import { useAuth } from './AuthContext';
 import {
@@ -26,6 +27,17 @@ export interface AchievementEntry {
     xp: number;
     desc: string;
     earnedAt?: string;
+}
+
+export interface CatalogAchievement {
+    id: string;
+    name: string;
+    emoji?: string;
+    tier?: string;
+    xp?: number;
+    desc?: string;
+    earnedAt?: string;
+    completed?: boolean;
 }
 
 export interface XPState {
@@ -130,7 +142,7 @@ export const AchievementProvider = ({ children }: { children: ReactNode }) => {
     );
 
     const processData = useCallback(
-        (d: any) => {
+        (d: any, catalogAchievements: CatalogAchievement[] = []) => {
             const newXP: XPState = {
                 totalXp: d.stats?.totalXp ?? 0,
                 level: d.stats?.level ?? 1,
@@ -147,15 +159,14 @@ export const AchievementProvider = ({ children }: { children: ReactNode }) => {
             setXPState(newXP);
             saveXPState(newXP);
 
-            const catalog: any[] = d.catalog ?? [];
-            const earnedEntries: AchievementEntry[] = catalog
-                .filter((a) => a.earned && a.name && a.id)
+            const earnedEntries: AchievementEntry[] = catalogAchievements
+                .filter((a) => a.completed && a.name && a.id)
                 .map((a) => ({
                     id: a.id,
                     name: a.name,
                     emoji: a.emoji ?? '🏆',
                     tier: a.tier ?? 'bronze',
-                    xp: a.xpAwarded ?? a.xp ?? 0,
+                    xp: a.xp ?? 0,
                     desc: a.desc ?? '',
                     earnedAt: a.earnedAt,
                 }));
@@ -165,7 +176,9 @@ export const AchievementProvider = ({ children }: { children: ReactNode }) => {
                 .filter(
                     (a) =>
                         a.achievementId &&
-                        !catalog.find((c: any) => c.id === a.achievementId),
+                        !catalogAchievements.find(
+                            (c) => c.id === a.achievementId,
+                        ),
                 )
                 .map((a) => ({
                     id: a.achievementId,
@@ -187,7 +200,17 @@ export const AchievementProvider = ({ children }: { children: ReactNode }) => {
         fetchingRef.current = true;
         try {
             const d = await getGamificationDashboard();
-            processData(d);
+            let catalogAchievements: CatalogAchievement[] = [];
+            try {
+                if (!cacheHas(CACHE_KEYS.achievementCatalog)) {
+                    await dedupe(CACHE_KEYS.achievementCatalog, async () => {
+                        const catalogRes = await getAchievementCatalog();
+                        cacheSet(CACHE_KEYS.achievementCatalog, catalogRes.achievements ?? []);
+                    });
+                }
+                catalogAchievements = cacheGet<CatalogAchievement[]>(CACHE_KEYS.achievementCatalog) ?? [];
+            } catch {}
+            processData(d, catalogAchievements);
         } catch {
         } finally {
             fetchingRef.current = false;
@@ -231,7 +254,7 @@ export const AchievementProvider = ({ children }: { children: ReactNode }) => {
                         name: a.name,
                         emoji: a.emoji ?? '🏆',
                         tier: a.tier ?? 'bronze',
-                        xp: a.xp ?? 0,
+                        xp: a.xpAwarded ?? a.xp ?? 0,
                         desc: a.desc ?? '',
                     }));
                 showUnlocks(entries, true);

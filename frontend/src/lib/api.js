@@ -85,19 +85,17 @@ export const clearClassroomToken = () => request('DELETE', '/auth/classroom-toke
 export const deleteAccount = () => request('DELETE', '/auth/account');
 export const exportUserData = () => request('GET', '/auth/export');
 
-export const focusSessionStart = () => request('POST', '/focus/session/start');
-export const focusSessionEnd = (data) => request('POST', '/focus/session/end', data);
 export const getGamificationDashboard = () => request('GET', '/focus/dashboard');
-export const useStreakFreeze = () => request('POST', '/focus/streak/freeze');
 
-export const timerGet = () => request('GET', '/focus/timer');
-export const timerStart = (data) => request('POST', '/focus/timer/start', data);
-export const timerPause = () => request('POST', '/focus/timer/pause');
-export const timerResume = () => request('POST', '/focus/timer/resume');
-export const timerExtend = (addMinutes) => request('POST', '/focus/timer/extend', { addMinutes });
-export const timerSync = () => request('POST', '/focus/timer/sync');
-export const timerEnd = (data) => request('POST', '/focus/timer/end', data);
-export const timerAbort = (data) => request('POST', '/focus/timer/abort', data);
+export const timerGet = () => request('GET', '/focus/');
+export const timerStart = (data) => request('POST', '/focus/start', data);
+export const timerPause = () => request('POST', '/focus/pause');
+export const timerResume = () => request('POST', '/focus/resume');
+export const timerExtend = (addMinutes) => request('POST', '/focus/extend', { addMinutes });
+export const timerSync = () => request('POST', '/focus/sync');
+export const timerEnd = (data) => request('POST', '/focus/end', data);
 
 export const trackPageVisit = (page) => request('POST', '/focus/track/page', { page });
 export const trackTask = (action) => request('POST', '/focus/track/task', { action });
+
+export const getAchievementCatalog = () => request('GET', '/achievements/catalog');

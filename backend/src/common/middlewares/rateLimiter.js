@@ -41,24 +41,6 @@ export const apiLimiter = rateLimit({
     handler: (req, res) => json(res, 429, "Too many requests. Slow down."),
 });
 
-export const sessionStartLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: clientIp,
-    handler: (req, res) => json(res, 429, "Too many session starts. Wait a moment before trying again."),
-});
-
-export const sessionEndLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 25,
-    standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: clientIp,
-    handler: (req, res) => json(res, 429, "Too many session submissions. Slow down."),
-});
-
 export const trackTaskLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 30,

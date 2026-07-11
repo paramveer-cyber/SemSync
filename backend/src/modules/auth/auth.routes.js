@@ -18,6 +18,7 @@ import {
 } from "../../common/middlewares/rateLimiter.js";
 import { validate } from "../../common/middlewares/validate.js";
 import { googleAuthBody } from "./auth.model.js";
+import { eventObserver } from "../achievements/achievement.middleware.js";
 
 const router = express.Router();
 
@@ -27,11 +28,11 @@ router.post("/logout", logoutLimiter, logout);
 
 router.get("/me", authMiddleware, getMe);
 
-router.post("/classroom-connect", authMiddleware, connectingClassroom)
+router.post("/classroom-connect", authMiddleware, eventObserver("classroom.linked", "Classroom Linked"), connectingClassroom)
 router.get("/classroom-token", authMiddleware, getClassroomToken);
-router.delete("/classroom-token", authMiddleware, clearClassroomToken);
+router.delete("/classroom-token", authMiddleware, eventObserver("classroom.delinked", "Classroom Delinked"), clearClassroomToken);
 
 router.delete("/account", authMiddleware, deleteAccount);
-router.get("/export", authMiddleware, exportUserData);
+router.get("/export", authMiddleware, eventObserver("general.dataexport", "Data Exported"), exportUserData);
 
 export default router;

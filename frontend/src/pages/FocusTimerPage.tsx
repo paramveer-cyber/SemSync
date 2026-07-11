@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import { fetchCourses, fetchCourse } from '../lib/dataService';
+import { motion } from 'motion/react';
+import { useDelayedSkeleton } from '../hooks/useDelayedSkeleton';
+import { fetchCourses, Course, Evaluation } from '../lib/dataService';
 import {
     Timer,
     Play,
@@ -13,6 +15,7 @@ import {
     Coffee,
     ChevronDown,
     CheckCircle2,
+    XCircle,
     Link2,
     Target,
     AlertCircle,
@@ -26,14 +29,11 @@ import {
     timerExtend,
     timerSync,
     timerEnd,
-    timerAbort,
     getGamificationDashboard,
 } from '../lib/api';
 import SessionComplete from '../components/SessionComplete';
-import AchievementUnlock from '../components/AchievementUnlock';
 import DailyGoals from '../components/DailyGoals';
 import StreakDisplay from '../components/StreakDisplay';
-import XPBar from '../components/XPBar';
 
 interface ServerTimer {
     id: string;
@@ -63,7 +63,6 @@ interface EvalItem {
     weightage?: number;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
     'Reading',
     'Note Making',
@@ -214,6 +213,7 @@ export default function FocusTimerPage() {
 
     const [serverTimer, setServerTimer] = useState<ServerTimer | null>(null);
     const [timerLoaded, setTimerLoaded] = useState(false);
+    const showSkeleton = useDelayedSkeleton(!timerLoaded);
     const [displaySeconds, setDisplaySeconds] = useState(0);
     const localTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const pendingOpRef = useRef<string | null>(null);
@@ -232,14 +232,8 @@ export default function FocusTimerPage() {
     );
 
     const [sessionResult, setSessionResult] = useState<any>(null);
-    const [pendingAchievements, setPendingAchievements] = useState<any[]>([]);
     const [showSessionComplete, setShowSessionComplete] = useState(false);
-    const [showAchievements, setShowAchievements] = useState(false);
     const [gamifData, setGamifData] = useState<any>(null);
-
-    const interactionCountRef = useRef(0);
-    const invisibleRef = useRef(0);
-    const invisStartRef = useRef<number | null>(null);
 
     const [evals, setEvals] = useState<EvalItem[]>([]);
     const [tasks] = useState<TimerTask[]>(() => {
@@ -300,44 +294,6 @@ export default function FocusTimerPage() {
         setTimeout(() => playTone(659, 0.15), 150);
         setTimeout(() => playTone(784, 0.3), 300);
     };
-    const playGoldUnlock = () => {
-        [392, 494, 587, 784].forEach((f, i) =>
-            setTimeout(() => playTone(f, 0.2 + i * 0.1), i * 100),
-        );
-    };
-
-    // Integrity tracking
-    useEffect(() => {
-        const onVis = () => {
-            if (document.hidden) {
-                invisStartRef.current = Date.now();
-            } else if (invisStartRef.current) {
-                invisibleRef.current +=
-                    (Date.now() - invisStartRef.current) / 1000;
-                invisStartRef.current = null;
-            }
-        };
-        document.addEventListener('visibilitychange', onVis);
-        return () => document.removeEventListener('visibilitychange', onVis);
-    }, []);
-    useEffect(() => {
-        const th = (() => {
-            let last = 0;
-            return () => {
-                const now = Date.now();
-                if (now - last > 200) {
-                    last = now;
-                    interactionCountRef.current++;
-                }
-            };
-        })();
-        window.addEventListener('mousemove', th);
-        window.addEventListener('keydown', th);
-        return () => {
-            window.removeEventListener('mousemove', th);
-            window.removeEventListener('keydown', th);
-        };
-    }, []);
 
     // Apply server timer → set display
     function applyServerTimer(t: ServerTimer) {
@@ -360,22 +316,17 @@ export default function FocusTimerPage() {
             Notification.requestPermission();
     }, []);
 
-    // Fetch evals
     useEffect(() => {
         (async () => {
             try {
                 const cl = await fetchCourses();
-                const details = await Promise.all(
-                    cl.map((c: any) => fetchCourse(c.id).catch(() => null)),
-                );
                 const g: EvalItem[] = [];
-                details.forEach((d, i) => {
-                    if (!d) return;
-                    (d.evaluations ?? []).forEach((ev: any) =>
+                cl.forEach((c: Course) => {
+                    (c.evaluations ?? []).forEach((ev: Evaluation) =>
                         g.push({
                             id: ev.id,
                             title: ev.title,
-                            courseName: cl[i]?.name ?? '',
+                            courseName: c.name ?? '',
                             type: ev.type,
                             date: ev.date,
                             weightage: ev.weightage,
@@ -383,9 +334,7 @@ export default function FocusTimerPage() {
                     );
                 });
                 setEvals(g);
-            } catch {
-                /* silent */
-            }
+            } catch {}
         })();
     }, []);
 
@@ -401,11 +350,7 @@ export default function FocusTimerPage() {
         try {
             const result: any = await timerEnd({
                 nonce: serverTimer.nonce,
-                invisibleSeconds: Math.round(invisibleRef.current),
-                interactionCount: interactionCountRef.current,
             });
-            interactionCountRef.current = 0;
-            invisibleRef.current = 0;
             setFinalizing(false);
             if (result && !result.dropped) {
                 playSessionComplete();
@@ -414,8 +359,6 @@ export default function FocusTimerPage() {
                     actualMinutes: result.actualMinutes,
                 });
                 setShowSessionComplete(true);
-                if (result.newAchievements?.length)
-                    setPendingAchievements(result.newAchievements);
                 setGamifData((prev: any) => ({
                     ...prev,
                     stats: result.stats ?? prev?.stats,
@@ -442,7 +385,6 @@ export default function FocusTimerPage() {
             setFinalizing(false);
             setBreakPhase(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [serverTimer]);
     useEffect(() => {
         handleTimerExpiredRef.current = handleTimerExpired;
@@ -466,7 +408,6 @@ export default function FocusTimerPage() {
         return () => {
             if (localTickRef.current) clearInterval(localTickRef.current);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [serverTimer?.id, serverTimer?.status]);
 
     // Server sync heartbeat
@@ -485,7 +426,6 @@ export default function FocusTimerPage() {
             }
         }, SYNC_INTERVAL_MS);
         return () => clearInterval(id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [serverTimer?.id]);
 
     // Break countdown
@@ -649,17 +589,11 @@ export default function FocusTimerPage() {
             clearInterval(localTickRef.current);
             localTickRef.current = null;
         }
-        const snap = {
-            nonce: serverTimer.nonce,
-            invisibleSeconds: Math.round(invisibleRef.current),
-            interactionCount: interactionCountRef.current,
-        };
+        const snap = { nonce: serverTimer.nonce };
         setServerTimer(null);
         setDisplaySeconds(0);
         try {
             const result: any = await timerEnd(snap);
-            interactionCountRef.current = 0;
-            invisibleRef.current = 0;
             rollbackRef.current = null;
             if (result && !result.dropped) {
                 playSessionComplete();
@@ -668,8 +602,6 @@ export default function FocusTimerPage() {
                     actualMinutes: result.actualMinutes,
                 });
                 setShowSessionComplete(true);
-                if (result.newAchievements?.length)
-                    setPendingAchievements(result.newAchievements);
                 setGamifData((prev: any) => ({
                     ...prev,
                     stats: result.stats ?? prev?.stats,
@@ -690,11 +622,14 @@ export default function FocusTimerPage() {
             localTickRef.current = null;
         }
         const snapTimer = serverTimer;
+        saveRollback(serverTimer, displaySeconds);
         setServerTimer(null);
         setDisplaySeconds(selectedMinutes * 60);
         try {
-            if (snapTimer) await timerAbort({ nonce: snapTimer.nonce });
+            if (snapTimer) await timerEnd({ nonce: snapTimer.nonce });
+            rollbackRef.current = null;
         } catch {
+            rollback();
         } finally {
             releaseOp();
         }
@@ -747,24 +682,41 @@ export default function FocusTimerPage() {
             serverTimer.linkedTaskId)
           : (serverTimer?.quickTitle ?? null);
 
+    if (!timerLoaded && !showSkeleton) {
+        return null;
+    }
+
     if (!timerLoaded) {
         return (
-            <div
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.15 }}
                 className='flex min-h-screen'
                 style={{ background: 'var(--color-surface)' }}
             >
                 <Sidebar />
-                <main className='grow flex items-center justify-center'>
-                    <p className='text-[10px] font-mono tracking-widest uppercase text-[var(--color-text-muted)]'>
-                        syncing timer...
-                    </p>
+                <main className='grow flex flex-col overflow-hidden p-8 space-y-8'>
+                    <div className='h-9 w-64 bg-[var(--color-surface-2)] animate-pulse' />
+                    <div className='h-72 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)] rounded-xl' />
+                    <div className='grid grid-cols-3 gap-4'>
+                        {[0, 1, 2].map((i) => (
+                            <div
+                                key={i}
+                                className='h-24 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]'
+                            />
+                        ))}
+                    </div>
                 </main>
-            </div>
+            </motion.div>
         );
     }
 
     return (
-        <div
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.15 }}
             className='flex min-h-screen'
             style={{ background: 'var(--color-surface)' }}
         >
@@ -775,29 +727,8 @@ export default function FocusTimerPage() {
                 {showSessionComplete && sessionResult && (
                     <SessionComplete
                         result={sessionResult}
-                        hasAchievements={pendingAchievements.length > 0}
-                        onContinue={() => {
-                            setShowSessionComplete(false);
-                            if (pendingAchievements.length > 0) {
-                                pendingAchievements.forEach((a) => {
-                                    if (
-                                        a.tier === 'gold' ||
-                                        a.tier === 'platinum'
-                                    )
-                                        playGoldUnlock();
-                                });
-                                setShowAchievements(true);
-                            }
-                        }}
-                    />
-                )}
-                {showAchievements && pendingAchievements.length > 0 && (
-                    <AchievementUnlock
-                        achievements={pendingAchievements}
-                        onDone={() => {
-                            setShowAchievements(false);
-                            setPendingAchievements([]);
-                        }}
+                        hasAchievements={false}
+                        onContinue={() => setShowSessionComplete(false)}
                     />
                 )}
 
@@ -1010,7 +941,7 @@ export default function FocusTimerPage() {
                                             className='flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-red-500 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20'
                                         >
                                             <X className='w-4 h-4' />
-                                            ABORT
+                                            STOP
                                         </button>
                                     )}
                                     {!isActive &&
@@ -1040,22 +971,14 @@ export default function FocusTimerPage() {
                                     longest={
                                         gamifData.streak.longestStreak ?? 0
                                     }
-                                    freezeCount={
-                                        gamifData.streak.freezeCount ?? 0
+                                    lastActiveDate={
+                                        gamifData.streak.lastActiveDate ?? null
                                     }
-                                />
-                            )}
-                            {gamifData?.stats && (
-                                <XPBar
-                                    totalXp={gamifData.stats.totalXp ?? 0}
-                                    level={gamifData.stats.level ?? 1}
                                 />
                             )}
                             {gamifData?.goals && (
                                 <DailyGoals goals={gamifData.goals} />
                             )}
-
-                            {/* Task link — only when idle */}
                             {!isActive && !breakPhase && (
                                 <div
                                     style={{
@@ -1473,34 +1396,56 @@ export default function FocusTimerPage() {
                                     <div className='space-y-2 max-h-64 overflow-y-auto pr-1'>
                                         {(gamifData.recentSessions as any[])
                                             .slice(0, 20)
-                                            .map((s: any) => (
-                                                <div
-                                                    key={s.id}
-                                                    className='flex items-center justify-between px-3 py-2.5 border border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 rounded-lg'
-                                                >
-                                                    <div className='min-w-0'>
-                                                        <p className='text-xs font-bold uppercase text-[var(--color-text)] truncate'>
-                                                            {s.metadata
-                                                                ?.quick_title ||
-                                                                'Focus Session'}
-                                                        </p>
-                                                        <p className='text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]'>
-                                                            {s.metadata
-                                                                ?.local_date ??
-                                                                ''}
-                                                        </p>
+                                            .map((s: any) => {
+                                                const isIncomplete =
+                                                    s.metadata?.status ===
+                                                    'incomplete';
+                                                return (
+                                                    <div
+                                                        key={s.id}
+                                                        className='flex items-center justify-between px-3 py-2.5 border border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 rounded-lg'
+                                                    >
+                                                        <div className='min-w-0'>
+                                                            <div className='flex items-center gap-1.5'>
+                                                                <p className='text-xs font-bold uppercase text-[var(--color-text)] truncate'>
+                                                                    {s.metadata
+                                                                        ?.quick_title ||
+                                                                        'Focus Session'}
+                                                                </p>
+                                                                {isIncomplete && (
+                                                                    <span className='text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-500 shrink-0'>
+                                                                        Incomplete
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className='text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]'>
+                                                                {s.metadata
+                                                                    ?.local_date ??
+                                                                    ''}
+                                                            </p>
+                                                        </div>
+                                                        <div className='flex items-center gap-1.5 shrink-0 ml-3'>
+                                                            {isIncomplete ? (
+                                                                <XCircle className='w-3 h-3 text-amber-500' />
+                                                            ) : (
+                                                                <CheckCircle2 className='w-3 h-3 text-green-500' />
+                                                            )}
+                                                            <span
+                                                                className={`text-xs font-black font-mono ${
+                                                                    isIncomplete
+                                                                        ? 'text-amber-500'
+                                                                        : 'text-green-500'
+                                                                }`}
+                                                            >
+                                                                {s.metadata
+                                                                    ?.duration_minutes ??
+                                                                    '?'}
+                                                                m
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className='flex items-center gap-1.5 shrink-0 ml-3'>
-                                                        <CheckCircle2 className='w-3 h-3 text-green-500' />
-                                                        <span className='text-xs font-black font-mono text-green-500'>
-                                                            {s.metadata
-                                                                ?.duration_minutes ??
-                                                                '?'}
-                                                            m
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                     </div>
                                 )}
                             </div>
@@ -1508,6 +1453,6 @@ export default function FocusTimerPage() {
                     </div>
                 </div>
             </main>
-        </div>
+        </motion.div>
     );
 }

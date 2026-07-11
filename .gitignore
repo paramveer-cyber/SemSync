@@ -6,6 +6,7 @@ coverage/
 .DS_Store
 *.log
 .env*
+*.txt
 !.env.example
 *.zip
 .gitignore

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import AddCourseModal from '../components/modals/AddCourseModal';
+import ConfirmModal from '../components/modals/ConfirmModal';
 import { deleteCourse } from '../lib/api';
 import {
     fetchCourses,
@@ -33,6 +34,10 @@ export default function CoursesPage() {
     const [error, setError] = useState('');
     const [showAdd, setShowAdd] = useState(false);
     const [deleting, setDeleting] = useState<string | null>(null);
+    const [confirmDelete, setConfirmDelete] = useState<{
+        id: string;
+        name: string;
+    } | null>(null);
 
     const loadActive = useCallback(async () => {
         setLoading(true);
@@ -68,8 +73,7 @@ export default function CoursesPage() {
     }, [tab, loadArchived]);
 
     const handleDelete = useCallback(
-        async (id: string, name: string) => {
-            if (!confirm(`Delete "${name}"?`)) return;
+        async (id: string) => {
             setDeleting(id);
             try {
                 await deleteCourse(id);
@@ -79,6 +83,7 @@ export default function CoursesPage() {
                 else setArchived((p) => p.filter((c) => c.id !== id));
             } catch (err: any) {
                 alert('Failed: ' + err.message);
+                throw err;
             } finally {
                 setDeleting(null);
             }
@@ -370,10 +375,10 @@ export default function CoursesPage() {
                                             </div>
                                             <button
                                                 onClick={() =>
-                                                    handleDelete(
-                                                        course.id,
-                                                        course.name,
-                                                    )
+                                                    setConfirmDelete({
+                                                        id: course.id,
+                                                        name: course.name,
+                                                    })
                                                 }
                                                 title={`Delete ${course.name}`}
                                                 className='flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-0 group-hover:opacity-100'
@@ -475,6 +480,23 @@ export default function CoursesPage() {
                         setCourses((p) => [...p, c]);
                         setShowAdd(false);
                     }}
+                />
+            )}
+            {confirmDelete && (
+                <ConfirmModal
+                    title='Delete course'
+                    message={
+                        <>
+                            Delete{' '}
+                            <strong style={{ color: 'var(--color-text)' }}>
+                                {confirmDelete.name}
+                            </strong>
+                            ? This cannot be undone.
+                        </>
+                    }
+                    variant='delete'
+                    onConfirm={() => handleDelete(confirmDelete.id)}
+                    onClose={() => setConfirmDelete(null)}
                 />
             )}
         </div>

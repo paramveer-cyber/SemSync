@@ -1,13 +1,14 @@
 import {
     getAllCourses, getArchivedCourses, getCourseById,
     createCourse, updateCourse, deleteCourse, archiveCourse, computeStats,
+    computeCourseAchievementFlags,
 } from "./courses.services.js";
-import { onCourseCreated, onCourseArchived, onCourseUpdated } from "../focus/focus.service.js";
 
 export const listCourses = async (req, res, next) => {
     try {
         const data = await getAllCourses(req.user.userId);
-        return res.status(200).json({ courses: data });
+        const withStats = data.map((c) => ({ ...c, stats: computeStats(c, c.evaluations) }));
+        return res.status(200).json({ courses: withStats });
     } catch (err) { next(err); }
 };
 
@@ -21,7 +22,6 @@ export const listArchivedCourses = async (req, res, next) => {
 export const doArchiveCourse = async (req, res, next) => {
     try {
         const course = await archiveCourse(req.params.id, req.user.userId);
-        onCourseArchived(req.user.userId).catch(() => {});
         return res.status(200).json({ course });
     } catch (err) { next(err); }
 };
@@ -39,7 +39,7 @@ export const addCourse = async (req, res, next) => {
     try {
         const { name, credits, targetGrade } = req.body;
         const course = await createCourse(req.user.userId, { name, credits, targetGrade });
-        onCourseCreated(req.user.userId).catch(() => {});
+        res.locals.achievementMeta = await computeCourseAchievementFlags(req.user.userId);
         return res.status(201).json({ course });
     } catch (err) { next(err); }
 };
@@ -47,7 +47,7 @@ export const addCourse = async (req, res, next) => {
 export const editCourse = async (req, res, next) => {
     try {
         const course = await updateCourse(req.params.id, req.user.userId, req.body);
-        onCourseUpdated(req.user.userId).catch(() => {});
+        res.locals.achievementMeta = await computeCourseAchievementFlags(req.user.userId);
         return res.status(200).json({ course });
     } catch (err) { next(err); }
 };

@@ -6,11 +6,10 @@ import {
     useCallback,
     ReactNode,
 } from 'react';
-import { authLogout, doRefresh } from '../lib/api';
+import { authLogout, authMe, doRefresh } from '../lib/api';
 import { invalidateOnLogout } from '../lib/dataService';
-import { setToken, clearToken, getToken } from '../lib/tokenStore.js';
-
-const BASE = import.meta.env.VITE_BASE_URL ?? '';
+import { setToken, clearToken } from '../lib/tokenStore.js';
+import { dedupe } from '../lib/sessionCache';
 
 interface User {
     id: string;
@@ -39,17 +38,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     useEffect(() => {
-        doRefresh()
-            .then(async () => {
-                const token = getToken();
-                const meRes = await fetch(`${BASE}/auth/me`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    credentials: 'include',
-                });
-                if (!meRes.ok) throw new Error();
-                const { user: userData } = await meRes.json();
-                setUser(userData);
-            })
+        dedupe('authBoot', async () => {
+            await doRefresh();
+            const { user: userData } = await authMe();
+            setUser(userData);
+        })
             .catch(() => {
                 clearToken();
                 setUser(null);

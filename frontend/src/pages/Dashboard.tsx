@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import AddCourseModal from '../components/modals/AddCourseModal';
+import ConfirmModal from '../components/modals/ConfirmModal';
 import OnboardingTutorial, {
     hasSeenTutorial,
 } from '../components/OnboardingTutorial';
@@ -9,8 +10,8 @@ import { deleteCourse, archiveCourse } from '../lib/api';
 import {
     fetchCourses,
     fetchUpcomingEvals,
-    fetchCourse,
     invalidateAllCourseData,
+    Course,
 } from '../lib/dataService';
 import {
     Plus,
@@ -171,6 +172,11 @@ export default function Dashboard() {
     const [showAdd, setShowAdd] = useState(false);
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState<string | null>(null);
+    const [confirmAction, setConfirmAction] = useState<{
+        id: string;
+        name: string;
+        action: 'delete' | 'archive';
+    } | null>(null);
     const [error, setError] = useState('');
     const [showTutorial, setShowTutorial] = useState(false);
 
@@ -187,53 +193,10 @@ export default function Dashboard() {
                 fetchUpcomingEvals(),
             ]);
 
-            const normalizeWeights = (es: any[]): number[] => {
-                const ws = es.map(
-                    (e: any) => Math.round(e.weightage * 10) / 10,
-                );
-                let excess = Math.round(
-                    (ws.reduce((s: number, w: number) => s + w, 0) - 100) * 10,
-                );
-                if (excess > 0) {
-                    for (let i = 0; i < ws.length && excess > 0; i++) {
-                        if (ws[i] % 1 !== 0) {
-                            ws[i] = Math.round((ws[i] - 0.1) * 10) / 10;
-                            excess--;
-                        }
-                    }
-                }
-                return ws;
-            };
-
-            const withStats: CourseWithStats[] = await Promise.all(
-                rawCourses.map(async (c: any) => {
-                    try {
-                        const { stats, evaluations } = await fetchCourse(c.id);
-                        const weights = normalizeWeights(evaluations);
-                        const currentGrade =
-                            Math.round(
-                                evaluations.reduce(
-                                    (s: number, e: any, i: number) => {
-                                        if (e.score == null || !e.maxScore)
-                                            return s;
-                                        return (
-                                            s +
-                                            (e.score / e.maxScore) * weights[i]
-                                        );
-                                    },
-                                    0,
-                                ) * 100,
-                            ) / 100;
-                        return { ...c, ...stats, currentGrade };
-                    } catch {
-                        return {
-                            ...c,
-                            currentGrade: 0,
-                            totalWeight: 0,
-                            remainingWeight: 0,
-                            requiredAvg: null,
-                        };
-                    }
+            const withStats: CourseWithStats[] = rawCourses.map(
+                (c: Course) => ({
+                    ...c,
+                    ...c.stats,
                 }),
             );
 
@@ -250,9 +213,7 @@ export default function Dashboard() {
         load();
     }, [load]);
 
-    const handleDelete = useCallback(async (id: string, name: string) => {
-        if (!confirm(`Delete "${name}"? All evaluations will also be deleted.`))
-            return;
+    const handleDelete = useCallback(async (id: string) => {
         setActing(id);
         try {
             await deleteCourse(id);
@@ -261,14 +222,13 @@ export default function Dashboard() {
             setUpcoming((p) => p.filter((e: any) => e.courseId !== id));
         } catch (err: any) {
             alert('Failed: ' + err.message);
+            throw err;
         } finally {
             setActing(null);
         }
     }, []);
 
-    const handleArchive = useCallback(async (id: string, name: string) => {
-        if (!confirm(`Archive "${name}"? It becomes read-only permanently.`))
-            return;
+    const handleArchive = useCallback(async (id: string) => {
         setActing(id);
         try {
             await archiveCourse(id);
@@ -277,6 +237,7 @@ export default function Dashboard() {
             setUpcoming((p) => p.filter((e: any) => e.courseId !== id));
         } catch (err: any) {
             alert('Failed: ' + err.message);
+            throw err;
         } finally {
             setActing(null);
         }
@@ -769,9 +730,12 @@ export default function Dashboard() {
                                                             onClick={(ev) => {
                                                                 ev.preventDefault();
                                                                 ev.stopPropagation();
-                                                                handleArchive(
-                                                                    course.id,
-                                                                    course.name,
+                                                                setConfirmAction(
+                                                                    {
+                                                                        id: course.id,
+                                                                        name: course.name,
+                                                                        action: 'archive',
+                                                                    },
                                                                 );
                                                             }}
                                                             disabled={!!acting}
@@ -807,9 +771,12 @@ export default function Dashboard() {
                                                             onClick={(ev) => {
                                                                 ev.preventDefault();
                                                                 ev.stopPropagation();
-                                                                handleDelete(
-                                                                    course.id,
-                                                                    course.name,
+                                                                setConfirmAction(
+                                                                    {
+                                                                        id: course.id,
+                                                                        name: course.name,
+                                                                        action: 'delete',
+                                                                    },
                                                                 );
                                                             }}
                                                             disabled={!!acting}
@@ -1164,6 +1131,42 @@ export default function Dashboard() {
 
             {showTutorial && (
                 <OnboardingTutorial onClose={() => setShowTutorial(false)} />
+            )}
+            {confirmAction && confirmAction.action === 'delete' && (
+                <ConfirmModal
+                    title='Delete course'
+                    message={
+                        <>
+                            Delete{' '}
+                            <strong style={{ color: 'var(--color-text)' }}>
+                                {confirmAction.name}
+                            </strong>
+                            ? All evaluations will also be deleted. This cannot
+                            be undone.
+                        </>
+                    }
+                    variant='delete'
+                    onConfirm={() => handleDelete(confirmAction.id)}
+                    onClose={() => setConfirmAction(null)}
+                />
+            )}
+            {confirmAction && confirmAction.action === 'archive' && (
+                <ConfirmModal
+                    title='Archive course'
+                    message={
+                        <>
+                            Archive{' '}
+                            <strong style={{ color: 'var(--color-text)' }}>
+                                {confirmAction.name}
+                            </strong>
+                            ? It becomes read-only permanently.
+                        </>
+                    }
+                    variant='archive'
+                    confirmLabel='Archive'
+                    onConfirm={() => handleArchive(confirmAction.id)}
+                    onClose={() => setConfirmAction(null)}
+                />
             )}
         </div>
     );

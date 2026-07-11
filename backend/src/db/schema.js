@@ -118,6 +118,16 @@ export const userAchievements = pgTable("user_achievements", {
     uniqueIndex("idx_achievements_user_id_unique").on(t.userId, t.achievementId),
 ]);
 
+export const achievementProgress = pgTable("achievement_progress", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    achievementId: text("achievement_id").notNull(),
+    progressValue: integer("progress_value").notNull().default(0),
+    updatedAt: updatedAt(),
+}, (t) => [
+    uniqueIndex("idx_achievement_progress_user_achievement").on(t.userId, t.achievementId),
+]);
+
 export const dailyGoals = pgTable("daily_goals", {
     id: uuid("id").defaultRandom().primaryKey(),
     userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),

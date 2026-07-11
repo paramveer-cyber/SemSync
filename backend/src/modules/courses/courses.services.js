@@ -36,6 +36,26 @@ export const computeStats = (course, evals) => {
     };
 };
 
+export const computeCourseAchievementFlags = async (userId) => {
+    const activeCourses = await getAllCourses(userId);
+    const courseCount = activeCourses.length;
+    const fullyConfiguredCourseCount = activeCourses.filter(
+        (c) => c.credits != null && c.targetGrade !== 50,
+    ).length;
+    const customTargetSet = activeCourses.some((c) => c.targetGrade !== 50);
+    const highAmbitionCourseCount = activeCourses.filter((c) => c.targetGrade >= 90).length;
+    return { courseCount, fullyConfiguredCourseCount, customTargetSet, highAmbitionCourseCount };
+};
+
+export const computeAllCoursesAboveTarget = async (userId) => {
+    const activeCourses = await getAllCourses(userId);
+    if (!activeCourses.length) return false;
+    return activeCourses.every((c) => {
+        const stats = computeStats(c, c.evaluations);
+        return stats.earnedWeight > 0 && stats.currentGrade >= c.targetGrade;
+    });
+};
+
 export const getAllCourses = (userId) => findCoursesByUser(userId);
 
 export const getArchivedCourses = (userId) => findArchivedCoursesByUser(userId);
