@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { CheckCircle2, Flame, Target, XCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useMotionDisabled } from '../context/AnimationPreferenceContext';
+
+const STAGGER_STEP_SECONDS = 0.14;
 
 interface SessionResult {
     xp: number;
@@ -62,7 +66,7 @@ function StatCard({
                 {value}
             </p>
             <p
-                className='text-[9px] font-bold tracking-widest uppercase mt-0.5'
+                className='text-4xs font-bold tracking-widest uppercase mt-0.5'
                 style={{ color: 'var(--color-text-muted)' }}
             >
                 {label}
@@ -81,6 +85,29 @@ export default function SessionComplete({
         const id = requestAnimationFrame(() => setVisible(true));
         return () => cancelAnimationFrame(id);
     }, []);
+
+    const reducedMotion = useMotionDisabled();
+
+    const containerVariants = {
+        hidden: {},
+        show: {
+            transition: {
+                staggerChildren: reducedMotion ? 0 : STAGGER_STEP_SECONDS,
+                delayChildren: reducedMotion ? 0 : 0.1,
+            },
+        },
+    };
+    const itemVariants = {
+        hidden: { opacity: 0, y: reducedMotion ? 0 : 12 },
+        show: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: reducedMotion ? 0 : 0.28,
+                ease: 'easeOut' as const,
+            },
+        },
+    };
 
     const {
         xp = 0,
@@ -138,9 +165,17 @@ export default function SessionComplete({
                     </div>
                 </div>
 
-                <div className='p-6 space-y-5'>
+                <motion.div
+                    className='p-6 space-y-5'
+                    variants={containerVariants}
+                    initial='hidden'
+                    animate={visible ? 'show' : 'hidden'}
+                >
                     {/* stats row */}
-                    <div className='grid grid-cols-3 gap-3'>
+                    <motion.div
+                        className='grid grid-cols-3 gap-3'
+                        variants={itemVariants}
+                    >
                         <StatCard
                             value={`${actualMinutes}m`}
                             label='Duration'
@@ -158,11 +193,12 @@ export default function SessionComplete({
                                     : 'var(--color-text-muted)'
                             }
                         />
-                    </div>
+                    </motion.div>
 
                     {streakStatus?.wasIncremented && (
-                        <div
-                            className='flex items-center gap-2.5 px-3 py-2.5 rounded-lg animate-fade-up'
+                        <motion.div
+                            className='flex items-center gap-2.5 px-3 py-2.5 rounded-lg'
+                            variants={itemVariants}
                             style={{
                                 background: 'var(--color-active-bg)',
                                 border: '1px solid var(--color-brand)',
@@ -179,13 +215,16 @@ export default function SessionComplete({
                                 {streakStatus.currentStreak}-day streak! Keep it
                                 going.
                             </span>
-                        </div>
+                        </motion.div>
                     )}
 
                     {goalsCompleted?.length > 0 && (
-                        <div className='space-y-1.5'>
+                        <motion.div
+                            className='space-y-1.5'
+                            variants={itemVariants}
+                        >
                             <p
-                                className='text-[10px] font-black tracking-widest uppercase'
+                                className='text-3xs font-black tracking-widest uppercase'
                                 style={{ color: 'var(--color-text-muted)' }}
                             >
                                 Goals Completed
@@ -217,16 +256,16 @@ export default function SessionComplete({
                                         </span>
                                     </div>
                                     <span
-                                        className='text-[10px] font-black font-mono'
+                                        className='text-3xs font-black font-mono'
                                         style={{ color: 'var(--color-brand)' }}
                                     >
                                         +{g.xpReward} XP
                                     </span>
                                 </div>
                             ))}
-                        </div>
+                        </motion.div>
                     )}
-                </div>
+                </motion.div>
 
                 <div className='px-6 pb-5'>
                     <button

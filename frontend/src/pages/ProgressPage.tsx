@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 import { Trophy, Flame, Zap, Clock, Crown, Lock, Sparkles } from 'lucide-react';
-import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import {
     getGamificationDashboard,
@@ -213,7 +212,7 @@ function StatCard({
         >
             <div className='flex items-center justify-between'>
                 <span
-                    className='text-[10px] font-black tracking-[0.22em] uppercase'
+                    className='text-3xs font-black tracking-[0.22em] uppercase'
                     style={{ color: 'var(--color-text-faint)' }}
                 >
                     {label}
@@ -234,7 +233,7 @@ function StatCard({
             </div>
             {sub && (
                 <p
-                    className='text-[10px] font-mono'
+                    className='text-3xs font-mono'
                     style={{ color: 'var(--color-text-faint)' }}
                 >
                     {sub}
@@ -291,7 +290,7 @@ function AchievementTile({
         >
             {/* Tier pill */}
             <span
-                className='text-[8px] font-black tracking-[0.22em] uppercase px-2 py-0.5 rounded-full'
+                className='text-5xs font-black tracking-[0.22em] uppercase px-2 py-0.5 rounded-full'
                 style={{
                     color: earned ? ts.color : 'var(--color-text-faint)',
                     background: earned ? ts.bg : 'var(--color-surface-2)',
@@ -319,7 +318,7 @@ function AchievementTile({
                 )}
                 <span
                     style={{
-                        fontSize: 32,
+                        fontSize: 'var(--text-32)',
                         filter: earned
                             ? `drop-shadow(0 0 8px ${ts.glow})`
                             : 'grayscale(1)',
@@ -342,7 +341,7 @@ function AchievementTile({
                     {isHidden ? '???' : a.name}
                 </p>
                 <p
-                    className='text-[11px] leading-snug'
+                    className='text-2xs leading-snug'
                     style={{ color: 'var(--color-text-faint)' }}
                 >
                     {isHidden ? 'Hidden achievement' : a.desc}
@@ -367,7 +366,7 @@ function AchievementTile({
                         />
                     </div>
                     <p
-                        className='text-[9px] font-mono mt-1 text-center'
+                        className='text-4xs font-mono mt-1 text-center'
                         style={{ color: 'var(--color-text-faint)' }}
                     >
                         {progress.value.toLocaleString()} /{' '}
@@ -384,13 +383,13 @@ function AchievementTile({
                 >
                     <div className='flex items-center justify-between'>
                         <span
-                            className='text-[9px] font-mono'
+                            className='text-4xs font-mono'
                             style={{ color: 'var(--color-text-faint)' }}
                         >
                             {date}
                         </span>
                         <span
-                            className='text-[10px] font-black font-mono'
+                            className='text-3xs font-black font-mono'
                             style={{ color: ts.color }}
                         >
                             +{a.xpAwarded ?? a.xp} XP
@@ -400,7 +399,7 @@ function AchievementTile({
             ) : (
                 <div className='w-full mt-auto pt-2'>
                     <span
-                        className='text-[9px] font-bold tracking-widest uppercase'
+                        className='text-4xs font-bold tracking-widest uppercase'
                         style={{ color: 'var(--color-text-faint)' }}
                     >
                         {isHidden ? '???' : 'Locked'}
@@ -433,13 +432,13 @@ function GoalsPanel({ goals }: { goals: Goal[] }) {
         >
             <div className='flex items-center justify-between mb-2'>
                 <span
-                    className='text-[10px] font-black tracking-[0.22em] uppercase'
+                    className='text-3xs font-black tracking-[0.22em] uppercase'
                     style={{ color: 'var(--color-brand)' }}
                 >
                     Today's Goals
                 </span>
                 <span
-                    className='text-[10px] font-black font-mono'
+                    className='text-3xs font-black font-mono'
                     style={{
                         color: allDone
                             ? 'var(--color-brand)'
@@ -485,7 +484,7 @@ function GoalsPanel({ goals }: { goals: Goal[] }) {
                                     color: isDone
                                         ? 'var(--color-brand)'
                                         : 'var(--color-text-faint)',
-                                    fontSize: 13,
+                                    fontSize: 'var(--text-13)',
                                     fontWeight: 900,
                                 }}
                             >
@@ -506,7 +505,7 @@ function GoalsPanel({ goals }: { goals: Goal[] }) {
                                 {g.title}
                             </span>
                             <span
-                                className='text-[10px] font-black font-mono shrink-0'
+                                className='text-3xs font-black font-mono shrink-0'
                                 style={{
                                     color: isDone
                                         ? 'var(--color-brand)'
@@ -553,53 +552,58 @@ export default function ProgressPage() {
     const [tierFilter, setTierFilter] = useState<string>('all');
 
     useEffect(() => {
-        trackPageVisit('progress')
+        trackPageVisit('progress').catch(() => {});
+
+        const dashboardPromise = getGamificationDashboard();
+        const catalogPromise = getAchievementCatalog().catch(() => ({
+            achievements: [],
+        }));
+
+        dashboardPromise
+            .then((d: any) => {
+                const fallbackCatalog: CatalogEntry[] = (d.earned ?? []).map(
+                    (e: EarnedAchievement) => ({
+                        id: e.achievementId,
+                        tier: e.tier,
+                        hidden: false,
+                        earned: true,
+                        earnedAt: e.earnedAt,
+                        xpAwarded: e.xpAwarded,
+                    }),
+                );
+                setData((prev) => ({
+                    ...prev,
+                    stats: d.stats ?? null,
+                    streak: d.streak ?? null,
+                    goals: d.goals ?? [],
+                    catalog: prev.catalog.length
+                        ? prev.catalog
+                        : fallbackCatalog,
+                }));
+                // Trigger global achievement check — ensures toasts fire even if user came here directly
+                checkAchievements();
+            })
             .catch(() => {})
-            .finally(() => {
-                Promise.all([
-                    getGamificationDashboard(),
-                    getAchievementCatalog().catch(() => ({ achievements: [] })),
-                ])
-                    .then(([d, catalogRes]: [any, any]) => {
-                        const catalogAchievements: any[] =
-                            catalogRes.achievements ?? [];
-                        const catalog: CatalogEntry[] =
-                            catalogAchievements.length
-                                ? catalogAchievements.map((a) => ({
-                                      id: a.id,
-                                      tier: a.tier,
-                                      hidden: false,
-                                      earned: !!a.completed,
-                                      locked: !a.completed,
-                                      name: a.name,
-                                      desc: a.desc,
-                                      emoji: a.emoji,
-                                      xp: a.xp,
-                                      earnedAt: a.earnedAt,
-                                      xpAwarded: a.xp,
-                                  }))
-                                : (d.earned ?? []).map(
-                                      (e: EarnedAchievement) => ({
-                                          id: e.achievementId,
-                                          tier: e.tier,
-                                          hidden: false,
-                                          earned: true,
-                                          earnedAt: e.earnedAt,
-                                          xpAwarded: e.xpAwarded,
-                                      }),
-                                  );
-                        setData({
-                            stats: d.stats ?? null,
-                            streak: d.streak ?? null,
-                            catalog,
-                            goals: d.goals ?? [],
-                        });
-                        // Trigger global achievement check — ensures toasts fire even if user came here directly
-                        checkAchievements();
-                    })
-                    .catch(() => {})
-                    .finally(() => setLoading(false));
-            });
+            .finally(() => setLoading(false));
+
+        catalogPromise.then((catalogRes: any) => {
+            const catalogAchievements: any[] = catalogRes.achievements ?? [];
+            if (!catalogAchievements.length) return;
+            const catalog: CatalogEntry[] = catalogAchievements.map((a) => ({
+                id: a.id,
+                tier: a.tier,
+                hidden: false,
+                earned: !!a.completed,
+                locked: !a.completed,
+                name: a.name,
+                desc: a.desc,
+                emoji: a.emoji,
+                xp: a.xp,
+                earnedAt: a.earnedAt,
+                xpAwarded: a.xp,
+            }));
+            setData((prev) => ({ ...prev, catalog }));
+        });
     }, [checkAchievements]);
 
     const { stats, streak, catalog, goals } = data;
@@ -645,41 +649,31 @@ export default function ProgressPage() {
 
     if (loading) {
         return (
-            <div
-                className='flex min-h-screen'
-                style={{ background: 'var(--color-surface)' }}
-            >
-                <Sidebar />
-                <main className='grow p-8 space-y-4'>
-                    <div className='h-10 w-64 rounded-lg bg-[var(--color-surface-2)] animate-pulse' />
-                    <div className='grid grid-cols-4 gap-4'>
-                        {[0, 1, 2, 3].map((i) => (
-                            <div
-                                key={i}
-                                className='h-32 rounded-xl bg-[var(--color-surface-2)] animate-pulse'
-                            />
-                        ))}
-                    </div>
-                    <div className='h-40 rounded-xl bg-[var(--color-surface-2)] animate-pulse' />
-                    <div className='grid grid-cols-3 gap-4'>
-                        {[0, 1, 2].map((i) => (
-                            <div
-                                key={i}
-                                className='h-52 rounded-xl bg-[var(--color-surface-2)] animate-pulse'
-                            />
-                        ))}
-                    </div>
-                </main>
-            </div>
+            <main className='grow p-8 space-y-4'>
+                <div className='h-10 w-64 rounded-lg bg-[var(--color-surface-2)] animate-pulse' />
+                <div className='grid grid-cols-4 gap-4'>
+                    {[0, 1, 2, 3].map((i) => (
+                        <div
+                            key={i}
+                            className='h-32 rounded-xl bg-[var(--color-surface-2)] animate-pulse'
+                        />
+                    ))}
+                </div>
+                <div className='h-40 rounded-xl bg-[var(--color-surface-2)] animate-pulse' />
+                <div className='grid grid-cols-3 gap-4'>
+                    {[0, 1, 2].map((i) => (
+                        <div
+                            key={i}
+                            className='h-52 rounded-xl bg-[var(--color-surface-2)] animate-pulse'
+                        />
+                    ))}
+                </div>
+            </main>
         );
     }
 
     return (
-        <div
-            className='flex min-h-screen'
-            style={{ background: 'var(--color-surface)' }}
-        >
-            <Sidebar />
+        <>
             <main className='grow overflow-y-auto'>
                 <Header
                     title='Progress'
@@ -715,7 +709,7 @@ export default function ProgressPage() {
                                     </div>
                                     <div>
                                         <p
-                                            className='text-[9px] font-black tracking-[0.3em] uppercase'
+                                            className='text-4xs font-black tracking-[0.3em] uppercase'
                                             style={{
                                                 color: 'var(--color-brand)',
                                             }}
@@ -763,7 +757,7 @@ export default function ProgressPage() {
                                 {/* XP bar — full width, clean */}
                                 <div className='mb-2 flex items-center justify-between'>
                                     <span
-                                        className='text-[9px] font-black tracking-[0.18em] uppercase'
+                                        className='text-4xs font-black tracking-[0.18em] uppercase'
                                         style={{
                                             color: 'var(--color-text-faint)',
                                         }}
@@ -787,7 +781,7 @@ export default function ProgressPage() {
                                 </div>
                                 <div className='flex justify-between mt-1.5'>
                                     <span
-                                        className='text-[9px] font-mono'
+                                        className='text-4xs font-mono'
                                         style={{
                                             color: 'var(--color-text-faint)',
                                         }}
@@ -795,7 +789,7 @@ export default function ProgressPage() {
                                         {xpInLevel.toLocaleString()} XP
                                     </span>
                                     <span
-                                        className='text-[9px] font-mono'
+                                        className='text-4xs font-mono'
                                         style={{
                                             color: 'var(--color-text-faint)',
                                         }}
@@ -819,7 +813,7 @@ export default function ProgressPage() {
                                 >
                                     <div
                                         style={{
-                                            fontSize: 44,
+                                            fontSize: 'var(--text-44)',
                                             filter: `drop-shadow(0 0 14px ${fl?.glow})`,
                                         }}
                                     >
@@ -832,7 +826,7 @@ export default function ProgressPage() {
                                         {streak?.currentStreak ?? 0}
                                     </p>
                                     <p
-                                        className='text-[9px] uppercase tracking-[0.18em] mt-1.5 font-black'
+                                        className='text-4xs uppercase tracking-[0.18em] mt-1.5 font-black'
                                         style={{
                                             color: 'var(--color-text-faint)',
                                         }}
@@ -855,7 +849,7 @@ export default function ProgressPage() {
                                             }}
                                         />
                                         <p
-                                            className='text-[9px] uppercase tracking-[0.18em] font-black'
+                                            className='text-4xs uppercase tracking-[0.18em] font-black'
                                             style={{
                                                 color: 'var(--color-text-faint)',
                                             }}
@@ -873,7 +867,7 @@ export default function ProgressPage() {
                                                 }
                                             </p>
                                             <p
-                                                className='text-[10px]'
+                                                className='text-3xs'
                                                 style={{
                                                     color: 'var(--color-text-faint)',
                                                 }}
@@ -890,7 +884,7 @@ export default function ProgressPage() {
                                                 h
                                             </p>
                                             <p
-                                                className='text-[10px]'
+                                                className='text-3xs'
                                                 style={{
                                                     color: 'var(--color-text-faint)',
                                                 }}
@@ -916,12 +910,12 @@ export default function ProgressPage() {
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: 6,
+                                            gap: '0.375rem',
                                         }}
                                     >
                                         <span
                                             style={{
-                                                fontSize: 26,
+                                                fontSize: 'var(--text-26)',
                                                 filter: `drop-shadow(0 0 6px ${fl?.glow})`,
                                                 animation:
                                                     streak.currentStreak >= 14
@@ -971,7 +965,7 @@ export default function ProgressPage() {
                                         )}
                                     />
                                     <span
-                                        style={{ fontSize: 18, opacity: 0.5 }}
+                                        style={{ fontSize: 'var(--type-h4-size)', opacity: 0.5 }}
                                     >
                                         h
                                     </span>
@@ -1014,7 +1008,7 @@ export default function ProgressPage() {
                                 }}
                             >
                                 <p
-                                    className='text-[10px] font-black tracking-[0.22em] uppercase mb-4'
+                                    className='text-3xs font-black tracking-[0.22em] uppercase mb-4'
                                     style={{ color: 'var(--color-brand)' }}
                                 >
                                     Streak History
@@ -1050,7 +1044,7 @@ export default function ProgressPage() {
                                                 {suffix}
                                             </p>
                                             <p
-                                                className='text-[9px] font-bold uppercase tracking-widest mt-1'
+                                                className='text-4xs font-bold uppercase tracking-widest mt-1'
                                                 style={{
                                                     color: 'var(--color-text-faint)',
                                                 }}
@@ -1095,7 +1089,7 @@ export default function ProgressPage() {
                                 >
                                     <button
                                         onClick={() => setTierFilter('all')}
-                                        className='px-2 py-1 text-[9px] font-black rounded-md cursor-pointer transition-all duration-150'
+                                        className='px-2 py-1 text-4xs font-black rounded-md cursor-pointer transition-all duration-150'
                                         style={{
                                             background:
                                                 tierFilter === 'all'
@@ -1120,7 +1114,7 @@ export default function ProgressPage() {
                                                             : t,
                                                     )
                                                 }
-                                                className='px-2 py-1 text-[9px] font-black rounded-md cursor-pointer transition-all duration-150'
+                                                className='px-2 py-1 text-4xs font-black rounded-md cursor-pointer transition-all duration-150'
                                                 style={{
                                                     background:
                                                         tierFilter === t
@@ -1166,7 +1160,7 @@ export default function ProgressPage() {
                                             <button
                                                 key={f}
                                                 onClick={() => setFilter(f)}
-                                                className='px-3 py-1.5 text-[9px] font-black tracking-widest uppercase rounded-md cursor-pointer transition-all duration-150'
+                                                className='px-3 py-1.5 text-4xs font-black tracking-widest uppercase rounded-md cursor-pointer transition-all duration-150'
                                                 style={{
                                                     background:
                                                         filter === f
@@ -1200,7 +1194,7 @@ export default function ProgressPage() {
                             </div>
                         ) : (
                             <div className='card p-12 text-center'>
-                                <span style={{ fontSize: 28, opacity: 0.3 }}>
+                                <span style={{ fontSize: 'var(--type-h2-size)', opacity: 0.3 }}>
                                     🔮
                                 </span>
                                 <p
@@ -1232,13 +1226,13 @@ export default function ProgressPage() {
                     style={{ borderTop: '1px solid var(--color-glass-border)' }}
                 >
                     <span
-                        className='text-[10px] uppercase tracking-[0.2em]'
+                        className='text-3xs uppercase tracking-[0.2em]'
                         style={{ color: 'var(--color-text-faint)' }}
                     >
                         © 2026 SEMSYNC
                     </span>
                 </footer>
             </main>
-        </div>
+        </>
     );
 }

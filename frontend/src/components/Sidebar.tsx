@@ -98,7 +98,7 @@ export default function Sidebar() {
                                 color: active
                                     ? 'var(--color-active-text)'
                                     : 'var(--color-text-muted)',
-                                borderRadius: 8,
+                                borderRadius: '0.5rem',
                             }}
                             onMouseEnter={(e) => {
                                 if (!active)
@@ -162,7 +162,7 @@ export default function Sidebar() {
                                 {xpState.currentStreak}
                             </span>
                             <span
-                                className='text-[10px] uppercase tracking-widest'
+                                className='text-3xs uppercase tracking-widest'
                                 style={{ color: 'var(--color-text-muted)' }}
                             >
                                 day streak
@@ -190,7 +190,7 @@ export default function Sidebar() {
                                     location.pathname === '/profile'
                                         ? '#3b82f6'
                                         : 'var(--color-text-muted)',
-                                borderRadius: 8,
+                                borderRadius: '0.5rem',
                             }}
                             onMouseEnter={(e) => {
                                 if (location.pathname !== '/profile')
@@ -252,7 +252,7 @@ export default function Sidebar() {
                             style={{
                                 color: 'var(--color-text-muted)',
                                 cursor: 'pointer',
-                                borderRadius: 8,
+                                borderRadius: '0.5rem',
                             }}
                             onMouseEnter={(e) => {
                                 (

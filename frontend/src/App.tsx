@@ -4,15 +4,18 @@ import {
     Routes,
     Route,
     Navigate,
+    Outlet,
 } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { AchievementProvider } from './context/AchievementContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { TypographyProvider } from './context/TypographyContext';
+import { AnimationPreferenceProvider } from './context/AnimationPreferenceContext';
 import ToastStack from './components/ToastStack';
 import AchievementToastStack from './components/achievements/AchievementToastStack';
 import CinematicUnlock from './components/achievements/CinematicUnlock';
+import Layout from './components/Layout';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -106,11 +109,11 @@ function PageLoader() {
     );
 }
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = () => {
     const { user, loading } = useAuth();
     if (loading) return <PageLoader />;
     if (!user) return <Navigate to='/login' replace />;
-    return <>{children}</>;
+    return <Outlet />;
 };
 
 export default function App() {
@@ -118,121 +121,103 @@ export default function App() {
         <DesktopOnly>
             <ThemeProvider>
                 <TypographyProvider>
-                    <Router>
-                        <NotificationProvider>
-                            <AchievementProvider>
-                                <ToastStack />
-                                <AchievementToastStack />
-                                <CinematicUnlock />
-                                <Suspense fallback={<PageLoader />}>
-                                    <Routes>
-                                        <Route
-                                            path='/'
-                                            element={<LandingPage />}
-                                        />
-                                        <Route
-                                            path='/login'
-                                            element={<LoginPage />}
-                                        />
-                                        <Route
-                                            path='/dashboard'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <Dashboard />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/courses'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <CoursesPage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/courses/:id'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <CoursePage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/calendar'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <CalendarPage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/tasks'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <TaskCenterPage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/focus'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <FocusTimerPage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/profile'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <UserPage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/settings'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <SettingsPage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/about'
-                                            element={<AboutPage />}
-                                        />
-                                        <Route
-                                            path='/legal'
-                                            element={<LegalPage />}
-                                        />
-                                        <Route
-                                            path='/classroom'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <ClassroomPage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='/progress'
-                                            element={
-                                                <ProtectedRoute>
-                                                    <ProgressPage />
-                                                </ProtectedRoute>
-                                            }
-                                        />
-                                        <Route
-                                            path='*'
-                                            element={
-                                                <Navigate to='/' replace />
-                                            }
-                                        />
-                                    </Routes>
-                                </Suspense>
-                            </AchievementProvider>
-                        </NotificationProvider>
-                    </Router>
+                    <AnimationPreferenceProvider>
+                        <Router>
+                            <NotificationProvider>
+                                <AchievementProvider>
+                                    <ToastStack />
+                                    <AchievementToastStack />
+                                    <CinematicUnlock />
+                                    <Suspense fallback={<PageLoader />}>
+                                        <Routes>
+                                            <Route
+                                                path='/'
+                                                element={<LandingPage />}
+                                            />
+                                            <Route
+                                                path='/login'
+                                                element={<LoginPage />}
+                                            />
+                                            <Route element={<Layout />}>
+                                                <Route
+                                                    path='/about'
+                                                    element={<AboutPage />}
+                                                />
+                                                <Route
+                                                    path='/legal'
+                                                    element={<LegalPage />}
+                                                />
+                                            </Route>
+                                            <Route element={<ProtectedRoute />}>
+                                                <Route element={<Layout />}>
+                                                    <Route
+                                                        path='/dashboard'
+                                                        element={<Dashboard />}
+                                                    />
+                                                    <Route
+                                                        path='/courses'
+                                                        element={
+                                                            <CoursesPage />
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path='/courses/:id'
+                                                        element={<CoursePage />}
+                                                    />
+                                                    <Route
+                                                        path='/calendar'
+                                                        element={
+                                                            <CalendarPage />
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path='/tasks'
+                                                        element={
+                                                            <TaskCenterPage />
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path='/focus'
+                                                        element={
+                                                            <FocusTimerPage />
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path='/profile'
+                                                        element={<UserPage />}
+                                                    />
+                                                    <Route
+                                                        path='/settings'
+                                                        element={
+                                                            <SettingsPage />
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path='/classroom'
+                                                        element={
+                                                            <ClassroomPage />
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path='/progress'
+                                                        element={
+                                                            <ProgressPage />
+                                                        }
+                                                    />
+                                                </Route>
+                                            </Route>
+                                            <Route
+                                                path='*'
+                                                element={
+                                                    <Navigate to='/' replace />
+                                                }
+                                            />
+                                        </Routes>
+                                    </Suspense>
+                                </AchievementProvider>
+                            </NotificationProvider>
+                        </Router>
+                    </AnimationPreferenceProvider>
                 </TypographyProvider>
             </ThemeProvider>
         </DesktopOnly>

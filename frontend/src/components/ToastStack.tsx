@@ -29,7 +29,7 @@ export default function ToastStack() {
             <u.Icon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: u.color }} />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-[var(--color-text)] mb-0.5">{t.title}</p>
-              <p className="text-[11px] leading-snug" style={{ color: 'var(--color-text-muted)' }}>{t.body}</p>
+              <p className="text-2xs leading-snug" style={{ color: 'var(--color-text-muted)' }}>{t.body}</p>
             </div>
             <button
               onClick={() => dismissToast(t.id)}

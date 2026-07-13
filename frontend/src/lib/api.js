@@ -99,3 +99,4 @@ export const trackPageVisit = (page) => request('POST', '/focus/track/page', { p
 export const trackTask = (action) => request('POST', '/focus/track/task', { action });
 
 export const getAchievementCatalog = () => request('GET', '/achievements/catalog');
+export const experienceAchievement = (tier) => request('POST', '/events/experience-achievement', { tier });

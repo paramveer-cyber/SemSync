@@ -85,3 +85,12 @@ export const adminLimiter = rateLimit({
     keyGenerator: clientIp,
     handler: (req, res) => json(res, 429, "Too many admin requests. Slow down."),
 });
+
+export const experienceAchievementLimiter = rateLimit({
+    windowMs: 3 * 1000,
+    max: 1,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.user?.userId ?? clientIp(req),
+    handler: (req, res) => json(res, 429, "Slow down, one preview at a time."),
+});

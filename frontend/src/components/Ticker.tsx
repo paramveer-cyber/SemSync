@@ -10,7 +10,7 @@ function Ticker({items}: {items: string[]}) {
         {items.map((item, i) => (
           <span
             key={i}
-            className="flex items-center gap-3 text-[10px] font-bold tracking-[0.3em] mr-12"
+            className="flex items-center gap-3 text-3xs font-bold tracking-[0.3em] mr-12"
             style={{ color: 'var(--color-text-faint)' }}
           >
             <span style={{ color: 'var(--color-brand)' }}>◆</span>

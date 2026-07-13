@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { insertEvent, getEarnedAchievements } from "../../db/gamification.js";
-import { getISTContext, getISTDateStr } from "../../common/utils/dates.js";
+import { getISTContext } from "../../common/utils/dates.js";
 import { computeXP } from "../../common/utils/xp.js";
 import { findUpcomingEvalsByUser } from "../../db/queries.js";
 import {
@@ -185,15 +185,24 @@ export async function generateDailyGoals(userId, stats, streak, today) {
     return insertGoals(goals.slice(0, maxGoals));
 }
 
+function normalizeStreakFreshness(streak, today, yesterday) {
+    if (!streak) return streak;
+    const streakStillAlive = streak.lastActiveDate === today || streak.lastActiveDate === yesterday;
+    if (streakStillAlive) return streak;
+    return { ...streak, currentStreak: 0 };
+}
+
 export async function getDashboardData(userId) {
-    const [stats, streak, earned, recentSessions] = await Promise.all([
+    const { today, yesterday } = getISTContext();
+    const [stats, rawStreak, earned, recentSessions] = await Promise.all([
         getStats(userId),
         getStreak(userId),
         getEarnedAchievements(userId),
         getRecentSessions(userId, 20),
     ]);
 
-    const today = getISTDateStr();
+    const streak = normalizeStreakFreshness(rawStreak, today, yesterday);
+
     let goals = await getTodayGoals(userId, today);
     if (!goals.length) {
         goals = await generateDailyGoals(userId, stats, streak, today);

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
-import Sidebar from '../components/Sidebar';
 import SyncCourseModal from '../components/modals/SyncCourseModal';
 import {
     getClassroomToken as apiGetClassroomToken,
@@ -391,16 +390,16 @@ function StatCard({
                 minWidth: 0,
                 background: active ? `${accentColor}10` : 'var(--color-glass)',
                 border: `1px solid ${active ? borderColor : 'var(--color-glass-border)'}`,
-                borderRadius: 10,
+                borderRadius: '0.625rem',
                 padding: '14px 18px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 3,
+                gap: '0.1875rem',
             }}
         >
             <span
                 style={{
-                    fontSize: 11,
+                    fontSize: 'var(--text-2xs)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
@@ -411,7 +410,7 @@ function StatCard({
             </span>
             <span
                 style={{
-                    fontSize: 26,
+                    fontSize: 'var(--text-26)',
                     fontWeight: 800,
                     color: accentColor,
                     lineHeight: 1.1,
@@ -422,7 +421,7 @@ function StatCard({
             </span>
             {sub && (
                 <span
-                    style={{ fontSize: 12, color: 'var(--color-text-muted)' }}
+                    style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}
                 >
                     {sub}
                 </span>
@@ -459,9 +458,9 @@ function CoursePill({
                 flexShrink: 0,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
+                gap: '0.375rem',
                 padding: '6px 16px',
-                borderRadius: 99,
+                borderRadius: '6.1875rem',
                 border: `1.5px solid ${isSelected ? `hsl(${hue},70%,55%)` : 'var(--color-glass-border)'}`,
                 background: isSelected
                     ? `hsl(${hue},70%,55%)18`
@@ -469,7 +468,7 @@ function CoursePill({
                 color: isSelected
                     ? `hsl(${hue},70%,60%)`
                     : 'var(--color-text-muted)',
-                fontSize: 13,
+                fontSize: 'var(--text-13)',
                 fontWeight: isSelected ? 700 : 500,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -493,8 +492,8 @@ function CoursePill({
             {hasCritical && (
                 <span
                     style={{
-                        width: 6,
-                        height: 6,
+                        width: '0.375rem',
+                        height: '0.375rem',
                         borderRadius: '50%',
                         background: '#E24B4A',
                         flexShrink: 0,
@@ -504,7 +503,7 @@ function CoursePill({
             )}
             <span
                 style={{
-                    maxWidth: 140,
+                    maxWidth: '8.75rem',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                 }}
@@ -514,10 +513,10 @@ function CoursePill({
             {pendingCount > 0 && (
                 <span
                     style={{
-                        fontSize: 9,
+                        fontSize: 'var(--text-4xs)',
                         fontWeight: 800,
                         padding: '1px 5px',
-                        borderRadius: 99,
+                        borderRadius: '6.1875rem',
                         background: isSelected
                             ? `hsl(${hue},70%,55%)25`
                             : 'var(--color-glass-border)',
@@ -532,8 +531,8 @@ function CoursePill({
             {isSynced && (
                 <span
                     style={{
-                        width: 5,
-                        height: 5,
+                        width: '0.3125rem',
+                        height: '0.3125rem',
                         borderRadius: '50%',
                         background: 'var(--color-brand)',
                         flexShrink: 0,
@@ -582,11 +581,11 @@ function AssignmentRow({
             style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 14,
+                gap: '0.875rem',
                 background: 'var(--color-glass)',
                 border: '1px solid var(--color-glass-border)',
                 borderLeft: `4px solid ${borderColor}`,
-                borderRadius: 8,
+                borderRadius: '0.5rem',
                 padding: '13px 16px 13px 14px',
                 cursor: cw.alternateLink ? 'pointer' : 'default',
                 transition: 'background 0.15s ease',
@@ -606,13 +605,13 @@ function AssignmentRow({
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 3,
+                        gap: '0.5rem',
+                        marginBottom: '0.1875rem',
                     }}
                 >
                     <p
                         style={{
-                            fontSize: 15,
+                            fontSize: 'var(--text-15)',
                             fontWeight: 700,
                             color: 'var(--color-text)',
                             overflow: 'hidden',
@@ -627,10 +626,10 @@ function AssignmentRow({
                         <span
                             style={{
                                 flexShrink: 0,
-                                fontSize: 10,
+                                fontSize: 'var(--text-3xs)',
                                 fontWeight: 800,
                                 padding: '2px 7px',
-                                borderRadius: 99,
+                                borderRadius: '6.1875rem',
                                 background: `${borderColor}18`,
                                 color: borderColor,
                                 border: `1px solid ${borderColor}35`,
@@ -643,7 +642,7 @@ function AssignmentRow({
                 </div>
                 <p
                     style={{
-                        fontSize: 12,
+                        fontSize: 'var(--text-xs)',
                         color: 'var(--color-text-muted)',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -658,7 +657,7 @@ function AssignmentRow({
                     <>
                         <div
                             style={{
-                                fontSize: 18,
+                                fontSize: 'var(--type-h4-size)',
                                 fontWeight: 800,
                                 color: gc,
                                 lineHeight: 1,
@@ -669,7 +668,7 @@ function AssignmentRow({
                             {cw.maxPoints && (
                                 <span
                                     style={{
-                                        fontSize: 11,
+                                        fontSize: 'var(--text-2xs)',
                                         fontWeight: 400,
                                         color: 'var(--color-text-muted)',
                                     }}
@@ -682,20 +681,20 @@ function AssignmentRow({
                             <>
                                 <div
                                     style={{
-                                        fontSize: 10,
+                                        fontSize: 'var(--text-3xs)',
                                         fontWeight: 700,
                                         color: gc,
-                                        marginTop: 1,
+                                        marginTop: '0.0625rem',
                                     }}
                                 >
                                     {pct}%
                                 </div>
                                 <div
                                     style={{
-                                        marginTop: 4,
-                                        width: 48,
-                                        height: 2,
-                                        borderRadius: 2,
+                                        marginTop: '0.25rem',
+                                        width: '3rem',
+                                        height: '0.125rem',
+                                        borderRadius: '0.125rem',
                                         background: 'var(--color-glass-border)',
                                         marginLeft: 'auto',
                                     }}
@@ -704,7 +703,7 @@ function AssignmentRow({
                                         style={{
                                             width: `${Math.min(pct, 100)}%`,
                                             height: '100%',
-                                            borderRadius: 2,
+                                            borderRadius: '0.125rem',
                                             background: gc,
                                         }}
                                     />
@@ -717,7 +716,7 @@ function AssignmentRow({
                         {cw.dueDate && (
                             <div
                                 style={{
-                                    fontSize: 12,
+                                    fontSize: 'var(--text-xs)',
                                     color: 'var(--color-text-muted)',
                                     fontFamily: 'monospace',
                                 }}
@@ -728,11 +727,11 @@ function AssignmentRow({
                         {urgency && (
                             <div
                                 style={{
-                                    fontSize: 12,
+                                    fontSize: 'var(--text-xs)',
                                     fontWeight: 800,
                                     color: urgency.color,
                                     fontFamily: 'monospace',
-                                    marginTop: 1,
+                                    marginTop: '0.0625rem',
                                 }}
                             >
                                 {urgency.text}
@@ -762,19 +761,19 @@ function GradeRow({
             style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 14,
+                gap: '0.875rem',
                 padding: '13px 16px',
                 background: 'var(--color-glass)',
                 border: '1px solid var(--color-glass-border)',
                 borderLeft: `4px solid ${gc}`,
-                borderRadius: 8,
+                borderRadius: '0.5rem',
             }}
         >
             <div
                 style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 10,
+                    width: '2.75rem',
+                    height: '2.75rem',
+                    borderRadius: '0.625rem',
                     flexShrink: 0,
                     background: `${gc}14`,
                     border: `1px solid ${gc}28`,
@@ -787,7 +786,7 @@ function GradeRow({
                 {pct !== null ? (
                     <span
                         style={{
-                            fontSize: 12,
+                            fontSize: 'var(--text-xs)',
                             fontWeight: 900,
                             color: gc,
                             lineHeight: 1,
@@ -797,29 +796,29 @@ function GradeRow({
                         {pct}%
                     </span>
                 ) : (
-                    <Trophy style={{ width: 14, height: 14, color: gc }} />
+                    <Trophy style={{ width: '0.875rem', height: '0.875rem', color: gc }} />
                 )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
                 <p
                     style={{
-                        fontSize: 15,
+                        fontSize: 'var(--text-15)',
                         fontWeight: 700,
                         color: 'var(--color-text)',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        marginBottom: 3,
+                        marginBottom: '0.1875rem',
                     }}
                 >
                     {cw?.title ?? 'Assignment'}
                 </p>
-                <p style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
                     Returned {timeAgo(sub.updateTime)}
                     {cw?.workType && (
                         <span
                             style={{
-                                marginLeft: 6,
+                                marginLeft: '0.375rem',
                                 color: 'var(--color-text-faint)',
                             }}
                         >
@@ -831,7 +830,7 @@ function GradeRow({
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div
                     style={{
-                        fontSize: 20,
+                        fontSize: 'var(--text-xl)',
                         fontWeight: 800,
                         color: gc,
                         lineHeight: 1,
@@ -842,7 +841,7 @@ function GradeRow({
                     {cw?.maxPoints && (
                         <span
                             style={{
-                                fontSize: 12,
+                                fontSize: 'var(--text-xs)',
                                 fontWeight: 400,
                                 color: 'var(--color-text-muted)',
                             }}
@@ -854,10 +853,10 @@ function GradeRow({
                 {pct !== null && (
                     <div
                         style={{
-                            marginTop: 6,
-                            width: 56,
-                            height: 3,
-                            borderRadius: 3,
+                            marginTop: '0.375rem',
+                            width: '3.5rem',
+                            height: '0.1875rem',
+                            borderRadius: '0.1875rem',
                             background: 'var(--color-glass-border)',
                             marginLeft: 'auto',
                         }}
@@ -866,7 +865,7 @@ function GradeRow({
                             style={{
                                 width: `${Math.min(pct, 100)}%`,
                                 height: '100%',
-                                borderRadius: 3,
+                                borderRadius: '0.1875rem',
                                 background: gc,
                                 transition: 'width 0.4s ease',
                             }}
@@ -887,7 +886,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
                 background: 'var(--color-glass)',
                 border: '1px solid var(--color-glass-border)',
                 borderLeft: '4px solid #EF9F27',
-                borderRadius: 10,
+                borderRadius: '0.625rem',
                 padding: '16px 18px',
             }}
         >
@@ -896,21 +895,21 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    marginBottom: 12,
+                    marginBottom: '0.75rem',
                 }}
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Megaphone
                         style={{
-                            width: 13,
-                            height: 13,
+                            width: '0.8125rem',
+                            height: '0.8125rem',
                             color: '#EF9F27',
                             flexShrink: 0,
                         }}
                     />
                     <span
                         style={{
-                            fontSize: 11,
+                            fontSize: 'var(--text-2xs)',
                             fontWeight: 800,
                             color: '#EF9F27',
                             textTransform: 'uppercase',
@@ -922,7 +921,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
                 </div>
                 <span
                     style={{
-                        fontSize: 11,
+                        fontSize: 'var(--text-2xs)',
                         color: 'var(--color-text-faint)',
                         fontFamily: 'monospace',
                     }}
@@ -932,7 +931,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
             </div>
             <p
                 style={{
-                    fontSize: 14,
+                    fontSize: 'var(--text-sm)',
                     color: 'var(--color-text)',
                     lineHeight: 1.7,
                     whiteSpace: 'pre-wrap',
@@ -944,8 +943,8 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
                 <button
                     onClick={() => setExpanded((v) => !v)}
                     style={{
-                        marginTop: 12,
-                        fontSize: 12,
+                        marginTop: '0.75rem',
+                        fontSize: 'var(--text-xs)',
                         color: 'var(--color-brand)',
                         background: 'none',
                         border: 'none',
@@ -953,18 +952,18 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
                         padding: 0,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 4,
+                        gap: '0.25rem',
                         fontWeight: 600,
                     }}
                 >
                     {expanded ? (
                         <>
-                            <ChevronUp style={{ width: 12, height: 12 }} />
+                            <ChevronUp style={{ width: '0.75rem', height: 12 }} />
                             Show less
                         </>
                     ) : (
                         <>
-                            <ChevronDown style={{ width: 12, height: 12 }} />
+                            <ChevronDown style={{ width: '0.75rem', height: 12 }} />
                             Read more
                         </>
                     )}
@@ -972,9 +971,9 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
             )}
             <p
                 style={{
-                    fontSize: 11,
+                    fontSize: 'var(--text-2xs)',
                     color: 'var(--color-text-faint)',
-                    marginTop: 12,
+                    marginTop: '0.75rem',
                 }}
             >
                 {fmtDate(ann.creationTime)}
@@ -991,15 +990,15 @@ function EmptyState({ icon: Icon, message }: { icon: any; message: string }) {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingTop: 64,
-                gap: 14,
+                paddingTop: '4rem',
+                gap: '0.875rem',
             }}
         >
             <div
                 style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 14,
+                    width: '3.5rem',
+                    height: '3.5rem',
+                    borderRadius: '0.875rem',
                     background: 'var(--color-glass)',
                     border: '1px solid var(--color-glass-border)',
                     display: 'flex',
@@ -1009,15 +1008,15 @@ function EmptyState({ icon: Icon, message }: { icon: any; message: string }) {
             >
                 <Icon
                     style={{
-                        width: 24,
-                        height: 24,
+                        width: '1.5rem',
+                        height: '1.5rem',
                         color: 'var(--color-text-faint)',
                     }}
                 />
             </div>
             <p
                 style={{
-                    fontSize: 14,
+                    fontSize: 'var(--text-sm)',
                     color: 'var(--color-text-muted)',
                     textAlign: 'center',
                 }}
@@ -1032,13 +1031,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     return (
         <p
             style={{
-                fontSize: 11,
+                fontSize: 'var(--text-2xs)',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 color: 'var(--color-text-faint)',
-                marginBottom: 8,
-                marginTop: 6,
+                marginBottom: '0.5rem',
+                marginTop: '0.375rem',
             }}
         >
             {children}
@@ -1068,12 +1067,12 @@ function NextRefreshBadge({ nextRefreshAt }: { nextRefreshAt: number }) {
     return (
         <span
             style={{
-                fontSize: 11,
+                fontSize: 'var(--text-2xs)',
                 color: 'var(--color-text-faint)',
                 fontFamily: 'monospace',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 3,
+                gap: '0.1875rem',
             }}
         >
             <span style={{ opacity: 0.5 }}>auto in</span>
@@ -1347,11 +1346,7 @@ export default function ClassroomPage() {
         totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : null;
 
     return (
-        <div
-            className='flex min-h-screen'
-            style={{ background: 'var(--color-bg)' }}
-        >
-            <Sidebar />
+        <>
             <main className='flex-1 flex flex-col min-h-screen overflow-hidden'>
                 {/* Top bar */}
                 <div
@@ -1362,29 +1357,29 @@ export default function ClassroomPage() {
                         padding: '16px 28px',
                         borderBottom: '1px solid var(--color-glass-border)',
                         flexShrink: 0,
-                        background: 'var(--color-bg)',
-                        gap: 12,
+                        background: 'var(--color-surface)',
+                        gap: '0.75rem',
                     }}
                 >
                     <div
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 12,
+                            gap: '0.75rem',
                             minWidth: 0,
                         }}
                     >
                         <GraduationCap
                             style={{
-                                width: 20,
-                                height: 20,
+                                width: '1.25rem',
+                                height: '1.25rem',
                                 color: 'var(--color-brand)',
                                 flexShrink: 0,
                             }}
                         />
                         <h1
                             style={{
-                                fontSize: 18,
+                                fontSize: 'var(--type-h4-size)',
                                 fontWeight: 800,
                                 color: 'var(--color-text)',
                                 letterSpacing: '-0.02em',
@@ -1400,7 +1395,7 @@ export default function ClassroomPage() {
                         {selected?.section && (
                             <span
                                 style={{
-                                    fontSize: 13,
+                                    fontSize: 'var(--text-13)',
                                     color: 'var(--color-text-faint)',
                                     flexShrink: 0,
                                 }}
@@ -1413,7 +1408,7 @@ export default function ClassroomPage() {
                     <div
                         style={{
                             display: 'flex',
-                            gap: 8,
+                            gap: '0.5rem',
                             alignItems: 'center',
                             flexShrink: 0,
                         }}
@@ -1423,7 +1418,7 @@ export default function ClassroomPage() {
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 8,
+                                    gap: '0.5rem',
                                 }}
                             >
                                 <NextRefreshBadge
@@ -1431,7 +1426,7 @@ export default function ClassroomPage() {
                                 />
                                 <span
                                     style={{
-                                        fontSize: 10,
+                                        fontSize: 'var(--text-3xs)',
                                         color: 'var(--color-text-faint)',
                                         opacity: 0.6,
                                     }}
@@ -1448,19 +1443,19 @@ export default function ClassroomPage() {
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 5,
+                                    gap: '0.3125rem',
                                     padding: '6px 13px',
-                                    borderRadius: 7,
+                                    borderRadius: '0.4375rem',
                                     background: 'var(--color-glass)',
                                     border: '1px solid var(--color-glass-border)',
                                     color: 'var(--color-text-muted)',
-                                    fontSize: 13,
+                                    fontSize: 'var(--text-13)',
                                     fontWeight: 600,
                                     textDecoration: 'none',
                                 }}
                             >
                                 <ArrowUpRight
-                                    style={{ width: 13, height: 13 }}
+                                    style={{ width: '0.8125rem', height: 13 }}
                                 />
                                 Open
                             </a>
@@ -1473,13 +1468,13 @@ export default function ClassroomPage() {
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: 5,
-                                            fontSize: 12,
+                                            gap: '0.3125rem',
+                                            fontSize: 'var(--text-xs)',
                                             color: 'var(--color-text-muted)',
                                         }}
                                     >
                                         <Loader2
-                                            style={{ width: 12, height: 12 }}
+                                            style={{ width: '0.75rem', height: 12 }}
                                             className='animate-spin'
                                         />
                                         Syncing…
@@ -1491,20 +1486,20 @@ export default function ClassroomPage() {
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: 5,
+                                        gap: '0.3125rem',
                                         padding: '6px 13px',
-                                        borderRadius: 7,
+                                        borderRadius: '0.4375rem',
                                         background: 'var(--color-glass)',
                                         border: '1px solid var(--color-glass-border)',
                                         color: 'var(--color-text-muted)',
-                                        fontSize: 13,
+                                        fontSize: 'var(--text-13)',
                                         fontWeight: 600,
                                         cursor: 'pointer',
                                         opacity: loading ? 0.5 : 1,
                                     }}
                                 >
                                     <RefreshCw
-                                        style={{ width: 13, height: 13 }}
+                                        style={{ width: '0.8125rem', height: 13 }}
                                     />
                                     Refresh
                                 </button>
@@ -1513,19 +1508,19 @@ export default function ClassroomPage() {
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: 5,
+                                        gap: '0.3125rem',
                                         padding: '6px 13px',
-                                        borderRadius: 7,
+                                        borderRadius: '0.4375rem',
                                         background: 'rgba(226,75,74,0.07)',
                                         border: '1px solid rgba(226,75,74,0.2)',
                                         color: '#E24B4A',
-                                        fontSize: 13,
+                                        fontSize: 'var(--text-13)',
                                         fontWeight: 600,
                                         cursor: 'pointer',
                                     }}
                                 >
                                     <Link2Off
-                                        style={{ width: 13, height: 13 }}
+                                        style={{ width: '0.8125rem', height: 13 }}
                                     />
                                     Unlink
                                 </button>
@@ -1542,14 +1537,14 @@ export default function ClassroomPage() {
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: 24,
+                            gap: '1.5rem',
                         }}
                     >
                         <div
                             style={{
                                 position: 'relative',
-                                width: 64,
-                                height: 64,
+                                width: '4rem',
+                                height: '4rem',
                             }}
                         >
                             <div
@@ -1592,8 +1587,8 @@ export default function ClassroomPage() {
                             >
                                 <GraduationCap
                                     style={{
-                                        width: 20,
-                                        height: 20,
+                                        width: '1.25rem',
+                                        height: '1.25rem',
                                         color: 'var(--color-brand)',
                                     }}
                                 />
@@ -1602,17 +1597,17 @@ export default function ClassroomPage() {
                         <div style={{ textAlign: 'center' }}>
                             <p
                                 style={{
-                                    fontSize: 13,
+                                    fontSize: 'var(--text-13)',
                                     fontWeight: 700,
                                     color: 'var(--color-text)',
-                                    marginBottom: 4,
+                                    marginBottom: '0.25rem',
                                 }}
                             >
                                 Connecting to Classroom
                             </p>
                             <p
                                 style={{
-                                    fontSize: 11,
+                                    fontSize: 'var(--text-2xs)',
                                     color: 'var(--color-text-muted)',
                                 }}
                             >
@@ -1624,8 +1619,8 @@ export default function ClassroomPage() {
                                 <div
                                     key={i}
                                     style={{
-                                        width: 6,
-                                        height: 6,
+                                        width: '0.375rem',
+                                        height: '0.375rem',
                                         borderRadius: '50%',
                                         background: 'var(--color-brand)',
                                         opacity: 0.4,
@@ -1644,15 +1639,15 @@ export default function ClassroomPage() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            padding: 24,
+                            padding: '1.5rem',
                         }}
                     >
                         <div style={{ textAlign: 'center', maxWidth: 380 }}>
                             <div
                                 style={{
-                                    width: 72,
-                                    height: 72,
-                                    borderRadius: 18,
+                                    width: '4.5rem',
+                                    height: '4.5rem',
+                                    borderRadius: '1.125rem',
                                     margin: '0 auto 20px',
                                     background: 'var(--color-glass)',
                                     border: '1px solid var(--color-glass-border)',
@@ -1663,18 +1658,18 @@ export default function ClassroomPage() {
                             >
                                 <GraduationCap
                                     style={{
-                                        width: 32,
-                                        height: 32,
+                                        width: '2rem',
+                                        height: '2rem',
                                         color: 'var(--color-brand)',
                                     }}
                                 />
                             </div>
                             <h2
                                 style={{
-                                    fontSize: 22,
+                                    fontSize: 'var(--type-h3-size)',
                                     fontWeight: 800,
                                     color: 'var(--color-text)',
-                                    marginBottom: 10,
+                                    marginBottom: '0.625rem',
                                     letterSpacing: '-0.02em',
                                 }}
                             >
@@ -1682,10 +1677,10 @@ export default function ClassroomPage() {
                             </h2>
                             <p
                                 style={{
-                                    fontSize: 14,
+                                    fontSize: 'var(--text-sm)',
                                     color: 'var(--color-text-muted)',
                                     lineHeight: 1.7,
-                                    marginBottom: 24,
+                                    marginBottom: '1.5rem',
                                 }}
                             >
                                 Connect your account to view courses, track
@@ -1695,22 +1690,22 @@ export default function ClassroomPage() {
                             {error && (
                                 <div
                                     style={{
-                                        marginBottom: 16,
+                                        marginBottom: '1rem',
                                         padding: '11px 16px',
-                                        borderRadius: 8,
+                                        borderRadius: '0.5rem',
                                         background: 'rgba(226,75,74,0.08)',
                                         border: '1px solid rgba(226,75,74,0.2)',
                                         color: '#E24B4A',
-                                        fontSize: 13,
+                                        fontSize: 'var(--text-13)',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: 8,
+                                        gap: '0.5rem',
                                     }}
                                 >
                                     <AlertCircle
                                         style={{
-                                            width: 14,
-                                            height: 14,
+                                            width: '0.875rem',
+                                            height: '0.875rem',
                                             flexShrink: 0,
                                         }}
                                     />
@@ -1722,12 +1717,12 @@ export default function ClassroomPage() {
                                 style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
-                                    gap: 8,
+                                    gap: '0.5rem',
                                     padding: '11px 26px',
-                                    borderRadius: 8,
+                                    borderRadius: '0.5rem',
                                     background: 'var(--color-brand)',
                                     color: '#fff',
-                                    fontSize: 14,
+                                    fontSize: 'var(--text-sm)',
                                     fontWeight: 700,
                                     border: 'none',
                                     cursor: 'pointer',
@@ -1735,28 +1730,28 @@ export default function ClassroomPage() {
                                         '0 0 24px var(--color-brand-glow)',
                                 }}
                             >
-                                <Link2 style={{ width: 14, height: 14 }} />
+                                <Link2 style={{ width: '0.875rem', height: 14 }} />
                                 Connect Classroom
                             </button>
                             <div
                                 style={{
-                                    marginTop: 20,
+                                    marginTop: '1.25rem',
                                     padding: '14px 18px',
-                                    borderRadius: 10,
+                                    borderRadius: '0.625rem',
                                     background: 'rgba(55,138,221,0.07)',
                                     border: '1px solid rgba(55,138,221,0.25)',
-                                    maxWidth: 340,
+                                    maxWidth: '21.25rem',
                                     textAlign: 'left',
                                     display: 'flex',
-                                    gap: 12,
+                                    gap: '0.75rem',
                                     alignItems: 'flex-start',
                                 }}
                             >
                                 <span
                                     style={{
-                                        fontSize: 18,
+                                        fontSize: 'var(--type-h4-size)',
                                         flexShrink: 0,
-                                        marginTop: 1,
+                                        marginTop: '0.0625rem',
                                     }}
                                 >
                                     <Lock />
@@ -1764,10 +1759,10 @@ export default function ClassroomPage() {
                                 <div>
                                     <p
                                         style={{
-                                            fontSize: 12,
+                                            fontSize: 'var(--text-xs)',
                                             fontWeight: 800,
                                             color: '#378ADD',
-                                            marginBottom: 5,
+                                            marginBottom: '0.3125rem',
                                             letterSpacing: '0.01em',
                                         }}
                                     >
@@ -1775,7 +1770,7 @@ export default function ClassroomPage() {
                                     </p>
                                     <p
                                         style={{
-                                            fontSize: 12,
+                                            fontSize: 'var(--text-xs)',
                                             color: 'var(--color-text-muted)',
                                             lineHeight: 1.65,
                                             margin: 0,
@@ -1812,7 +1807,7 @@ export default function ClassroomPage() {
                                 padding: '20px 24px',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: 16,
+                                gap: '1rem',
                             }}
                         >
                             <div style={{ display: 'flex', gap: 8 }}>
@@ -1821,8 +1816,8 @@ export default function ClassroomPage() {
                                         key={i}
                                         style={{
                                             flex: 1,
-                                            height: 72,
-                                            borderRadius: 8,
+                                            height: '4.5rem',
+                                            borderRadius: '0.5rem',
                                             background: 'var(--color-glass)',
                                             border: '1px solid var(--color-glass-border)',
                                             opacity: op,
@@ -1835,8 +1830,8 @@ export default function ClassroomPage() {
                             <div
                                 style={{
                                     display: 'flex',
-                                    gap: 6,
-                                    marginBottom: 4,
+                                    gap: '0.375rem',
+                                    marginBottom: '0.25rem',
                                 }}
                             >
                                 {[120, 90, 140, 100, 110].map((w, i) => (
@@ -1844,8 +1839,8 @@ export default function ClassroomPage() {
                                         key={i}
                                         style={{
                                             width: w,
-                                            height: 28,
-                                            borderRadius: 99,
+                                            height: '1.75rem',
+                                            borderRadius: '6.1875rem',
                                             background: 'var(--color-glass)',
                                             border: '1px solid var(--color-glass-border)',
                                             animation: `pulse 1.5s ease-in-out ${i * 0.1}s infinite`,
@@ -1857,15 +1852,15 @@ export default function ClassroomPage() {
                                 style={{
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    gap: 8,
+                                    gap: '0.5rem',
                                 }}
                             >
                                 {[1, 0.85, 0.7, 0.6].map((op, i) => (
                                     <div
                                         key={i}
                                         style={{
-                                            height: 64,
-                                            borderRadius: 8,
+                                            height: '4rem',
+                                            borderRadius: '0.5rem',
                                             background: 'var(--color-glass)',
                                             border: '1px solid var(--color-glass-border)',
                                             opacity: op,
@@ -1876,10 +1871,10 @@ export default function ClassroomPage() {
                             </div>
                             <p
                                 style={{
-                                    fontSize: 12,
+                                    fontSize: 'var(--text-xs)',
                                     color: 'var(--color-text-faint)',
                                     textAlign: 'center',
-                                    marginTop: 8,
+                                    marginTop: '0.5rem',
                                 }}
                             >
                                 Fetching your classroom data…
@@ -1896,15 +1891,15 @@ export default function ClassroomPage() {
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: 10,
+                            gap: '0.625rem',
                         }}
                     >
                         <WifiOff
-                            style={{ width: 24, height: 24, color: '#E24B4A' }}
+                            style={{ width: '1.5rem', height: '1.5rem', color: '#E24B4A' }}
                         />
                         <p
                             style={{
-                                fontSize: 14,
+                                fontSize: 'var(--text-sm)',
                                 color: '#E24B4A',
                                 fontWeight: 600,
                             }}
@@ -1915,10 +1910,10 @@ export default function ClassroomPage() {
                             onClick={handleRefresh}
                             style={{
                                 padding: '8px 20px',
-                                borderRadius: 8,
+                                borderRadius: '0.5rem',
                                 background: 'var(--color-brand)',
                                 color: '#fff',
-                                fontSize: 13,
+                                fontSize: 'var(--text-13)',
                                 border: 'none',
                                 cursor: 'pointer',
                                 fontWeight: 600,
@@ -1942,7 +1937,7 @@ export default function ClassroomPage() {
                         <div
                             style={{
                                 display: 'flex',
-                                gap: 10,
+                                gap: '0.625rem',
                                 padding: '14px 28px',
                                 borderBottom:
                                     '1px solid var(--color-glass-border)',
@@ -1992,7 +1987,7 @@ export default function ClassroomPage() {
                                 ref={pillRailRef}
                                 style={{
                                     display: 'flex',
-                                    gap: 8,
+                                    gap: '0.5rem',
                                     padding: '12px 28px',
                                     overflowX: 'auto',
                                     scrollbarWidth: 'none',
@@ -2042,7 +2037,7 @@ export default function ClassroomPage() {
                                         borderBottom:
                                             '1px solid var(--color-glass-border)',
                                         flexShrink: 0,
-                                        gap: 8,
+                                        gap: '0.5rem',
                                     }}
                                 >
                                     <div style={{ display: 'flex', gap: 0 }}>
@@ -2081,11 +2076,11 @@ export default function ClassroomPage() {
                                                 style={{
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    gap: 6,
+                                                    gap: '0.375rem',
                                                     padding: '13px 14px',
                                                     border: 'none',
                                                     cursor: 'pointer',
-                                                    fontSize: 13,
+                                                    fontSize: 'var(--text-13)',
                                                     fontWeight:
                                                         activeTab === tab.key
                                                             ? 700
@@ -2106,8 +2101,8 @@ export default function ClassroomPage() {
                                             >
                                                 <tab.icon
                                                     style={{
-                                                        width: 14,
-                                                        height: 14,
+                                                        width: '0.875rem',
+                                                        height: '0.875rem',
                                                     }}
                                                 />
                                                 {tab.label}
@@ -2115,8 +2110,8 @@ export default function ClassroomPage() {
                                                     <span
                                                         style={{
                                                             padding: '1px 6px',
-                                                            borderRadius: 4,
-                                                            fontSize: 10,
+                                                            borderRadius: '0.25rem',
+                                                            fontSize: 'var(--text-3xs)',
                                                             fontWeight: 800,
                                                             background:
                                                                 activeTab ===
@@ -2140,7 +2135,7 @@ export default function ClassroomPage() {
                                         <div
                                             style={{
                                                 display: 'flex',
-                                                gap: 6,
+                                                gap: '0.375rem',
                                                 alignItems: 'center',
                                                 flexShrink: 0,
                                             }}
@@ -2149,18 +2144,18 @@ export default function ClassroomPage() {
                                                 style={{
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    gap: 6,
+                                                    gap: '0.375rem',
                                                     background:
                                                         'var(--color-glass)',
                                                     border: '1px solid var(--color-glass-border)',
-                                                    borderRadius: 99,
+                                                    borderRadius: '6.1875rem',
                                                     padding: '5px 12px',
                                                 }}
                                             >
                                                 <Search
                                                     style={{
-                                                        width: 12,
-                                                        height: 12,
+                                                        width: '0.75rem',
+                                                        height: '0.75rem',
                                                         color: 'var(--color-text-faint)',
                                                         flexShrink: 0,
                                                     }}
@@ -2177,9 +2172,9 @@ export default function ClassroomPage() {
                                                         background: 'none',
                                                         border: 'none',
                                                         outline: 'none',
-                                                        fontSize: 13,
+                                                        fontSize: 'var(--text-13)',
                                                         color: 'var(--color-text)',
-                                                        width: 110,
+                                                        width: '6.875rem',
                                                     }}
                                                 />
                                             </div>
@@ -2198,8 +2193,8 @@ export default function ClassroomPage() {
                                                     }
                                                     style={{
                                                         padding: '4px 12px',
-                                                        borderRadius: 99,
-                                                        fontSize: 12,
+                                                        borderRadius: '6.1875rem',
+                                                        fontSize: 'var(--text-xs)',
                                                         fontWeight: 600,
                                                         cursor: 'pointer',
                                                         textTransform:
@@ -2233,7 +2228,7 @@ export default function ClassroomPage() {
                                         padding: '18px 28px',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: 8,
+                                        gap: '0.5rem',
                                     }}
                                 >
                                     {activeTab === 'work' && (
@@ -2284,14 +2279,14 @@ export default function ClassroomPage() {
                                                             display: 'flex',
                                                             alignItems:
                                                                 'center',
-                                                            gap: 6,
-                                                            marginTop: 8,
+                                                            gap: '0.375rem',
+                                                            marginTop: '0.5rem',
                                                             padding: '9px 14px',
                                                             background:
                                                                 'var(--color-glass)',
                                                             border: '1px solid var(--color-glass-border)',
-                                                            borderRadius: 8,
-                                                            fontSize: 13,
+                                                            borderRadius: '0.5rem',
+                                                            fontSize: 'var(--text-13)',
                                                             fontWeight: 600,
                                                             color: 'var(--color-text-muted)',
                                                             cursor: 'pointer',
@@ -2314,15 +2309,15 @@ export default function ClassroomPage() {
                                                         {showPast ? (
                                                             <ChevronUp
                                                                 style={{
-                                                                    width: 13,
-                                                                    height: 13,
+                                                                    width: '0.8125rem',
+                                                                    height: '0.8125rem',
                                                                 }}
                                                             />
                                                         ) : (
                                                             <ChevronDown
                                                                 style={{
-                                                                    width: 13,
-                                                                    height: 13,
+                                                                    width: '0.8125rem',
+                                                                    height: '0.8125rem',
                                                                 }}
                                                             />
                                                         )}
@@ -2439,6 +2434,6 @@ export default function ClassroomPage() {
                     }}
                 />
             )}
-        </div>
+        </>
     );
 }

@@ -77,14 +77,14 @@ function ToastItem({
             style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
+                gap: '1rem',
                 padding: '16px 24px',
-                minWidth: 340,
-                maxWidth: 420,
+                minWidth: '21.25rem',
+                maxWidth: '26.25rem',
                 background: `linear-gradient(135deg, rgba(14,14,20,0.98) 0%, rgba(18,18,26,0.95) 100%)`,
                 border: `1px solid ${c.border}`,
                 borderLeft: `4px solid ${c.accent}`,
-                borderRadius: 12,
+                borderRadius: '0.75rem',
                 boxShadow: `0 12px 40px rgba(0,0,0,0.6), 0 0 20px ${c.glow}, inset 0 1px 0 rgba(255,255,255,0.05)`,
                 backdropFilter: 'blur(24px)',
                 cursor: 'pointer',
@@ -105,7 +105,7 @@ function ToastItem({
             {/* Icon */}
             <div
                 style={{
-                    fontSize: 38,
+                    fontSize: 'var(--text-38)',
                     lineHeight: 1,
                     flexShrink: 0,
                     filter: `drop-shadow(0 4px 12px ${c.glow})`,
@@ -121,12 +121,12 @@ function ToastItem({
                     minWidth: 0,
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 4,
+                    gap: '0.25rem',
                 }}
             >
                 <div
                     style={{
-                        fontSize: 9,
+                        fontSize: 'var(--text-4xs)',
                         fontWeight: 800,
                         letterSpacing: '0.25em',
                         textTransform: 'uppercase',
@@ -138,7 +138,7 @@ function ToastItem({
                 </div>
                 <div
                     style={{
-                        fontSize: 16,
+                        fontSize: 'var(--type-body-size)',
                         fontWeight: 800,
                         color: '#ffffff',
                         letterSpacing: '0.01em',
@@ -149,7 +149,7 @@ function ToastItem({
                 </div>
                 <div
                     style={{
-                        fontSize: 13,
+                        fontSize: 'var(--text-13)',
                         color: 'rgba(200,200,220,0.7)',
                         lineHeight: 1.4,
                         overflow: 'hidden',
@@ -166,7 +166,7 @@ function ToastItem({
             {/* XP Badge */}
             <div
                 style={{
-                    fontSize: 14,
+                    fontSize: 'var(--text-sm)',
                     fontWeight: 800,
                     fontFamily:
                         'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
@@ -174,7 +174,7 @@ function ToastItem({
                     flexShrink: 0,
                     background: c.bg,
                     padding: '6px 10px',
-                    borderRadius: 8,
+                    borderRadius: '0.5rem',
                     border: `1px solid ${c.border}`,
                     alignSelf: 'flex-start',
                     marginTop: -2,
@@ -197,12 +197,12 @@ export default function AchievementToastStack() {
         <div
             style={{
                 position: 'fixed',
-                top: 32,
-                right: 32,
+                top: '2rem',
+                right: '2rem',
                 zIndex: 8900,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 16,
+                gap: '1rem',
                 pointerEvents: 'none',
             }}
         >

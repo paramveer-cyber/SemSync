@@ -70,29 +70,29 @@ export function playToastUnlock() {
     if (now - toastPlaying.at < 500) return;
     toastPlaying.at = now;
 
-    playTone(784, 0.1, 'triangle', 0.09);
-    playTone(988, 0.12, 'triangle', 0.08, undefined, 0.08);
-    playTone(1175, 0.15, 'sine', 0.07, undefined, 0.16);
+    playTone(784, 0.1, 'triangle', 0.15);
+    playTone(988, 0.12, 'triangle', 0.13, undefined, 0.08);
+    playTone(1175, 0.15, 'sine', 0.12, undefined, 0.16);
 }
 
 export function playCinematicUnlock(tier: 'platinum' | 'legendary' | 'hidden') {
     if (tier === 'legendary') {
         const notes = [392, 494, 587, 740, 988];
         notes.forEach((f, i) =>
-            playTone(f, 0.5, 'sine', 0.13 - i * 0.01, 0.45, i * 0.13),
+            playTone(f, 0.5, 'sine', 0.2 - i * 0.015, 0.45, i * 0.13),
         );
         setTimeout(() => {
-            playTone(1480, 0.6, 'sine', 0.08, 0.55);
-            playTone(1976, 0.5, 'sine', 0.05, 0.45, 0.1);
+            playTone(1480, 0.6, 'sine', 0.13, 0.55);
+            playTone(1976, 0.5, 'sine', 0.09, 0.45, 0.1);
         }, 700);
     } else if (tier === 'platinum') {
         [880, 1108, 1318].forEach((f, i) => {
-            playTone(f, 0.55, 'sine', 0.09, 0.5, i * 0.07);
+            playTone(f, 0.55, 'sine', 0.15, 0.5, i * 0.07);
         });
-        setTimeout(() => playTone(2637, 0.35, 'sine', 0.04, 0.3), 350);
+        setTimeout(() => playTone(2637, 0.35, 'sine', 0.07, 0.3), 350);
     } else {
         [1047, 880, 740, 880, 1047, 1319].forEach((f, i) => {
-            playTone(f, 0.2, 'sine', 0.08, 0.18, i * 0.1);
+            playTone(f, 0.2, 'sine', 0.13, 0.18, i * 0.1);
         });
     }
 }

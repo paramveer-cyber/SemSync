@@ -27,7 +27,7 @@ function FeatureCard({index, icon: Icon, title, desc,}: { index: string; icon: a
             <Icon size={16} style={{ color: 'var(--color-brand)' }} />
           </div>
           <span
-            className="text-[9px] font-black tracking-[0.35em]"
+            className="text-4xs font-black tracking-[0.35em]"
             style={{ color: 'var(--color-text-faint)' }}
           >
             {index}
@@ -110,7 +110,7 @@ export default function LandingPage() {
             <a
               key={label}
               href={href}
-              className="text-[11px] font-bold tracking-[0.25em] uppercase transition-colors"
+              className="text-2xs font-bold tracking-[0.25em] uppercase transition-colors"
               style={{ color: 'var(--color-text-muted)' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-brand)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
@@ -128,7 +128,7 @@ export default function LandingPage() {
         ) : user ? (
           <Link to="/dashboard" className="flex items-center gap-3 group">
             <span
-              className="hidden md:block text-[10px] font-bold tracking-widest transition-colors"
+              className="hidden md:block text-3xs font-bold tracking-widest transition-colors"
               style={{ color: 'var(--color-text-muted)' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
@@ -143,7 +143,7 @@ export default function LandingPage() {
               />
             ) : (
               <div
-                className="w-8 h-8 flex items-center justify-center border border-[var(--color-glass-border)] group-hover:border-[var(--color-brand)] transition-colors text-[11px] font-black"
+                className="w-8 h-8 flex items-center justify-center border border-[var(--color-glass-border)] group-hover:border-[var(--color-brand)] transition-colors text-2xs font-black"
                 style={{ background: 'var(--color-active-bg)', color: 'var(--color-brand)' }}
               >
                 {user.name?.charAt(0).toUpperCase()}
@@ -153,7 +153,7 @@ export default function LandingPage() {
         ) : (
           <Link
             to="/login"
-            className="px-6 py-2 text-[11px] font-bold tracking-[0.2em] uppercase border transition-all"
+            className="px-6 py-2 text-2xs font-bold tracking-[0.2em] uppercase border transition-all"
             style={{ background: 'var(--color-text)', color: 'var(--color-surface)', borderColor: 'var(--color-text)' }}
             onMouseEnter={e => {
               e.currentTarget.style.background = 'var(--color-brand)';
@@ -198,7 +198,7 @@ export default function LandingPage() {
               style={{ background: 'var(--color-surface-1)' }}
             >
               <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--color-brand)' }} />
-              <span className="text-[10px] font-bold tracking-[0.3em] uppercase" style={{ color: 'var(--color-text-muted)' }}>
+              <span className="text-3xs font-bold tracking-[0.3em] uppercase" style={{ color: 'var(--color-text-muted)' }}>
                 System Status: Optimal
               </span>
             </div>
@@ -266,7 +266,7 @@ export default function LandingPage() {
           <div className="px-8 pt-16 pb-0 max-w-7xl mx-42.5">
             <div className="flex items-end justify-between mb-12">
               <div>
-                <span className="text-[10px] font-bold tracking-[0.35em] uppercase" style={{ color: 'var(--color-brand)' }}>
+                <span className="text-3xs font-bold tracking-[0.35em] uppercase" style={{ color: 'var(--color-brand)' }}>
                   WHAT'S INSIDE
                 </span>
                 <h2
@@ -276,7 +276,7 @@ export default function LandingPage() {
                   Five Modules.<br />One System.
                 </h2>
               </div>
-              <span className="hidden md:block text-[10px] tracking-widest mb-1" style={{ color: 'var(--color-text-faint)' }}>
+              <span className="hidden md:block text-3xs tracking-widest mb-1" style={{ color: 'var(--color-text-faint)' }}>
                 ZERO BLOAT
               </span>
             </div>
@@ -296,7 +296,7 @@ export default function LandingPage() {
               </p>
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] uppercase"
+                className="inline-flex items-center gap-2 text-2xs font-bold tracking-[0.2em] uppercase"
                 style={{ color: 'var(--color-brand)' }}
               >
                 Initialize Setup <ArrowRight size={14} />
@@ -308,7 +308,7 @@ export default function LandingPage() {
 
         <section className="border-b border-[var(--color-glass-border)] py-20 px-8">
           <div className="max-w-5xl mx-auto">
-            <span className="text-[10px] font-bold tracking-[0.35em] uppercase" style={{ color: 'var(--color-brand)' }}>
+            <span className="text-3xs font-bold tracking-[0.35em] uppercase" style={{ color: 'var(--color-brand)' }}>
               THE PROTOCOL
             </span>
             <h2
@@ -407,7 +407,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <img src={icon} width={18} height={18} className="opacity-50" />
-            <span className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: 'var(--color-text-faint)' }}>
+            <span className="text-3xs font-bold tracking-[0.25em] uppercase" style={{ color: 'var(--color-text-faint)' }}>
               © 2026 SEMSYNC
             </span>
           </div>
@@ -421,7 +421,7 @@ export default function LandingPage() {
               <a
                 key={label}
                 href={href}
-                className="text-[10px] font-bold tracking-[0.2em] uppercase transition-colors"
+                className="text-3xs font-bold tracking-[0.2em] uppercase transition-colors"
                 style={{ color: 'var(--color-text-faint)' }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-faint)')}

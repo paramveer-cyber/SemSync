@@ -1,14 +1,8 @@
-import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 
 export default function AboutPage() {
     return (
-        <div
-            className='flex min-h-screen'
-            style={{ background: 'var(--color-surface)' }}
-        >
-            <Sidebar />
-            <main className='grow flex flex-col overflow-hidden'>
+        <main className='grow flex flex-col overflow-hidden'>
                 <Header title='About' subtitle='Project Origins' />
                 <div className='grow overflow-y-auto p-8 max-w-3xl'>
                     <div
@@ -149,7 +143,6 @@ export default function AboutPage() {
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+        </main>
     );
 }

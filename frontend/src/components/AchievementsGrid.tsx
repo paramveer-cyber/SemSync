@@ -82,13 +82,13 @@ export default function AchievementsGrid({
         <div className='card p-5'>
             <div className='flex items-center justify-between mb-1'>
                 <span
-                    className='text-[10px] font-black tracking-[0.25em] uppercase'
+                    className='text-3xs font-black tracking-[0.25em] uppercase'
                     style={{ color: 'var(--color-brand)' }}
                 >
                     // ACHIEVEMENTS
                 </span>
                 <span
-                    className='text-[10px] font-bold font-mono'
+                    className='text-3xs font-bold font-mono'
                     style={{ color: 'var(--color-text-muted)' }}
                 >
                     {earnedCount}/{totalCount}
@@ -161,7 +161,7 @@ export default function AchievementsGrid({
                             )}
 
                             <span
-                                className='text-[9px] font-black text-center leading-tight'
+                                className='text-4xs font-black text-center leading-tight'
                                 style={{
                                     color: isEarned
                                         ? ts.color
@@ -173,7 +173,7 @@ export default function AchievementsGrid({
 
                             {isEarned && (
                                 <span
-                                    className='text-[8px] font-bold mt-0.5 font-mono'
+                                    className='text-5xs font-bold mt-0.5 font-mono'
                                     style={{ color: ts.color }}
                                 >
                                     +{a.xpAwarded ?? a.xp}
@@ -182,7 +182,7 @@ export default function AchievementsGrid({
 
                             {isTooltipOpen && !isHiddenLocked && (
                                 <div
-                                    className='absolute bottom-full left-1/2 mb-2 z-50 w-36 px-2.5 py-2 rounded-lg text-[10px] font-semibold text-center pointer-events-none animate-fade-in'
+                                    className='absolute bottom-full left-1/2 mb-2 z-50 w-36 px-2.5 py-2 rounded-lg text-3xs font-semibold text-center pointer-events-none animate-fade-in'
                                     style={{
                                         transform: 'translateX(-50%)',
                                         background: 'var(--color-surface-3)',
@@ -214,7 +214,7 @@ export default function AchievementsGrid({
             {earnedCount === 0 && (
                 <div className='mt-4 text-center animate-fade-up'>
                     <p
-                        className='text-[11px] font-bold'
+                        className='text-2xs font-bold'
                         style={{ color: 'var(--color-text-faint)' }}
                     >
                         Start a focus session to unlock your first achievement.
@@ -225,7 +225,7 @@ export default function AchievementsGrid({
             {!showAll && moreCount > 0 && (
                 <button
                     onClick={() => setShowAll(true)}
-                    className='w-full mt-3 py-2 text-[10px] font-bold tracking-widest uppercase cursor-pointer rounded-lg transition-all duration-150'
+                    className='w-full mt-3 py-2 text-3xs font-bold tracking-widest uppercase cursor-pointer rounded-lg transition-all duration-150'
                     style={{
                         color: 'var(--color-text-faint)',
                         border: '1px solid var(--color-glass-border)',

@@ -1,11 +1,8 @@
-import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 
 export default function LegalPage() {
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--color-surface)' }}>
-      <Sidebar />
-      <main className="grow flex flex-col overflow-hidden">
+    <main className="grow flex flex-col overflow-hidden">
         <Header title="Legal & Privacy" subtitle="The fine print" />
         <div className="grow overflow-y-auto p-8 max-w-3xl">
           <div className="p-8 rounded-lg space-y-8 text-sm leading-relaxed" style={{ border: "1px solid var(--color-glass-border)", background: "var(--color-surface-1)", color: "var(--color-text-muted)" }}>
@@ -59,7 +56,6 @@ export default function LegalPage() {
             
           </div>
         </div>
-      </main>
-    </div>
+    </main>
   );
 }

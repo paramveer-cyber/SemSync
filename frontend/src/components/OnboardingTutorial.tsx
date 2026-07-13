@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   ChevronRight, LayoutDashboard, BookMarked,
-  CalendarDays, CheckSquare, Timer, ZoomIn, GraduationCap,
+  CalendarDays, CheckSquare, Timer, GraduationCap,
 } from 'lucide-react';
 
 // ── localStorage helpers ──────────────────────────────────────────────────────
@@ -21,25 +21,6 @@ export function resetTutorial() {
 // ── Step definitions ──────────────────────────────────────────────────────────
 
 const STEPS = [
-  {
-    id: 'zoom',
-    icon: ZoomIn,
-    iconColor: '#f59e0b',
-    accent: 'rgba(245,158,11,0.12)',
-    border: 'rgba(245,158,11,0.3)',
-    label: 'Display Setup',
-    title: 'Set Your Zoom to 80%',
-    tagline: 'DISPLAY / ZOOM',
-    description:
-      'SemSync is crafted for 80% browser zoom. At 100% things can feel a little cramped. But at 80% every panel breathes and the dashboard grid lines up perfectly.',
-    details: [
-      { icon: '⌨️', heading: 'Windows', body: 'Hold Ctrl and press (minus) until your browser shows 80% in the address bar.' },
-      { icon: '⌘', heading: 'macOS', body: 'Hold Cmd and press  (minus) until the zoom level reaches 80%.' },
-      { icon: '🐧', heading: 'Linux', body: 'If you have your dekstop zoom at 100%, the site should work fine, else maybe adjust the display setting in your own linux distro / adjust the zoom level in chrome to 80%.' },
-      { icon: '⚙️', heading: 'Browser Menu', body: 'Click the ⋮ menu → Zoom → set to 80%. This persists across visits to the site.' },
-    ],
-    tip: 'Your browser will remember this zoom level for the site, you only need to do it once.',
-  },
   {
     id: 'dashboard',
     icon: LayoutDashboard,
@@ -227,11 +208,11 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
         style={{
           width: '75vw',
           height: '78vh',
-          minWidth: 760,
-          maxWidth: 1200,
+          minWidth: '47.5rem',
+          maxWidth: '75rem',
           background: 'var(--color-surface-1)',
           border: `1px solid ${current.border}`,
-          borderRadius: 16,
+          borderRadius: '1rem',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -242,7 +223,7 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
       >
         {/* Top accent bar */}
         <div style={{
-          height: 3, flexShrink: 0,
+          height: '0.1875rem', flexShrink: 0,
           background: `linear-gradient(90deg, ${current.iconColor} 0%, ${current.iconColor}44 55%, transparent 100%)`,
           transition: 'background 0.4s ease',
         }} />
@@ -252,7 +233,7 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
 
           {/* ── LEFT SIDEBAR ── */}
           <div style={{
-            width: 210, flexShrink: 0,
+            width: '13.125rem', flexShrink: 0,
             borderRight: '1px solid var(--color-glass-border)',
             background: 'var(--color-surface)',
             display: 'flex', flexDirection: 'column',
@@ -260,10 +241,10 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
           }}>
             {/* Branding */}
             <div style={{ padding: '0 20px 18px', borderBottom: '1px solid var(--color-glass-border)' }}>
-              <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.28em', color: 'var(--color-text-faint)', textTransform: 'uppercase', marginBottom: 3, margin: '0 0 3px' }}>
+              <p style={{ fontSize: 'var(--text-4xs)', fontWeight: 900, letterSpacing: '0.28em', color: 'var(--color-text-faint)', textTransform: 'uppercase', marginBottom: '0.1875rem', margin: '0 0 3px' }}>
                 SEMSYNC
               </p>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
+              <p style={{ fontSize: 'var(--text-13)', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
                 Getting Started
               </p>
             </div>
@@ -279,8 +260,8 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                     key={s.id}
                     onClick={() => goToStep(i)}
                     style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '9px 10px', borderRadius: 8, marginBottom: 2,
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.625rem',
+                      padding: '9px 10px', borderRadius: '0.5rem', marginBottom: '0.125rem',
                       border: isActive ? `1px solid ${s.border}` : '1px solid transparent',
                       background: isActive ? s.accent : 'transparent',
                       cursor: 'pointer', textAlign: 'left',
@@ -288,26 +269,26 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                     }}
                   >
                     <div style={{
-                      width: 28, height: 28, borderRadius: 7, flexShrink: 0,
+                      width: '1.75rem', height: '1.75rem', borderRadius: '0.4375rem', flexShrink: 0,
                       background: isActive ? s.accent : isDone ? 'rgba(34,197,94,0.12)' : 'var(--color-surface-2)',
                       border: `1px solid ${isActive ? s.border : isDone ? 'rgba(34,197,94,0.25)' : 'var(--color-glass-border)'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {isDone
-                        ? <span style={{ fontSize: 12, color: '#22c55e' }}>✓</span>
-                        : <SIcon style={{ width: 13, height: 13, color: isActive ? s.iconColor : 'var(--color-text-faint)' }} />
+                        ? <span style={{ fontSize: 'var(--text-xs)', color: '#22c55e' }}>✓</span>
+                        : <SIcon style={{ width: '0.8125rem', height: '0.8125rem', color: isActive ? s.iconColor : 'var(--color-text-faint)' }} />
                       }
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <p style={{
-                        fontSize: 12, margin: 0, lineHeight: 1.2,
+                        fontSize: 'var(--text-xs)', margin: 0, lineHeight: 1.2,
                         fontWeight: isActive ? 700 : 500,
                         color: isActive ? 'var(--color-text)' : isDone ? 'var(--color-text-muted)' : 'var(--color-text-faint)',
                       }}>
                         {s.label}
                       </p>
                       {isActive && (
-                        <p style={{ fontSize: 9, color: s.iconColor, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', margin: '2px 0 0' }}>
+                        <p style={{ fontSize: 'var(--text-4xs)', color: s.iconColor, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', margin: '2px 0 0' }}>
                           Active
                         </p>
                       )}
@@ -320,14 +301,14 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
             {/* Progress */}
             <div style={{ padding: '14px 20px 0', borderTop: '1px solid var(--color-glass-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--color-text-faint)', textTransform: 'uppercase' }}>Progress</span>
-                <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-faint)', fontFamily: 'monospace' }}>{step + 1}/{STEPS.length}</span>
+                <span style={{ fontSize: 'var(--text-4xs)', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--color-text-faint)', textTransform: 'uppercase' }}>Progress</span>
+                <span style={{ fontSize: 'var(--text-4xs)', fontWeight: 700, color: 'var(--color-text-faint)', fontFamily: 'monospace' }}>{step + 1}/{STEPS.length}</span>
               </div>
-              <div style={{ height: 3, background: 'var(--color-glass-border)', borderRadius: 9999, overflow: 'hidden' }}>
+              <div style={{ height: '0.1875rem', background: 'var(--color-glass-border)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
                 <div style={{
                   height: '100%',
                   width: `${((step + 1) / STEPS.length) * 100}%`,
-                  background: current.iconColor, borderRadius: 9999,
+                  background: current.iconColor, borderRadius: 'var(--radius-full)',
                   transition: 'width 0.4s ease, background 0.4s ease',
                 }} />
               </div>
@@ -348,31 +329,31 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
                 {/* Large icon */}
                 <div style={{
-                  width: 54, height: 54, borderRadius: 13, flexShrink: 0,
+                  width: '3.375rem', height: '3.375rem', borderRadius: '0.8125rem', flexShrink: 0,
                   background: current.accent, border: `1px solid ${current.border}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: `0 0 24px ${current.accent}`,
                 }}>
-                  <Icon style={{ width: 26, height: 26, color: current.iconColor }} />
+                  <Icon style={{ width: '1.625rem', height: '1.625rem', color: current.iconColor }} />
                 </div>
 
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.28em', color: current.iconColor, textTransform: 'uppercase', margin: '0 0 5px' }}>
+                  <p style={{ fontSize: 'var(--text-3xs)', fontWeight: 900, letterSpacing: '0.28em', color: current.iconColor, textTransform: 'uppercase', margin: '0 0 5px' }}>
                     {current.tagline}
                   </p>
-                  <h2 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                  <h2 style={{ fontSize: 'var(--type-h2-size)', fontWeight: 800, color: 'var(--color-text)', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
                     {current.title}
                   </h2>
                 </div>
 
                 {/* Dot progress */}
-                <div style={{ display: 'flex', gap: 5, paddingTop: 6 }}>
+                <div style={{ display: 'flex', gap: '0.3125rem', paddingTop: 6 }}>
                   {STEPS.map((_, i) => (
                     <div
                       key={i}
                       onClick={() => goToStep(i)}
                       style={{
-                        width: i === step ? 22 : 7, height: 7, borderRadius: 9999, cursor: 'pointer',
+                        width: i === step ? 22 : 7, height: '0.4375rem', borderRadius: 'var(--radius-full)', cursor: 'pointer',
                         background: i === step ? current.iconColor : i < step ? 'var(--color-text-faint)' : 'var(--color-glass-border)',
                         transition: 'all 0.3s ease',
                       }}
@@ -381,14 +362,14 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                 </div>
               </div>
 
-              <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--color-text-muted)', margin: '18px 0 0', maxWidth: 600 }}>
+              <p style={{ fontSize: 'var(--text-15)', lineHeight: 1.7, color: 'var(--color-text-muted)', margin: '18px 0 0', maxWidth: 600 }}>
                 {current.description}
               </p>
             </div>
 
             {/* Detail cards */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '22px 36px' }}>
-              <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', color: 'var(--color-text-faint)', textTransform: 'uppercase', margin: '0 0 12px' }}>
+              <p style={{ fontSize: 'var(--text-3xs)', fontWeight: 900, letterSpacing: '0.22em', color: 'var(--color-text-faint)', textTransform: 'uppercase', margin: '0 0 12px' }}>
                 How it works
               </p>
 
@@ -397,18 +378,18 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                   <div
                     key={i}
                     style={{
-                      display: 'flex', alignItems: 'flex-start', gap: 14,
+                      display: 'flex', alignItems: 'flex-start', gap: '0.875rem',
                       padding: '14px 18px',
                       background: 'var(--color-surface)',
                       border: '1px solid var(--color-glass-border)',
                       borderLeft: `3px solid ${current.border}`,
-                      borderRadius: 10,
+                      borderRadius: '0.625rem',
                     }}
                   >
-                    <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1.3 }}>{d.icon}</span>
+                    <span style={{ fontSize: 'var(--text-xl)', flexShrink: 0, lineHeight: 1.3 }}>{d.icon}</span>
                     <div>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', margin: '0 0 4px', letterSpacing: '0.02em' }}>{d.heading}</p>
-                      <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.55 }}>{d.body}</p>
+                      <p style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--color-text)', margin: '0 0 4px', letterSpacing: '0.02em' }}>{d.heading}</p>
+                      <p style={{ fontSize: 'var(--text-13)', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.55 }}>{d.body}</p>
                     </div>
                   </div>
                 ))}
@@ -417,15 +398,15 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
               {/* Tip */}
               <div
                 style={{
-                  marginTop: 14, display: 'flex', alignItems: 'flex-start', gap: 12,
+                  marginTop: '0.875rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
                   padding: '14px 18px',
-                  background: current.accent, border: `1px solid ${current.border}`, borderRadius: 10,
+                  background: current.accent, border: `1px solid ${current.border}`, borderRadius: '0.625rem',
                 }}
               >
-                <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1.3 }}>💡</span>
+                <span style={{ fontSize: 'var(--type-h4-size)', flexShrink: 0, lineHeight: 1.3 }}>💡</span>
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', color: current.iconColor, textTransform: 'uppercase', margin: '0 0 4px' }}>Pro Tip</p>
-                  <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.55 }}>{current.tip}</p>
+                  <p style={{ fontSize: 'var(--text-3xs)', fontWeight: 900, letterSpacing: '0.2em', color: current.iconColor, textTransform: 'uppercase', margin: '0 0 4px' }}>Pro Tip</p>
+                  <p style={{ fontSize: 'var(--text-13)', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.55 }}>{current.tip}</p>
                 </div>
               </div>
             </div>
@@ -440,7 +421,7 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                 flexShrink: 0,
               }}
             >
-              <span style={{ fontSize: 11, color: 'var(--color-text-faint)', fontFamily: 'monospace' }}>
+              <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--color-text-faint)', fontFamily: 'monospace' }}>
                 Step {step + 1} of {STEPS.length} — {current.label}
               </span>
 
@@ -451,7 +432,7 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                     style={{
                       padding: '9px 18px', background: 'transparent',
                       color: 'var(--color-text-faint)', border: '1px solid var(--color-glass-border)',
-                      borderRadius: 7, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
+                      borderRadius: '0.4375rem', fontSize: 'var(--text-2xs)', fontWeight: 700, letterSpacing: '0.1em',
                       textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s ease',
                     }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-text-muted)'; }}
@@ -465,12 +446,12 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                   onClick={handleNext}
                   disabled={!canProceed}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '9px 24px', minWidth: 130, justifyContent: 'center',
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '9px 24px', minWidth: '8.125rem', justifyContent: 'center',
                     background: canProceed ? current.iconColor : 'var(--color-surface-2)',
                     color: canProceed ? '#000' : 'var(--color-text-faint)',
                     border: canProceed ? `1px solid ${current.iconColor}` : '1px solid var(--color-glass-border)',
-                    borderRadius: 7, fontSize: 12, fontWeight: 800, letterSpacing: '0.12em',
+                    borderRadius: '0.4375rem', fontSize: 'var(--text-xs)', fontWeight: 800, letterSpacing: '0.12em',
                     textTransform: 'uppercase',
                     cursor: canProceed ? 'pointer' : 'not-allowed',
                     transition: 'all 0.22s ease',
@@ -480,7 +461,7 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                   {!canProceed ? (
                     <>
                       <span style={{
-                        display: 'inline-block', width: 14, height: 14,
+                        display: 'inline-block', width: '0.875rem', height: '0.875rem',
                         border: '2px solid var(--color-glass-border)',
                         borderTopColor: 'var(--color-text-faint)',
                         borderRadius: '50%', animation: 'tutSpin 0.75s linear infinite',
@@ -490,7 +471,7 @@ export default function OnboardingTutorial({ onClose }: OnboardingTutorialProps)
                   ) : isLast ? (
                     <>Let&apos;s Go ✓</>
                   ) : (
-                    <>Next <ChevronRight style={{ width: 14, height: 14 }} /></>
+                    <>Next <ChevronRight style={{ width: '0.875rem', height: 14 }} /></>
                   )}
                 </button>
               </div>

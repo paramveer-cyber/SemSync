@@ -1,4 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useId } from 'react';
+import { useMotionDisabled } from '../context/AnimationPreferenceContext';
+
+const flameParticleOffsets = [-6, 5, -3, 7, -8, 2, 6, -4, 3];
 
 interface StreakProps {
     current: number;
@@ -13,53 +16,101 @@ function flameTier(n: number) {
             emoji: '🌟',
             color: '#c0a8ff',
             glow: 'rgba(192,168,255,0.55)',
-            size: 30,
+            size: 36,
         };
     if (n >= 30)
         return {
             emoji: '🔥',
             color: '#FFD700',
             glow: 'rgba(255,215,0,0.45)',
-            size: 28,
+            size: 34,
         };
     if (n >= 14)
         return {
             emoji: '🔥',
             color: '#ff6b00',
             glow: 'rgba(255,107,0,0.35)',
-            size: 26,
+            size: 32,
         };
     if (n >= 7)
         return {
             emoji: '🔥',
             color: '#ff9500',
             glow: 'rgba(255,149,0,0.25)',
-            size: 24,
+            size: 30,
         };
     return {
         emoji: '🔥',
-        color: 'var(--color-text-faint)',
+        color: 'rgba(255,149,0,0.4)',
         glow: 'transparent',
-        size: 22,
+        size: 28,
     };
 }
 
-function Flame({ streak, pulse }: { streak: number; pulse: boolean }) {
+function Flame({ streak }: { streak: number }) {
     const t = flameTier(streak);
+    const motionDisabled = useMotionDisabled();
+    const isActive = streak > 0;
+    const shouldAnimate = isActive && !motionDisabled;
+    const gooFilterId = useId();
+
+    if (!shouldAnimate) {
+        return (
+            <span
+                style={{
+                    fontSize: t.size,
+                    display: 'inline-block',
+                    filter:
+                        streak >= 7 ? `drop-shadow(0 0 8px ${t.glow})` : 'none',
+                }}
+            >
+                {t.emoji}
+            </span>
+        );
+    }
+
     return (
         <span
-            className='flame-wrap'
+            className='flame-icon'
             style={{
-                fontSize: t.size,
+                width: t.size,
+                height: t.size,
                 filter: streak >= 7 ? `drop-shadow(0 0 8px ${t.glow})` : 'none',
-                animation: pulse
-                    ? 'flameFlicker 1.4s ease-in-out infinite'
-                    : 'none',
-                willChange: 'transform, filter',
-                display: 'inline-block',
             }}
         >
-            {t.emoji}
+            <svg width='0' height='0' style={{ position: 'absolute' }}>
+                <filter id={gooFilterId} colorInterpolationFilters='sRGB'>
+                    <feGaussianBlur
+                        in='SourceGraphic'
+                        stdDeviation={t.size / 16}
+                        result='blur'
+                    />
+                    <feColorMatrix
+                        in='blur'
+                        mode='matrix'
+                        values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7'
+                    />
+                </filter>
+            </svg>
+            <span
+                className='flame-goo'
+                style={{ filter: `url(#${gooFilterId})` }}
+            >
+                <span className='flame-base' style={{ background: t.color }} />
+                {flameParticleOffsets.map((offsetX, index) => (
+                    <span
+                        key={index}
+                        className='flame-particle'
+                        style={
+                            {
+                                background: t.color,
+                                animationDelay: `${index * 0.13}s`,
+                                '--flame-dx': `${offsetX}px`,
+                            } as React.CSSProperties
+                        }
+                    />
+                ))}
+            </span>
         </span>
     );
 }
@@ -112,7 +163,7 @@ export default function StreakDisplay({
     if (compact) {
         return (
             <div className='flex items-center gap-2 px-4 py-2'>
-                <Flame streak={current} pulse={current >= 14} />
+                <Flame streak={current} />
                 <div>
                     <span
                         className='text-lg font-black font-mono'
@@ -126,7 +177,7 @@ export default function StreakDisplay({
                         {current}
                     </span>
                     <span
-                        className='text-[10px] font-bold ml-1 uppercase tracking-widest'
+                        className='text-3xs font-bold ml-1 uppercase tracking-widest'
                         style={{ color: 'var(--color-text-muted)' }}
                     >
                         day streak
@@ -151,7 +202,7 @@ export default function StreakDisplay({
         >
             <div className='flex items-center justify-between mb-3'>
                 <span
-                    className='text-[10px] font-black tracking-[0.25em] uppercase'
+                    className='text-3xs font-black tracking-[0.25em] uppercase'
                     style={{ color: 'var(--color-brand)' }}
                 >
                     // STREAK
@@ -159,7 +210,7 @@ export default function StreakDisplay({
                 <div className='flex items-center gap-2'>
                     {atRisk && (
                         <span
-                            className='text-[10px] font-black px-2 py-0.5 rounded-full'
+                            className='text-3xs font-black px-2 py-0.5 rounded-full'
                             style={{
                                 background: 'rgba(239,68,68,0.08)',
                                 border: '1px solid rgba(239,68,68,0.35)',
@@ -173,7 +224,7 @@ export default function StreakDisplay({
             </div>
 
             <div className='flex items-center gap-3 mb-3'>
-                <Flame streak={current} pulse={current >= 14} />
+                <Flame streak={current} />
                 <span
                     className='text-5xl font-black font-mono tracking-tighter leading-none'
                     style={{
@@ -197,7 +248,7 @@ export default function StreakDisplay({
 
             {isNewPB && (
                 <p
-                    className='text-[10px] font-bold animate-fade-up'
+                    className='text-3xs font-bold animate-fade-up'
                     style={{ color: t.color }}
                 >
                     🏆 New personal best!
@@ -205,7 +256,7 @@ export default function StreakDisplay({
             )}
             {isPBPending && (
                 <p
-                    className='text-[10px] font-mono'
+                    className='text-3xs font-mono'
                     style={{ color: 'var(--color-text-faint)' }}
                 >
                     Best: {longest} days

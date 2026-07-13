@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { verifyToken } from '../../common/utils/tokenLogic.js';
-import { registerClient, removeClient } from '../../common/sse.js';
+import { authMiddleware } from '../auth/auth.middleware.js';
+import { registerClient, removeClient, pushAchievements } from '../../common/sse.js';
+import { experienceAchievementLimiter } from '../../common/middlewares/rateLimiter.js';
 
 const router = Router();
 
@@ -45,6 +47,19 @@ router.get('/stream', (req, res) => {
     clearInterval(heartbeat);
     removeClient(userId, res);
   });
+});
+
+router.post('/experience-achievement', authMiddleware, experienceAchievementLimiter, (req, res) => {
+  const tier = req.body.tier ?? 'platinum';
+  pushAchievements(req.user.userId, [{
+    id: `experience-${Date.now()}`,
+    name: 'Preview',
+    emoji: '🧪',
+    tier,
+    xpAwarded: 0,
+    desc: 'Cosmetic preview, Experience unlocking achievements!',
+  }]);
+  res.json({ sent: true, tier });
 });
 
 export default router;

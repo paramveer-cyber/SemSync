@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
 import AddCourseModal from '../components/modals/AddCourseModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import OnboardingTutorial, {
@@ -100,7 +99,7 @@ const TYPE_ICON: Record<string, string> = {
 interface CourseWithStats {
     id: string;
     name: string;
-    credits?: number;
+    credits: number | null;
     targetGrade: number;
     currentGrade: number;
     totalWeight: number;
@@ -277,52 +276,41 @@ export default function Dashboard() {
 
     if (loading) {
         return (
-            <div
-                className='flex min-h-screen'
-                style={{ background: 'var(--color-surface)' }}
-            >
-                <Sidebar />
-                <main className='grow p-8 space-y-14'>
-                    <div>
-                        <div className='flex justify-between items-baseline mb-8'>
-                            <div className='h-12 w-72 bg-[var(--color-surface-2)] animate-pulse' />
-                            <div className='h-4 w-40 bg-[var(--color-surface-2)] animate-pulse' />
-                        </div>
-                        <div className='grid grid-cols-3 gap-4'>
-                            {[0, 1, 2].map((i) => (
-                                <div
-                                    key={i}
-                                    className='h-52 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]'
-                                />
-                            ))}
-                        </div>
+            <main className='grow p-8 space-y-14'>
+                <div>
+                    <div className='flex justify-between items-baseline mb-8'>
+                        <div className='h-12 w-72 bg-[var(--color-surface-2)] animate-pulse' />
+                        <div className='h-4 w-40 bg-[var(--color-surface-2)] animate-pulse' />
                     </div>
-                    <div>
-                        <div className='flex justify-between items-center mb-8'>
-                            <div className='h-8 w-64 bg-[var(--color-surface-2)] animate-pulse' />
-                            <div className='h-9 w-32 bg-[var(--color-surface-2)] animate-pulse' />
-                        </div>
-                        <div className='grid grid-cols-4 gap-4'>
-                            {[0, 1, 2, 3].map((i) => (
-                                <div
-                                    key={i}
-                                    className='h-44 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]'
-                                />
-                            ))}
-                        </div>
+                    <div className='grid grid-cols-3 gap-4'>
+                        {[0, 1, 2].map((i) => (
+                            <div
+                                key={i}
+                                className='h-52 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]'
+                            />
+                        ))}
                     </div>
-                </main>
-            </div>
+                </div>
+                <div>
+                    <div className='flex justify-between items-center mb-8'>
+                        <div className='h-8 w-64 bg-[var(--color-surface-2)] animate-pulse' />
+                        <div className='h-9 w-32 bg-[var(--color-surface-2)] animate-pulse' />
+                    </div>
+                    <div className='grid grid-cols-4 gap-4'>
+                        {[0, 1, 2, 3].map((i) => (
+                            <div
+                                key={i}
+                                className='h-44 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]'
+                            />
+                        ))}
+                    </div>
+                </div>
+            </main>
         );
     }
 
     return (
-        <div
-            className='flex min-h-screen'
-            style={{ background: 'var(--color-surface)' }}
-        >
-            <Sidebar />
-
+        <>
             <main className='grow flex flex-col overflow-y-auto'>
                 <div className='p-8 space-y-14'>
                     {error && (
@@ -361,7 +349,7 @@ export default function Dashboard() {
                             </div>
                             <div className='relative z-10 min-w-0 flex-1'>
                                 <p
-                                    className='text-[9px] font-black tracking-[0.24em] uppercase mb-1'
+                                    className='text-4xs font-black tracking-[0.24em] uppercase mb-1'
                                     style={{ color: 'var(--color-brand)' }}
                                 >
                                     Upcoming
@@ -439,7 +427,7 @@ export default function Dashboard() {
                         ) : (
                             <>
                                 {isFallback && (
-                                    <p className='text-[10px] font-bold tracking-[0.25em] text-[var(--color-text-faint)] uppercase mb-4'>
+                                    <p className='text-3xs font-bold tracking-[0.25em] text-[var(--color-text-faint)] uppercase mb-4'>
                                         Nothing this week, showing next upcoming
                                     </p>
                                 )}
@@ -461,14 +449,14 @@ export default function Dashboard() {
                                                     background:
                                                         'var(--color-surface-1)',
                                                     border: '1px solid var(--color-glass-border)',
-                                                    padding: '24px',
+                                                    padding: '1.5rem',
                                                     minHeight: '210px',
-                                                    borderRadius: 8,
+                                                    borderRadius: '0.5rem',
                                                 }}
                                             >
                                                 <div className='flex items-center justify-between mb-6'>
                                                     <span
-                                                        className='text-[10px] font-black tracking-[0.2em] px-3 py-1 uppercase'
+                                                        className='text-3xs font-black tracking-[0.2em] px-3 py-1 uppercase'
                                                         style={{
                                                             color: urg.color,
                                                             background: urg.bg,
@@ -507,7 +495,7 @@ export default function Dashboard() {
                                                     }}
                                                 >
                                                     <span
-                                                        className='flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest'
+                                                        className='flex items-center gap-2 text-3xs font-bold uppercase tracking-widest'
                                                         style={{
                                                             color: 'var(--color-text-muted)',
                                                         }}
@@ -521,7 +509,7 @@ export default function Dashboard() {
                                                             e.type.toUpperCase()}
                                                     </span>
                                                     <span
-                                                        className='flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase'
+                                                        className='flex items-center gap-1.5 text-3xs font-black tracking-widest uppercase'
                                                         style={{
                                                             color:
                                                                 urg.label ===
@@ -659,7 +647,7 @@ export default function Dashboard() {
                                                         }}
                                                     />
                                                     <span
-                                                        className='text-[9px] font-bold tracking-widest uppercase'
+                                                        className='text-4xs font-bold tracking-widest uppercase'
                                                         style={{
                                                             color: 'var(--color-text-muted)',
                                                         }}
@@ -821,7 +809,7 @@ export default function Dashboard() {
                                                 </div>
 
                                                 <p
-                                                    className='text-[9px] font-bold tracking-[0.25em] uppercase mt-4 mb-1.5 group-hover:text-[var(--color-brand)] transition-colors'
+                                                    className='text-4xs font-bold tracking-[0.25em] uppercase mt-4 mb-1.5 group-hover:text-[var(--color-brand)] transition-colors'
                                                     style={{
                                                         color: 'var(--color-text-faint)',
                                                     }}
@@ -859,7 +847,7 @@ export default function Dashboard() {
                                                 </div>
                                                 <div className='flex items-center justify-between'>
                                                     <span
-                                                        className='text-[9px] font-mono transition-colors group-hover:text-[var(--color-brand)]'
+                                                        className='text-4xs font-mono transition-colors group-hover:text-[var(--color-brand)]'
                                                         style={{
                                                             color: 'var(--color-text-faint)',
                                                         }}
@@ -868,7 +856,7 @@ export default function Dashboard() {
                                                         {course.targetGrade}%
                                                     </span>
                                                     <span
-                                                        className='text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity'
+                                                        className='text-4xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity'
                                                         style={{
                                                             color: 'var(--color-brand)',
                                                         }}
@@ -900,10 +888,10 @@ export default function Dashboard() {
                                     </h2>
                                     <span
                                         style={{
-                                            fontSize: 11,
+                                            fontSize: 'var(--text-2xs)',
                                             fontWeight: 800,
                                             padding: '2px 8px',
-                                            borderRadius: 99,
+                                            borderRadius: '6.1875rem',
                                             background:
                                                 'var(--color-active-bg)',
                                             color: 'var(--color-brand)',
@@ -918,7 +906,7 @@ export default function Dashboard() {
                                     <Link
                                         to='/classroom'
                                         style={{
-                                            fontSize: 11,
+                                            fontSize: 'var(--text-2xs)',
                                             fontWeight: 700,
                                             color: 'var(--color-text-faint)',
                                             textDecoration: 'none',
@@ -947,13 +935,13 @@ export default function Dashboard() {
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: 4,
+                                            gap: '0.25rem',
                                             padding: '4px 10px',
-                                            borderRadius: 6,
+                                            borderRadius: '0.375rem',
                                             background: 'var(--color-glass)',
                                             border: '1px solid var(--color-glass-border)',
                                             color: 'var(--color-text-muted)',
-                                            fontSize: 11,
+                                            fontSize: 'var(--text-2xs)',
                                             fontWeight: 600,
                                             cursor: 'pointer',
                                         }}
@@ -975,7 +963,7 @@ export default function Dashboard() {
                                         display: 'grid',
                                         gridTemplateColumns:
                                             'repeat(auto-fill, minmax(280px, 1fr))',
-                                        gap: 10,
+                                        gap: '0.625rem',
                                     }}
                                 >
                                     {classroomUpcoming.map((item) => {
@@ -1007,13 +995,13 @@ export default function Dashboard() {
                                                     textDecoration: 'none',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    gap: 12,
+                                                    gap: '0.75rem',
                                                     padding: '12px 14px',
                                                     background:
                                                         'var(--color-surface-1)',
                                                     border: '1px solid var(--color-glass-border)',
                                                     borderLeft: `3px solid hsl(${item.hue},60%,50%)`,
-                                                    borderRadius: 8,
+                                                    borderRadius: '0.5rem',
                                                     transition:
                                                         'background 0.12s',
                                                 }}
@@ -1038,7 +1026,8 @@ export default function Dashboard() {
                                                 >
                                                     <p
                                                         style={{
-                                                            fontSize: 13,
+                                                            fontSize:
+                                                                'var(--text-13)',
                                                             fontWeight: 700,
                                                             color: 'var(--color-text)',
                                                             margin: 0,
@@ -1053,7 +1042,8 @@ export default function Dashboard() {
                                                     </p>
                                                     <p
                                                         style={{
-                                                            fontSize: 11,
+                                                            fontSize:
+                                                                'var(--text-2xs)',
                                                             color: 'var(--color-text-faint)',
                                                             margin: '3px 0 0',
                                                             overflow: 'hidden',
@@ -1068,7 +1058,8 @@ export default function Dashboard() {
                                                 </div>
                                                 <span
                                                     style={{
-                                                        fontSize: 11,
+                                                        fontSize:
+                                                            'var(--text-2xs)',
                                                         fontWeight: 800,
                                                         color: urgent.color,
                                                         fontFamily: 'monospace',
@@ -1090,19 +1081,19 @@ export default function Dashboard() {
                     className='mt-auto px-8 py-6 flex justify-between items-center'
                     style={{ borderTop: '1px solid var(--color-glass-border)' }}
                 >
-                    <span className='text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-faint)]'>
+                    <span className='text-3xs uppercase tracking-[0.2em] text-[var(--color-text-faint)]'>
                         © 2026 SEMSYNC
                     </span>
                     <div className='flex gap-8'>
                         <a
                             href='#'
-                            className='text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] cursor-pointer transition-colors'
+                            className='text-3xs uppercase tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] cursor-pointer transition-colors'
                         >
                             TERMS
                         </a>
                         <a
                             href='#'
-                            className='text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] cursor-pointer transition-colors'
+                            className='text-3xs uppercase tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] cursor-pointer transition-colors'
                         >
                             PRIVACY
                         </a>
@@ -1168,6 +1159,6 @@ export default function Dashboard() {
                     onClose={() => setConfirmAction(null)}
                 />
             )}
-        </div>
+        </>
     );
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import AddEvalModal from '../components/modals/AddEvalModal';
 import EditEvalModal from '../components/modals/EditEvalModal';
@@ -164,11 +163,7 @@ export default function CoursePage() {
     };
 
     return (
-        <div
-            className='flex min-h-screen'
-            style={{ background: 'var(--color-surface)' }}
-        >
-            <Sidebar />
+        <>
             <main className='grow flex flex-col'>
                 <Header
                     title={course?.name ?? 'Course'}
@@ -178,7 +173,7 @@ export default function CoursePage() {
                     <div className='mb-8'>
                         <Link
                             to='/courses'
-                            className='text-[10px] font-bold tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] uppercase transition-colors cursor-pointer'
+                            className='text-3xs font-bold tracking-[0.2em] text-[var(--color-text-faint)] hover:text-[var(--color-text)] uppercase transition-colors cursor-pointer'
                         >
                             ← Back to Directory
                         </Link>
@@ -187,7 +182,7 @@ export default function CoursePage() {
                     {error && (
                         <div className='border border-[var(--color-danger)] bg-[rgba(239,68,68,0.05)] px-6 py-4 flex items-center space-x-3 mb-8'>
                             <AlertTriangle className='w-4 h-4 text-[var(--color-danger)] shrink-0' />
-                            <span className='text-[11px] font-bold text-[var(--color-danger)] uppercase tracking-widest'>
+                            <span className='text-2xs font-bold text-[var(--color-danger)] uppercase tracking-widest'>
                                 {error}
                             </span>
                         </div>
@@ -196,7 +191,7 @@ export default function CoursePage() {
                     {loading ? (
                         <div className='flex items-center space-x-4 py-20'>
                             <div className='w-px h-8 bg-[var(--color-brand)] animate-pulse' />
-                            <span className='text-[10px] font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase'>
+                            <span className='text-3xs font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase'>
                                 Loading track data…
                             </span>
                         </div>
@@ -217,7 +212,7 @@ export default function CoursePage() {
                                             style={{ color: '#a1a1aa' }}
                                         />
                                         <span
-                                            className='text-[10px] font-black tracking-[0.3em] uppercase'
+                                            className='text-3xs font-black tracking-[0.3em] uppercase'
                                             style={{ color: '#a1a1aa' }}
                                         >
                                             Archived — Read Only
@@ -228,7 +223,7 @@ export default function CoursePage() {
                                     <div className='flex items-center space-x-8'>
                                         {course.credits && (
                                             <div>
-                                                <p className='text-[9px] font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1'>
+                                                <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1'>
                                                     Credits
                                                 </p>
                                                 <p className='text-2xl font-extrabold font-mono text-[var(--color-text)]'>
@@ -237,7 +232,7 @@ export default function CoursePage() {
                                             </div>
                                         )}
                                         <div>
-                                            <p className='text-[9px] font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1'>
+                                            <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1'>
                                                 Target
                                             </p>
                                             <p className='text-2xl font-extrabold font-mono text-[var(--color-text)]'>
@@ -380,7 +375,7 @@ export default function CoursePage() {
                                                 key={s.label}
                                                 className={`p-6 ${i < 3 ? 'border-r border-[var(--color-glass-border)]' : ''} ${s.accent ? 'bg-[var(--color-brand-glow)]' : ''}`}
                                             >
-                                                <p className='text-[9px] font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-2'>
+                                                <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-2'>
                                                     {s.label}
                                                 </p>
                                                 <p
@@ -388,7 +383,7 @@ export default function CoursePage() {
                                                 >
                                                     {s.value}
                                                 </p>
-                                                <p className='text-[12px] mt-1 leading-snug text-[var(--color-text-faint)]'>
+                                                <p className='text-xs mt-1 leading-snug text-[var(--color-text-faint)]'>
                                                     {s.sub}
                                                 </p>
                                             </div>
@@ -459,7 +454,7 @@ export default function CoursePage() {
                                             <div className='px-6 pt-5 pb-4 border-b border-[var(--color-glass-border)] flex items-start justify-between'>
                                                 <div>
                                                     <p
-                                                        className='text-[9px] font-black tracking-[0.25em] uppercase mb-0.5'
+                                                        className='text-4xs font-black tracking-[0.25em] uppercase mb-0.5'
                                                         style={{
                                                             color: 'var(--color-brand)',
                                                         }}
@@ -493,15 +488,16 @@ export default function CoursePage() {
                                                             >
                                                                 <div
                                                                     style={{
-                                                                        width: 20,
-                                                                        height: 2,
+                                                                        width: '1.25rem',
+                                                                        height: '0.125rem',
                                                                         background:
                                                                             color,
-                                                                        borderRadius: 1,
+                                                                        borderRadius:
+                                                                            '0.0625rem',
                                                                     }}
                                                                 />
                                                                 <span
-                                                                    className='text-[9px] font-bold tracking-widest uppercase font-mono'
+                                                                    className='text-4xs font-bold tracking-widest uppercase font-mono'
                                                                     style={{
                                                                         color: 'var(--color-text-faint)',
                                                                     }}
@@ -525,13 +521,15 @@ export default function CoursePage() {
                                                             100,
                                                         ),
                                                         tickLabelStyle: {
-                                                            fontSize: 10,
+                                                            fontSize:
+                                                                'var(--text-3xs)',
                                                             fill: '#71717a',
                                                             fontFamily:
                                                                 'monospace',
                                                         },
                                                         labelStyle: {
-                                                            fontSize: 12,
+                                                            fontSize:
+                                                                'var(--text-xs)',
                                                             fill: '#52525b',
                                                             fontFamily:
                                                                 'monospace',
@@ -546,18 +544,21 @@ export default function CoursePage() {
                                                     {
                                                         min: 0,
                                                         max: Math.max(
-                                                            ...xVals,
+                                                            ...yVals,
+                                                            course.targetGrade,
                                                             100,
                                                         ),
                                                         label: 'Grade Earned (%)',
                                                         tickLabelStyle: {
-                                                            fontSize: 10,
+                                                            fontSize:
+                                                                'var(--text-3xs)',
                                                             fill: '#71717a',
                                                             fontFamily:
                                                                 'monospace',
                                                         },
                                                         labelStyle: {
-                                                            fontSize: 12,
+                                                            fontSize:
+                                                                'var(--text-xs)',
                                                             fill: '#52525b',
                                                             fontFamily:
                                                                 'monospace',
@@ -600,8 +601,8 @@ export default function CoursePage() {
                                                 margin={{
                                                     top: 20,
                                                     right: 32,
-                                                    bottom: 56,
-                                                    left: 64,
+                                                    bottom: 28,
+                                                    left: 24,
                                                 }}
                                                 grid={{
                                                     vertical: true,
@@ -697,7 +698,7 @@ export default function CoursePage() {
 
                                 {evals.length === 0 ? (
                                     <div className='border border-dashed border-[var(--color-glass-border)] p-16 text-center'>
-                                        <p className='text-[10px] font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase mb-6'>
+                                        <p className='text-3xs font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase mb-6'>
                                             No evaluations logged
                                         </p>
                                         {!course.isArchived && (
@@ -748,7 +749,7 @@ export default function CoursePage() {
                                             ].map((h, i) => (
                                                 <div
                                                     key={h}
-                                                    className={`text-[9px] font-black tracking-[0.2em] uppercase text-[var(--color-text-faint)] ${
+                                                    className={`text-4xs font-black tracking-[0.2em] uppercase text-[var(--color-text-faint)] ${
                                                         i === 0
                                                             ? 'col-span-3'
                                                             : i === 6
@@ -782,18 +783,18 @@ export default function CoursePage() {
                                                     </div>
                                                     <div className='col-span-2 text-right'>
                                                         <span
-                                                            className={`text-[9px] font-black tracking-widest border px-2 py-0.5 uppercase ${TYPE_COLOR[e.type] ?? TYPE_COLOR.other}`}
+                                                            className={`text-4xs font-black tracking-widest border px-2 py-0.5 uppercase ${TYPE_COLOR[e.type] ?? TYPE_COLOR.other}`}
                                                         >
                                                             {e.type}
                                                         </span>
                                                     </div>
                                                     <div className='col-span-2 text-right'>
-                                                        <span className='text-[12px] text-[var(--color-text-faint)] font-mono'>
+                                                        <span className='text-xs text-[var(--color-text-faint)] font-mono'>
                                                             {fmtDate(e.date)}
                                                         </span>
                                                     </div>
                                                     <div className='col-span-2 text-right'>
-                                                        <span className='text-[11.5px] font-mono text-[var(--color-text)]'>
+                                                        <span className='text-2xs font-mono text-[var(--color-text)]'>
                                                             {e.weightage}%
                                                         </span>
                                                     </div>
@@ -801,23 +802,23 @@ export default function CoursePage() {
                                                         {e.score !== null &&
                                                         e.score !==
                                                             undefined ? (
-                                                            <span className='text-[11.5px] font-mono text-[var(--color-text)]'>
+                                                            <span className='text-2xs font-mono text-[var(--color-text)]'>
                                                                 {e.score}/
                                                                 {e.maxScore}
                                                             </span>
                                                         ) : (
-                                                            <span className='text-[11.5px] font-mono text-[var(--color-text-faint)]'>
+                                                            <span className='text-2xs font-mono text-[var(--color-text-faint)]'>
                                                                 —
                                                             </span>
                                                         )}
                                                     </div>
                                                     <div className='col-span-1 text-right'>
                                                         {earned !== null ? (
-                                                            <span className='text-[11.5px] font-mono text-[var(--color-brand)] font-bold'>
+                                                            <span className='text-2xs font-mono text-[var(--color-brand)] font-bold'>
                                                                 {earned}%
                                                             </span>
                                                         ) : (
-                                                            <span className='text-[11.5px] font-mono text-[var(--color-text-faint)]'>
+                                                            <span className='text-2xs font-mono text-[var(--color-text-faint)]'>
                                                                 —
                                                             </span>
                                                         )}
@@ -1001,6 +1002,6 @@ export default function CoursePage() {
                     onClose={() => setConfirmArchiveCourse(false)}
                 />
             )}
-        </div>
+        </>
     );
 }

@@ -96,13 +96,13 @@ export default function XPBar({ totalXp, level, compact = false }: XPBarProps) {
             >
                 <div className='flex items-center justify-between mb-1.5'>
                     <span
-                        className='text-[10px] font-black tracking-widest uppercase'
+                        className='text-3xs font-black tracking-widest uppercase'
                         style={{ color: 'var(--color-brand)' }}
                     >
                         Lv.{level} {name}
                     </span>
                     <span
-                        className='text-[10px] font-mono'
+                        className='text-3xs font-mono'
                         style={{ color: 'var(--color-text-muted)' }}
                     >
                         {pct}%
@@ -151,13 +151,13 @@ export default function XPBar({ totalXp, level, compact = false }: XPBarProps) {
             </div>
             <div className='flex justify-between mt-1.5'>
                 <span
-                    className='text-[9px] font-mono'
+                    className='text-4xs font-mono'
                     style={{ color: 'var(--color-text-faint)' }}
                 >
                     {pct}% to {nextName}
                 </span>
                 <span
-                    className='text-[9px] font-mono'
+                    className='text-4xs font-mono'
                     style={{ color: 'var(--color-text-faint)' }}
                 >
                     {(xpNeeded - xpInLevel).toLocaleString()} XP left

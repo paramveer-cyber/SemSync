@@ -1,46 +1,144 @@
-import { useEffect, ReactNode } from 'react';
+import { useEffect, useState, useCallback, ReactNode } from 'react';
+import { motion, Variants } from 'motion/react';
 import { X } from 'lucide-react';
+import { useMotionDisabled } from '../../context/AnimationPreferenceContext';
 
-export default function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onClose]);
+const SPRING_VARIANTS: Variants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+        opacity: 1,
+        scale: 1,
+        transition: { type: 'spring', stiffness: 350, damping: 28 },
+    },
+    exit: {
+        opacity: 0,
+        scale: 0.95,
+        transition: { duration: 0.15, ease: 'easeOut' },
+    },
+};
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div
-        className="w-full max-w-md animate-fade-up"
-        style={{ background: 'rgba(18,18,26,0.98)', border: '1px solid var(--color-glass-border)', borderRadius: '20px', overflow: 'hidden' }}>
-        {/* Header */}
+const FLAT_VARIANTS: Variants = {
+    hidden: { opacity: 0, scale: 0.98 },
+    visible: {
+        opacity: 1,
+        scale: 1,
+        transition: { duration: 0.16, ease: 'easeOut' },
+    },
+    exit: {
+        opacity: 0,
+        scale: 0.98,
+        transition: { duration: 0.12, ease: 'easeOut' },
+    },
+};
+
+type ModalChildren = ReactNode | ((requestClose: () => void) => ReactNode);
+
+export default function Modal({
+    title,
+    onClose,
+    children,
+    calm = false,
+}: {
+    title: string;
+    onClose: () => void;
+    children: ModalChildren;
+    calm?: boolean;
+}) {
+    const motionDisabled = useMotionDisabled();
+    const [isExiting, setIsExiting] = useState(false);
+
+    const requestClose = useCallback(() => {
+        if (motionDisabled) {
+            onClose();
+            return;
+        }
+        setIsExiting(true);
+    }, [motionDisabled, onClose]);
+
+    useEffect(() => {
+        const handleKeydown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') requestClose();
+        };
+        window.addEventListener('keydown', handleKeydown);
+        return () => window.removeEventListener('keydown', handleKeydown);
+    }, [requestClose]);
+
+    const cardVariants = calm ? FLAT_VARIANTS : SPRING_VARIANTS;
+    const content =
+        typeof children === 'function' ? children(requestClose) : children;
+
+    return (
         <div
-          className="flex items-center justify-between px-7 py-5"
-          style={{ borderBottom: '1px solid var(--color-glass-border)' }}>
-          <span className="text-sm font-semibold text-[var(--color-text)] font-headline">{title}</span>
-          <button
-            onClick={onClose}
-            title="Close"
-            className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-150"
-            style={{ background: 'rgba(239,68,68,0.10)', color: 'rgba(239,68,68,0.7)', border: '1px solid rgba(239,68,68,0.2)' }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.22)';
-              (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.5)';
+            className='fixed inset-0 z-50 flex items-center justify-center px-4'
+            style={{
+                background: 'rgba(0,0,0,0.75)',
+                backdropFilter: 'blur(8px)',
             }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.10)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(239,68,68,0.7)';
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.2)';
-            }}>
-            <X className="w-4 h-4" />
-          </button>
+            onClick={(e) => {
+                if (e.target === e.currentTarget) requestClose();
+            }}
+        >
+            <motion.div
+                className='w-full max-w-md'
+                style={{
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-glass-border)',
+                    borderRadius: 0,
+                    overflow: 'hidden',
+                }}
+                initial={motionDisabled ? false : 'hidden'}
+                animate={isExiting ? 'exit' : 'visible'}
+                variants={motionDisabled ? undefined : cardVariants}
+                onAnimationComplete={(definition) => {
+                    if (definition === 'exit') onClose();
+                }}
+            >
+                {/* Header */}
+                <div
+                    className='flex items-center justify-between px-7 py-5'
+                    style={{
+                        borderBottom: '1px solid var(--color-glass-border)',
+                    }}
+                >
+                    <span className='text-sm font-semibold text-[var(--color-text)] font-headline'>
+                        {title}
+                    </span>
+                    <button
+                        onClick={requestClose}
+                        title='Close'
+                        className='w-8 h-8 flex items-center justify-center cursor-pointer transition-all duration-150'
+                        style={{
+                            background: 'var(--color-glass)',
+                            color: 'var(--color-text-muted)',
+                            border: '1px solid var(--color-glass-border)',
+                            borderRadius: 0,
+                        }}
+                        onMouseEnter={(e) => {
+                            (
+                                e.currentTarget as HTMLButtonElement
+                            ).style.background = 'var(--color-glass-hover)';
+                            (e.currentTarget as HTMLButtonElement).style.color =
+                                'var(--color-danger)';
+                            (
+                                e.currentTarget as HTMLButtonElement
+                            ).style.borderColor = 'var(--color-danger)';
+                        }}
+                        onMouseLeave={(e) => {
+                            (
+                                e.currentTarget as HTMLButtonElement
+                            ).style.background = 'var(--color-glass)';
+                            (e.currentTarget as HTMLButtonElement).style.color =
+                                'var(--color-text-muted)';
+                            (
+                                e.currentTarget as HTMLButtonElement
+                            ).style.borderColor = 'var(--color-glass-border)';
+                        }}
+                    >
+                        <X className='w-4 h-4' />
+                    </button>
+                </div>
+                <div className='p-7'>{content}</div>
+            </motion.div>
         </div>
-        <div className="p-7">{children}</div>
-      </div>
-    </div>
-  );
+    );
 }

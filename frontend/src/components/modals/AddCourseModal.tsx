@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createCourse, createEval } from '../../lib/api';
+import { EVAL_TYPE_COLORS } from '../../lib/evalTypeColors';
 import {
     Plus,
     Trash2,
@@ -29,17 +30,6 @@ const EVAL_TYPES = [
     { value: 'other', label: 'Other' },
 ];
 
-const SEG_COLORS: Record<string, string> = {
-    midsem: '#f59e0b',
-    endsem: '#ef4444',
-    quiz: 'var(--color-brand)',
-    assignment: '#3b82f6',
-    lab: '#8b5cf6',
-    project: '#06b6d4',
-    viva: '#ec4899',
-    other: '#6b7280',
-};
-
 function uid() {
     return Math.random().toString(36).slice(2, 9);
 }
@@ -47,12 +37,11 @@ function uid() {
 const fieldStyle = {
     background: 'var(--color-glass)',
     border: '1px solid var(--color-glass-border)',
-    color: 'white',
+    color: 'var(--color-text)',
 };
 const inputCls =
     'w-full px-4 py-3 text-sm placeholder:text-[var(--color-text)]/25 focus:outline-none transition-colors bg-transparent';
-const labelCls =
-    'block text-[10px] font-black tracking-[0.25em] uppercase mb-2';
+const labelCls = 'block text-3xs font-black tracking-[0.25em] uppercase mb-2';
 const labelStyle = { color: 'var(--color-text-muted)' };
 
 export default function AddCourseModal({
@@ -264,7 +253,7 @@ export default function AddCourseModal({
             <div
                 className='w-full overflow-hidden'
                 style={{
-                    maxWidth: step === 2 ? '780px' : '480px',
+                    maxWidth: step === 2 ? '720px' : '420px',
                     background: 'var(--color-surface)',
                     border: '1px solid var(--color-glass-border)',
                     transition: 'max-width 0.25s ease',
@@ -278,7 +267,7 @@ export default function AddCourseModal({
                 >
                     <div>
                         <span
-                            className='text-[10px] font-black tracking-[0.3em] uppercase block mb-1'
+                            className='text-3xs font-black tracking-[0.3em] uppercase block mb-1'
                             style={{ color: 'var(--color-brand)' }}
                         >
                             // NEW_COURSE_NODE
@@ -295,7 +284,7 @@ export default function AddCourseModal({
                                     className='flex items-center gap-2'
                                 >
                                     <div
-                                        className='w-6 h-6 flex items-center justify-center text-[10px] font-black'
+                                        className='w-6 h-6 flex items-center justify-center text-3xs font-black'
                                         style={{
                                             border: `1px solid ${step >= s ? 'var(--color-brand)' : 'var(--color-glass-border)'}`,
                                             color:
@@ -338,7 +327,7 @@ export default function AddCourseModal({
                             onMouseEnter={(e) => {
                                 (
                                     e.currentTarget as HTMLButtonElement
-                                ).style.color = 'white';
+                                ).style.color = 'var(--color-text)';
                             }}
                             onMouseLeave={(e) => {
                                 (
@@ -412,7 +401,7 @@ export default function AddCourseModal({
                                 }}
                             >
                                 <AlertTriangle className='w-3.5 h-3.5 text-red-400 shrink-0' />
-                                <span className='text-[11px] font-bold text-red-400 uppercase tracking-widest'>
+                                <span className='text-2xs font-bold text-red-400 uppercase tracking-widest'>
                                     {step1Error}
                                 </span>
                             </div>
@@ -456,7 +445,7 @@ export default function AddCourseModal({
                                     ).style.background = 'var(--color-brand)';
                                     (
                                         e.currentTarget as HTMLButtonElement
-                                    ).style.color = '#000';
+                                    ).style.color = 'var(--color-surface)';
                                     (
                                         e.currentTarget as HTMLButtonElement
                                     ).style.boxShadow =
@@ -492,7 +481,7 @@ export default function AddCourseModal({
                         >
                             <div>
                                 <p
-                                    className='text-[9px] font-black tracking-[0.3em] uppercase mb-1'
+                                    className='text-4xs font-black tracking-[0.3em] uppercase mb-1'
                                     style={{ color: 'var(--color-text-faint)' }}
                                 >
                                     Configuring
@@ -503,7 +492,7 @@ export default function AddCourseModal({
                             </div>
                             <div className='text-right'>
                                 <p
-                                    className='text-[9px] font-black tracking-widest uppercase mb-1'
+                                    className='text-4xs font-black tracking-widest uppercase mb-1'
                                     style={{ color: 'var(--color-text-faint)' }}
                                 >
                                     Target
@@ -517,19 +506,19 @@ export default function AddCourseModal({
                         <div className='mb-2'>
                             <div className='flex items-center justify-between mb-2'>
                                 <span
-                                    className='text-[9px] font-black tracking-[0.25em] uppercase'
+                                    className='text-4xs font-black tracking-[0.25em] uppercase'
                                     style={{ color: 'var(--color-text-muted)' }}
                                 >
                                     Weight Distribution
                                 </span>
                                 <span
-                                    className='text-[11px] font-black font-mono'
+                                    className='text-2xs font-black font-mono'
                                     style={{
                                         color: weightOk
                                             ? 'var(--color-brand)'
                                             : totalWeight > 100
-                                              ? '#ef4444'
-                                              : '#f59e0b',
+                                              ? 'var(--color-danger)'
+                                              : 'var(--color-warn)',
                                     }}
                                 >
                                     {totalWeight.toFixed(1)}% / 100%
@@ -548,8 +537,8 @@ export default function AddCourseModal({
                                         style={{
                                             width: `${Math.min(seg.pct, 100 - segments.slice(0, i).reduce((s, x) => s + x.pct, 0))}%`,
                                             background:
-                                                SEG_COLORS[seg.type] ??
-                                                '#6b7280',
+                                                EVAL_TYPE_COLORS[seg.type] ??
+                                                'var(--color-eval-other)',
                                         }}
                                     />
                                 ))}
@@ -566,12 +555,14 @@ export default function AddCourseModal({
                                                 className='w-2 h-2'
                                                 style={{
                                                     background:
-                                                        SEG_COLORS[r.type] ??
-                                                        '#6b7280',
+                                                        EVAL_TYPE_COLORS[
+                                                            r.type
+                                                        ] ??
+                                                        'var(--color-eval-other)',
                                                 }}
                                             />
                                             <span
-                                                className='text-[9px] font-mono'
+                                                className='text-4xs font-mono'
                                                 style={{
                                                     color: 'var(--color-text-muted)',
                                                 }}
@@ -600,7 +591,7 @@ export default function AddCourseModal({
                             ].map((h) => (
                                 <span
                                     key={h}
-                                    className='text-[9px] font-black tracking-[0.2em] uppercase'
+                                    className='text-4xs font-black tracking-[0.2em] uppercase'
                                     style={{ color: 'var(--color-text-faint)' }}
                                 >
                                     {h}
@@ -718,7 +709,8 @@ export default function AddCourseModal({
                                         onMouseEnter={(e) => {
                                             (
                                                 e.currentTarget as HTMLButtonElement
-                                            ).style.color = '#ef4444';
+                                            ).style.color =
+                                                'var(--color-danger)';
                                             (
                                                 e.currentTarget as HTMLButtonElement
                                             ).style.background =
@@ -765,7 +757,7 @@ export default function AddCourseModal({
                         </button>
 
                         <p
-                            className='text-[9px] font-mono text-center mb-4'
+                            className='text-4xs font-mono text-center mb-4'
                             style={{ color: 'var(--color-text-faint)' }}
                         >
                             Structure is optional — you can add evaluations
@@ -781,7 +773,7 @@ export default function AddCourseModal({
                                 }}
                             >
                                 <AlertTriangle className='w-3.5 h-3.5 text-red-400 shrink-0' />
-                                <span className='text-[11px] font-bold text-red-400 uppercase tracking-widest'>
+                                <span className='text-2xs font-bold text-red-400 uppercase tracking-widest'>
                                     {error}
                                 </span>
                             </div>
@@ -855,7 +847,7 @@ export default function AddCourseModal({
                                             'var(--color-brand)';
                                         (
                                             e.currentTarget as HTMLButtonElement
-                                        ).style.color = '#000';
+                                        ).style.color = 'var(--color-surface)';
                                         (
                                             e.currentTarget as HTMLButtonElement
                                         ).style.boxShadow =
@@ -875,14 +867,7 @@ export default function AddCourseModal({
                                     ).style.boxShadow = 'none';
                                 }}
                             >
-                                {loading ? (
-                                    'Creating…'
-                                ) : (
-                                    <>
-                                        <Plus className='w-4 h-4' /> Initialize
-                                        Course
-                                    </>
-                                )}
+                                {loading ? 'Creating…' : <>Initialize Course</>}
                             </button>
                         </div>
                     </div>

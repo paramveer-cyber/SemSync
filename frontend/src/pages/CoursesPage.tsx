@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import AddCourseModal from '../components/modals/AddCourseModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
@@ -99,11 +98,7 @@ export default function CoursesPage() {
     const nodeCount = tab === 'active' ? courses.length : archived.length;
 
     return (
-        <div
-            className='flex min-h-screen'
-            style={{ background: 'var(--color-surface)' }}
-        >
-            <Sidebar />
+        <>
             <main className='grow flex flex-col'>
                 <Header title='Academic Tracks' subtitle='Directory_V2.0' />
                 <div className='p-12'>
@@ -139,7 +134,7 @@ export default function CoursesPage() {
                                     }}
                                 />
                                 <span
-                                    className='text-[10px] font-bold tracking-widest uppercase'
+                                    className='text-3xs font-bold tracking-widest uppercase'
                                     style={{ color: 'var(--color-text-faint)' }}
                                 >
                                     {nodeCount}{' '}
@@ -200,7 +195,7 @@ export default function CoursesPage() {
                             <button
                                 key={t}
                                 onClick={() => setTab(t)}
-                                className='px-6 py-2 text-[10px] font-black tracking-[0.2em] uppercase rounded-md cursor-pointer transition-all duration-150'
+                                className='px-6 py-2 text-3xs font-black tracking-[0.2em] uppercase rounded-md cursor-pointer transition-all duration-150'
                                 style={{
                                     background:
                                         tab === t
@@ -234,7 +229,7 @@ export default function CoursesPage() {
                                 style={{ color: 'var(--color-danger)' }}
                             />
                             <span
-                                className='text-[11px] font-bold uppercase tracking-widest'
+                                className='text-2xs font-bold uppercase tracking-widest'
                                 style={{ color: 'var(--color-danger)' }}
                             >
                                 {error}
@@ -249,7 +244,7 @@ export default function CoursesPage() {
                                 style={{ background: 'var(--color-brand)' }}
                             />
                             <span
-                                className='text-[10px] font-bold tracking-[0.3em] uppercase'
+                                className='text-3xs font-bold tracking-[0.3em] uppercase'
                                 style={{ color: 'var(--color-text-faint)' }}
                             >
                                 Scanning nodes…
@@ -261,7 +256,7 @@ export default function CoursesPage() {
                             style={{ borderColor: 'var(--color-glass-border)' }}
                         >
                             <p
-                                className='text-[10px] font-bold tracking-[0.3em] uppercase mb-6'
+                                className='text-3xs font-bold tracking-[0.3em] uppercase mb-6'
                                 style={{ color: 'var(--color-text-faint)' }}
                             >
                                 {tab === 'active'
@@ -345,7 +340,7 @@ export default function CoursesPage() {
                                             >
                                                 <div className='flex items-center gap-3'>
                                                     <div className='w-4 h-4 border border-red-500/30 border-t-red-500 animate-spin rounded-full' />
-                                                    <span className='text-[10px] font-bold tracking-widest uppercase text-red-400'>
+                                                    <span className='text-3xs font-bold tracking-widest uppercase text-red-400'>
                                                         Deleting…
                                                     </span>
                                                 </div>
@@ -355,7 +350,7 @@ export default function CoursesPage() {
                                         <div className='flex justify-between items-start mb-14'>
                                             <div className='flex items-center gap-3'>
                                                 <span
-                                                    className='text-[10px] font-black tracking-[0.4em] uppercase'
+                                                    className='text-3xs font-black tracking-[0.4em] uppercase'
                                                     style={{
                                                         color: 'var(--color-text-faint)',
                                                     }}
@@ -415,7 +410,7 @@ export default function CoursesPage() {
                                                 {course.name}
                                             </h3>
                                             <div
-                                                className='flex items-center space-x-4 mb-10 text-[10px] font-mono'
+                                                className='flex items-center space-x-4 mb-10 text-3xs font-mono'
                                                 style={{
                                                     color: 'var(--color-text-faint)',
                                                 }}
@@ -438,7 +433,7 @@ export default function CoursesPage() {
                                                 }}
                                             >
                                                 <span
-                                                    className='text-[10px] font-bold tracking-widest uppercase group-hover:text-[var(--color-text)] transition-colors'
+                                                    className='text-3xs font-bold tracking-widest uppercase group-hover:text-[var(--color-text)] transition-colors'
                                                     style={{
                                                         color: 'var(--color-brand)',
                                                     }}
@@ -464,7 +459,7 @@ export default function CoursesPage() {
                     }}
                 >
                     <span
-                        className='text-[10px] uppercase tracking-[0.2em]'
+                        className='text-3xs uppercase tracking-[0.2em]'
                         style={{ color: 'var(--color-text-faint)' }}
                     >
                         © 2026 SEMSYNC
@@ -499,6 +494,6 @@ export default function CoursesPage() {
                     onClose={() => setConfirmDelete(null)}
                 />
             )}
-        </div>
+        </>
     );
 }

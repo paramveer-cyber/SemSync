@@ -38,7 +38,7 @@ function GoalRow({ goal, index }: { goal: Goal; index: number }) {
         }}
       >
         {isDone
-          ? <span style={{ fontSize: 14, fontWeight: 900 }}>✓</span>
+          ? <span style={{ fontSize: 'var(--text-sm)', fontWeight: 900 }}>✓</span>
           : (GOAL_ICONS[goal.type] ?? <Target className="w-3.5 h-3.5" />)
         }
       </span>
@@ -57,7 +57,7 @@ function GoalRow({ goal, index }: { goal: Goal; index: number }) {
 
       {/* XP reward */}
       <span
-        className="text-[10px] font-black font-mono shrink-0"
+        className="text-3xs font-black font-mono shrink-0"
         style={{ color: isDone ? 'var(--color-brand)' : 'var(--color-text-faint)' }}
       >
         +{goal.xpReward}
@@ -98,11 +98,11 @@ export default function DailyGoals({ goals, loading }: { goals: Goal[]; loading?
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 shrink-0" style={{ color: 'var(--color-brand)' }} />
-          <span className="text-[10px] font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-brand)' }}>
+          <span className="text-3xs font-black tracking-[0.25em] uppercase" style={{ color: 'var(--color-brand)' }}>
             Today's Goals
           </span>
         </div>
-        <span className="text-[10px] font-black font-mono" style={{ color: allDone ? 'var(--color-brand)' : 'var(--color-text-muted)' }}>
+        <span className="text-3xs font-black font-mono" style={{ color: allDone ? 'var(--color-brand)' : 'var(--color-text-muted)' }}>
           {done}/{total}
         </span>
       </div>
@@ -126,7 +126,7 @@ export default function DailyGoals({ goals, loading }: { goals: Goal[]; loading?
       {/* empty state */}
       {total === 0 && (
         <div className="py-6 text-center animate-fade-up">
-          <p className="text-[11px] font-bold" style={{ color: 'var(--color-text-faint)' }}>
+          <p className="text-2xs font-bold" style={{ color: 'var(--color-text-faint)' }}>
             No goals yet — start a session to generate today's targets.
           </p>
         </div>

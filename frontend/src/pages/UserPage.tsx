@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { authLogout } from '../lib/api';
@@ -22,10 +21,7 @@ export default function UserPage() {
     : '??';
 
   return (
-    <div className="flex min-h-screen bg-[var(--color-surface)]">
-      <Sidebar />
-
-      <main className="grow flex flex-col">
+    <main className="grow flex flex-col">
         <Header title="My Profile" subtitle="Account Settings" />
 
         <div className="p-8 max-w-xl space-y-6">
@@ -88,7 +84,7 @@ export default function UserPage() {
                 <row.icon className="w-4 h-4" style={{ color: 'var(--color-text-faint)' }} />
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] text-[var(--color-text)]/40">
+                  <p className="text-2xs text-[var(--color-text)]/40">
                     {row.label}
                   </p>
                   <p className={`text-sm truncate ${row.accent ? 'text-green-400' : 'text-[var(--color-text)]'}`}>
@@ -164,11 +160,10 @@ export default function UserPage() {
             </div>
           </div>
 
-          <p className="text-[11px] text-center" style={{ color: "var(--color-text-faint)" }}>
+          <p className="text-2xs text-center" style={{ color: "var(--color-text-faint)" }}>
             © 2025 Architect System. All rights reserved.
           </p>
         </div>
-      </main>
-    </div>
+    </main>
   );
 }

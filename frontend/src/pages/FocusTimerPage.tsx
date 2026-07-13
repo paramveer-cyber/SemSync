@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import { motion } from 'motion/react';
 import { useDelayedSkeleton } from '../hooks/useDelayedSkeleton';
@@ -134,7 +133,7 @@ function QuoteCard() {
                     style={{ color: 'var(--color-brand)' }}
                 />
                 <span
-                    className='text-[10px] font-black tracking-[0.25em] uppercase'
+                    className='text-3xs font-black tracking-[0.25em] uppercase'
                     style={{ color: 'var(--color-brand)' }}
                 >
                     FOCUS PROTOCOL
@@ -143,7 +142,7 @@ function QuoteCard() {
             <p className='text-sm font-bold leading-relaxed text-[var(--color-text)] mb-3 italic'>
                 "{q.text}"
             </p>
-            <p className='text-[10px] font-mono tracking-widest uppercase text-[var(--color-text-muted)]'>
+            <p className='text-3xs font-mono tracking-widest uppercase text-[var(--color-text-muted)]'>
                 — {q.author}
             </p>
         </div>
@@ -168,9 +167,10 @@ function TimerArc({ progress, phase }: { progress: number; phase: UIPhase }) {
         return `M ${s.x} ${s.y} A ${r} ${r} 0 ${la} 1 ${e.x} ${e.y}`;
     };
     const fillAngle = startAngle + totalAngle * (1 - progress);
-    const color = phase === 'break' ? '#3b82f6' : 'var(--color-brand)';
+    const color =
+        phase === 'break' ? 'var(--color-info)' : 'var(--color-brand)';
     return (
-        <svg width='300' height='300' viewBox='0 0 300 300' fill='none'>
+        <svg width='100%' height='100%' viewBox='0 0 300 300' fill='none'>
             <path
                 d={describeArc(startAngle, endAngle)}
                 stroke='var(--color-glass-border)'
@@ -363,6 +363,7 @@ export default function FocusTimerPage() {
                     ...prev,
                     stats: result.stats ?? prev?.stats,
                     streak: result.streak ?? prev?.streak,
+                    recentSessions: [result, ...(prev?.recentSessions ?? [])],
                 }));
                 getGamificationDashboard()
                     .then((d: any) =>
@@ -606,6 +607,7 @@ export default function FocusTimerPage() {
                     ...prev,
                     stats: result.stats ?? prev?.stats,
                     streak: result.streak ?? prev?.streak,
+                    recentSessions: [result, ...(prev?.recentSessions ?? [])],
                 }));
             }
         } catch {
@@ -688,500 +690,409 @@ export default function FocusTimerPage() {
 
     if (!timerLoaded) {
         return (
-            <motion.div
+            <motion.main
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15 }}
-                className='flex min-h-screen'
-                style={{ background: 'var(--color-surface)' }}
+                className='grow flex flex-col overflow-hidden p-8 space-y-8'
             >
-                <Sidebar />
-                <main className='grow flex flex-col overflow-hidden p-8 space-y-8'>
-                    <div className='h-9 w-64 bg-[var(--color-surface-2)] animate-pulse' />
-                    <div className='h-72 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)] rounded-xl' />
-                    <div className='grid grid-cols-3 gap-4'>
-                        {[0, 1, 2].map((i) => (
-                            <div
-                                key={i}
-                                className='h-24 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]'
-                            />
-                        ))}
-                    </div>
-                </main>
-            </motion.div>
+                <div className='h-9 w-64 bg-[var(--color-surface-2)] animate-pulse' />
+                <div className='h-72 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)] rounded-xl' />
+                <div className='grid grid-cols-3 gap-4'>
+                    {[0, 1, 2].map((i) => (
+                        <div
+                            key={i}
+                            className='h-24 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)]'
+                        />
+                    ))}
+                </div>
+            </motion.main>
         );
     }
 
     return (
-        <motion.div
+        <motion.main
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.15 }}
-            className='flex min-h-screen'
-            style={{ background: 'var(--color-surface)' }}
+            className='grow flex flex-col overflow-hidden'
         >
-            <Sidebar />
-            <main className='grow flex flex-col overflow-hidden'>
-                <Header title='Focus Timer' subtitle='Focus_Protocol_V2' />
+            <Header title='Focus Timer' subtitle='Focus_Protocol_V2' />
 
-                {showSessionComplete && sessionResult && (
-                    <SessionComplete
-                        result={sessionResult}
-                        hasAchievements={false}
-                        onContinue={() => setShowSessionComplete(false)}
-                    />
-                )}
+            {showSessionComplete && sessionResult && (
+                <SessionComplete
+                    result={sessionResult}
+                    hasAchievements={false}
+                    onContinue={() => setShowSessionComplete(false)}
+                />
+            )}
 
-                <div className='grow overflow-y-auto p-8'>
-                    <div className='mb-8'>
-                        <span
-                            className='text-[10px] font-black tracking-[0.3em] uppercase block mb-2'
-                            style={{ color: 'var(--color-brand)' }}
+            <div className='grow overflow-y-auto p-8'>
+                <div className='mb-8'>
+                    <span
+                        className='text-3xs font-black tracking-[0.3em] uppercase block mb-2'
+                        style={{ color: 'var(--color-brand)' }}
+                    >
+                        // FOCUS_PROTOCOL_V2
+                    </span>
+                    <h2 className='text-7xl font-extrabold tracking-tighter uppercase leading-none text-[var(--color-text)]'>
+                        Focus Timer
+                    </h2>
+                </div>
+
+                <div className='grid grid-cols-[1fr_320px] gap-6'>
+                    <div className='flex flex-col gap-5'>
+                        <QuoteCard />
+
+                        <div
+                            className='relative'
+                            style={{
+                                border: '1px solid var(--color-glass-border)',
+                                background: 'var(--color-surface-1)',
+                                padding: '2rem',
+                                borderRadius: '0.5rem',
+                            }}
                         >
-                            // FOCUS_PROTOCOL_V2
-                        </span>
-                        <h2 className='text-7xl font-extrabold tracking-tighter uppercase leading-none text-[var(--color-text)]'>
-                            Focus Timer
-                        </h2>
-                    </div>
-
-                    <div className='grid grid-cols-[1fr_320px] gap-6'>
-                        <div className='flex flex-col gap-5'>
-                            <QuoteCard />
-
-                            <div
-                                className='relative'
-                                style={{
-                                    border: '1px solid var(--color-glass-border)',
-                                    background: 'var(--color-surface-1)',
-                                    padding: '32px',
-                                    borderRadius: 8,
-                                }}
-                            >
-                                <div className='flex items-center justify-between mb-8'>
-                                    <div className='flex items-center gap-3 mt-2'>
-                                        <div
-                                            className='w-2 h-2 rounded-full animate-pulse'
-                                            style={{ background: phaseColor }}
-                                        />
-                                        <span
-                                            className='text-[10px] font-black tracking-[0.3em] uppercase'
-                                            style={{ color: phaseColor }}
-                                        >
-                                            {phaseLabel}
-                                        </span>
-                                    </div>
-                                    {phase === 'break' && (
-                                        <span className='text-[10px] font-mono px-3 py-1 text-blue-400 border border-blue-500/40 bg-blue-500/10 rounded-lg'>
-                                            <Coffee className='w-3 h-3 inline mr-1' />
-                                            TOUCH GRASS 🌱
-                                        </span>
-                                    )}
-                                    {phase === 'focus' && taskLabel && (
-                                        <span className='flex items-center gap-1.5 text-[10px] font-mono px-3 py-1 truncate max-w-xs text-green-400 border border-green-500/40 bg-green-500/10 rounded-lg'>
-                                            <Link2 className='w-3 h-3 shrink-0' />
-                                            {taskLabel}
-                                        </span>
-                                    )}
+                            <div className='flex items-center justify-between mb-8'>
+                                <div className='flex items-center gap-3 mt-2'>
+                                    <div
+                                        className='w-2 h-2 rounded-full animate-pulse'
+                                        style={{ background: phaseColor }}
+                                    />
+                                    <span
+                                        className='text-3xs font-black tracking-[0.3em] uppercase'
+                                        style={{ color: phaseColor }}
+                                    >
+                                        {phaseLabel}
+                                    </span>
                                 </div>
-
-                                <div className='flex items-center justify-center mb-8'>
-                                    <div className='relative w-[300px] h-[300px]'>
-                                        <TimerArc
-                                            progress={
-                                                breakPhase
-                                                    ? breakSecondsLeft /
-                                                      (BREAK_MINUTES * 60)
-                                                    : progress
-                                            }
-                                            phase={phase}
-                                        />
-                                        <div className='absolute inset-0 flex flex-col items-center justify-center'>
-                                            <span className='text-[10px] font-mono tracking-[0.2em] uppercase mb-1 text-[var(--color-text-muted)]'>
-                                                CYCLE TIME
-                                            </span>
-                                            <span
-                                                className='text-7xl font-black font-mono tracking-tighter text-[var(--color-text)]'
-                                                style={{
-                                                    textShadow: `0 0 30px ${phaseColor}44`,
-                                                }}
-                                            >
-                                                {breakPhase
-                                                    ? `${String(Math.floor(breakSecondsLeft / 60)).padStart(2, '0')}:${String(breakSecondsLeft % 60).padStart(2, '0')}`
-                                                    : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`}
-                                            </span>
-                                            {phase === 'focus' && (
-                                                <span className='text-[10px] font-mono tracking-widest mt-2 text-[var(--color-text-muted)]'>
-                                                    {Math.round(
-                                                        (1 - progress) * 100,
-                                                    )}
-                                                    % COMPLETE
-                                                </span>
-                                            )}
-                                            {isPaused && (
-                                                <span className='text-[10px] font-mono tracking-widest mt-1 text-amber-500'>
-                                                    PAUSED
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {!isActive && !breakPhase && (
-                                    <div className='flex items-center justify-center gap-3 mb-8'>
-                                        {FOCUS_CHIPS.map((m) => (
-                                            <button
-                                                key={m}
-                                                onClick={() => selectChip(m)}
-                                                className='px-5 py-2 rounded-lg text-sm font-black tracking-widest uppercase transition-all duration-150 cursor-pointer'
-                                                style={
-                                                    selectedMinutes === m
-                                                        ? {
-                                                              border: '1px solid var(--color-brand)',
-                                                              color: 'var(--color-brand)',
-                                                              background:
-                                                                  'rgba(34,197,94,0.15)',
-                                                          }
-                                                        : {
-                                                              border: '1px solid var(--color-glass-border)',
-                                                              color: 'var(--color-text)',
-                                                              background:
-                                                                  'transparent',
-                                                          }
-                                                }
-                                            >
-                                                {m}m
-                                            </button>
-                                        ))}
-                                    </div>
+                                {phase === 'break' && (
+                                    <span className='text-3xs font-mono px-3 py-1 text-blue-400 border border-blue-500/40 bg-blue-500/10 rounded-lg'>
+                                        <Coffee className='w-3 h-3 inline mr-1' />
+                                        TOUCH GRASS 🌱
+                                    </span>
                                 )}
+                                {phase === 'focus' && taskLabel && (
+                                    <span className='flex items-center gap-1.5 text-3xs font-mono px-3 py-1 truncate max-w-xs text-green-400 border border-green-500/40 bg-green-500/10 rounded-lg'>
+                                        <Link2 className='w-3 h-3 shrink-0' />
+                                        {taskLabel}
+                                    </span>
+                                )}
+                            </div>
 
-                                <div className='flex items-center justify-center gap-3'>
-                                    {!isActive && !breakPhase && (
-                                        <button
-                                            onClick={start}
-                                            disabled={finalizing}
-                                            className='flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150'
+                            <div className='flex items-center justify-center mb-8'>
+                                <div className='relative w-[18.75rem] h-[18.75rem]'>
+                                    <TimerArc
+                                        progress={
+                                            breakPhase
+                                                ? breakSecondsLeft /
+                                                  (BREAK_MINUTES * 60)
+                                                : progress
+                                        }
+                                        phase={phase}
+                                    />
+                                    <div className='absolute inset-0 flex flex-col items-center justify-center'>
+                                        <span className='text-3xs font-mono tracking-[0.2em] uppercase mb-1 text-[var(--color-text-muted)]'>
+                                            CYCLE TIME
+                                        </span>
+                                        <span
+                                            className='text-7xl font-black font-mono tracking-tighter text-[var(--color-text)]'
                                             style={{
-                                                border: '1px solid var(--color-brand)',
-                                                color: 'var(--color-brand)',
-                                                background: finalizing
-                                                    ? 'var(--color-glass-border)'
-                                                    : 'var(--color-active-bg)',
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                (
-                                                    e.currentTarget as HTMLButtonElement
-                                                ).style.background =
-                                                    'var(--color-brand)';
-                                                (
-                                                    e.currentTarget as HTMLButtonElement
-                                                ).style.color = '#000';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                (
-                                                    e.currentTarget as HTMLButtonElement
-                                                ).style.background =
-                                                    'rgba(34,197,94,0.12)';
-                                                (
-                                                    e.currentTarget as HTMLButtonElement
-                                                ).style.color =
-                                                    'var(--color-brand)';
+                                                textShadow: `0 0 30px ${phaseColor}44`,
                                             }}
                                         >
-                                            <Play className='w-4 h-4' />
-                                            INITIATE
-                                        </button>
-                                    )}
-                                    {isPaused && (
-                                        <button
-                                            onClick={resume}
-                                            className='flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer'
-                                            style={{
-                                                border: '1px solid var(--color-brand)',
-                                                color: 'var(--color-brand)',
-                                                background:
-                                                    'var(--color-active-bg)',
-                                            }}
-                                        >
-                                            <Play className='w-4 h-4' />
-                                            RESUME
-                                        </button>
-                                    )}
-                                    {breakPhase && (
-                                        <button
-                                            disabled
-                                            className='flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm opacity-50 cursor-not-allowed text-blue-400 border border-blue-500/40 bg-blue-500/10'
-                                        >
-                                            <Coffee className='w-4 h-4' />
-                                            MANDATORY 5M DELAY
-                                        </button>
-                                    )}
-                                    {isRunning && (
-                                        <button
-                                            onClick={pause}
-                                            className='flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-[var(--color-text)] border border-[var(--color-glass-border)] bg-[var(--color-surface-3)]/50'
-                                        >
-                                            <Pause className='w-4 h-4' />
-                                            SUSPEND
-                                        </button>
-                                    )}
-                                    {isRunning && (
-                                        <button
-                                            onClick={extend}
-                                            className='flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-amber-500 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20'
-                                        >
-                                            <Plus className='w-4 h-4' />
-                                            5M
-                                        </button>
-                                    )}
-                                    {isActive && (
-                                        <button
-                                            onClick={dismiss}
-                                            className='flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-red-500 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20'
-                                        >
-                                            <X className='w-4 h-4' />
-                                            STOP
-                                        </button>
-                                    )}
-                                    {!isActive &&
-                                        !breakPhase &&
-                                        displaySeconds > 0 &&
-                                        displaySeconds !==
-                                            selectedMinutes * 60 && (
-                                            <button
-                                                onClick={reset}
-                                                className='flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-[var(--color-text-muted)] border border-[var(--color-glass-border)] hover:bg-[var(--color-surface-3)]/50'
-                                            >
-                                                <RotateCcw className='w-4 h-4' />
-                                                RESET
-                                            </button>
+                                            {breakPhase
+                                                ? `${String(Math.floor(breakSecondsLeft / 60)).padStart(2, '0')}:${String(breakSecondsLeft % 60).padStart(2, '0')}`
+                                                : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`}
+                                        </span>
+                                        {phase === 'focus' && (
+                                            <span className='text-3xs font-mono tracking-widest mt-2 text-[var(--color-text-muted)]'>
+                                                {Math.round(
+                                                    (1 - progress) * 100,
+                                                )}
+                                                % COMPLETE
+                                            </span>
                                         )}
+                                        {isPaused && (
+                                            <span className='text-3xs font-mono tracking-widest mt-1 text-amber-500'>
+                                                PAUSED
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Right column */}
-                        <div className='flex flex-col gap-5'>
-                            {gamifData?.streak && (
-                                <StreakDisplay
-                                    current={
-                                        gamifData.streak.currentStreak ?? 0
-                                    }
-                                    longest={
-                                        gamifData.streak.longestStreak ?? 0
-                                    }
-                                    lastActiveDate={
-                                        gamifData.streak.lastActiveDate ?? null
-                                    }
-                                />
-                            )}
-                            {gamifData?.goals && (
-                                <DailyGoals goals={gamifData.goals} />
-                            )}
                             {!isActive && !breakPhase && (
-                                <div
-                                    style={{
-                                        border: taskError
-                                            ? '1px solid #ef4444'
-                                            : '1px solid var(--color-glass-border)',
-                                        background: 'var(--color-surface-1)',
-                                        padding: '24px',
-                                        borderRadius: '5px',
-                                        transition: 'border-color 0.3s ease',
-                                    }}
-                                >
-                                    <div className='flex items-center justify-between mb-5'>
-                                        <div className='flex items-center gap-2'>
-                                            <Target
-                                                className='w-4 h-4'
-                                                style={{
-                                                    color: 'var(--color-brand)',
-                                                }}
-                                            />
-                                            <span
-                                                className='text-[10px] font-black tracking-[0.25em] uppercase'
-                                                style={{
-                                                    color: 'var(--color-brand)',
-                                                }}
-                                            >
-                                                LINK TASK
-                                            </span>
-                                        </div>
-                                        {taskError && (
-                                            <AlertCircle className='w-4 h-4 text-red-500 animate-pulse' />
-                                        )}
+                                <div className='flex items-center justify-center gap-3 mb-8'>
+                                    {FOCUS_CHIPS.map((m) => (
+                                        <button
+                                            key={m}
+                                            onClick={() => selectChip(m)}
+                                            className='px-5 py-2 rounded-lg text-sm font-black tracking-widest uppercase transition-all duration-150 cursor-pointer'
+                                            style={
+                                                selectedMinutes === m
+                                                    ? {
+                                                          border: '1px solid var(--color-brand)',
+                                                          color: 'var(--color-brand)',
+                                                          background:
+                                                              'rgba(34,197,94,0.15)',
+                                                      }
+                                                    : {
+                                                          border: '1px solid var(--color-glass-border)',
+                                                          color: 'var(--color-text)',
+                                                          background:
+                                                              'transparent',
+                                                      }
+                                            }
+                                        >
+                                            {m}m
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className='flex items-center justify-center gap-3'>
+                                {!isActive && !breakPhase && (
+                                    <button
+                                        onClick={start}
+                                        disabled={finalizing}
+                                        className='flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer transition-all duration-150'
+                                        style={{
+                                            border: '1px solid var(--color-brand)',
+                                            color: 'var(--color-brand)',
+                                            background: finalizing
+                                                ? 'var(--color-glass-border)'
+                                                : 'var(--color-active-bg)',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            (
+                                                e.currentTarget as HTMLButtonElement
+                                            ).style.background =
+                                                'var(--color-brand)';
+                                            (
+                                                e.currentTarget as HTMLButtonElement
+                                            ).style.color = '#000';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            (
+                                                e.currentTarget as HTMLButtonElement
+                                            ).style.background =
+                                                'rgba(34,197,94,0.12)';
+                                            (
+                                                e.currentTarget as HTMLButtonElement
+                                            ).style.color =
+                                                'var(--color-brand)';
+                                        }}
+                                    >
+                                        <Play className='w-4 h-4' />
+                                        INITIATE
+                                    </button>
+                                )}
+                                {isPaused && (
+                                    <button
+                                        onClick={resume}
+                                        className='flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer'
+                                        style={{
+                                            border: '1px solid var(--color-brand)',
+                                            color: 'var(--color-brand)',
+                                            background:
+                                                'var(--color-active-bg)',
+                                        }}
+                                    >
+                                        <Play className='w-4 h-4' />
+                                        RESUME
+                                    </button>
+                                )}
+                                {breakPhase && (
+                                    <button
+                                        disabled
+                                        className='flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm opacity-50 cursor-not-allowed text-blue-400 border border-blue-500/40 bg-blue-500/10'
+                                    >
+                                        <Coffee className='w-4 h-4' />
+                                        3M BREAK
+                                    </button>
+                                )}
+                                {isRunning && (
+                                    <button
+                                        onClick={pause}
+                                        className='flex items-center gap-2 px-8 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-[var(--color-text)] border border-[var(--color-glass-border)] bg-[var(--color-surface-3)]/50'
+                                    >
+                                        <Pause className='w-4 h-4' />
+                                        SUSPEND
+                                    </button>
+                                )}
+                                {isRunning && (
+                                    <button
+                                        onClick={extend}
+                                        className='flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-amber-500 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20'
+                                    >
+                                        <Plus className='w-4 h-4' />
+                                        5M
+                                    </button>
+                                )}
+                                {isActive && (
+                                    <button
+                                        onClick={dismiss}
+                                        className='flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-red-500 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20'
+                                    >
+                                        <X className='w-4 h-4' />
+                                        STOP
+                                    </button>
+                                )}
+                                {!isActive &&
+                                    !breakPhase &&
+                                    displaySeconds > 0 &&
+                                    displaySeconds !== selectedMinutes * 60 && (
+                                        <button
+                                            onClick={reset}
+                                            className='flex items-center gap-1.5 px-4 py-3 rounded-lg font-black tracking-widest uppercase text-sm cursor-pointer text-[var(--color-text-muted)] border border-[var(--color-glass-border)] hover:bg-[var(--color-surface-3)]/50'
+                                        >
+                                            <RotateCcw className='w-4 h-4' />
+                                            RESET
+                                        </button>
+                                    )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right column */}
+                    <div className='flex flex-col gap-5'>
+                        {gamifData?.streak && (
+                            <StreakDisplay
+                                current={gamifData.streak.currentStreak ?? 0}
+                                longest={gamifData.streak.longestStreak ?? 0}
+                                lastActiveDate={
+                                    gamifData.streak.lastActiveDate ?? null
+                                }
+                            />
+                        )}
+                        {gamifData?.goals && (
+                            <DailyGoals goals={gamifData.goals} />
+                        )}
+                        {!isActive && !breakPhase && (
+                            <div
+                                style={{
+                                    border: taskError
+                                        ? '1px solid #ef4444'
+                                        : '1px solid var(--color-glass-border)',
+                                    background: 'var(--color-surface-1)',
+                                    padding: '1.5rem',
+                                    borderRadius: '5px',
+                                    transition: 'border-color 0.3s ease',
+                                }}
+                            >
+                                <div className='flex items-center justify-between mb-5'>
+                                    <div className='flex items-center gap-2'>
+                                        <Target
+                                            className='w-4 h-4'
+                                            style={{
+                                                color: 'var(--color-brand)',
+                                            }}
+                                        />
+                                        <span
+                                            className='text-3xs font-black tracking-[0.25em] uppercase'
+                                            style={{
+                                                color: 'var(--color-brand)',
+                                            }}
+                                        >
+                                            LINK TASK
+                                        </span>
                                     </div>
+                                    {taskError && (
+                                        <AlertCircle className='w-4 h-4 text-red-500 animate-pulse' />
+                                    )}
+                                </div>
 
-                                    {linkedEval ? (
-                                        <div className='mb-4 p-3 border border-[var(--color-brand)]/40 bg-[var(--color-brand-glow)] rounded-lg'>
-                                            <div className='flex items-start justify-between gap-2'>
-                                                <div className='min-w-0'>
-                                                    <div className='flex items-center gap-1.5 mb-0.5'>
-                                                        <span
-                                                            className='text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded'
-                                                            style={{
-                                                                background:
-                                                                    'var(--color-active-bg)',
-                                                                color: 'var(--color-brand)',
-                                                                border: '1px solid var(--color-brand)',
-                                                            }}
-                                                        >
-                                                            {linkedEval.type ??
-                                                                'eval'}
-                                                        </span>
-                                                    </div>
-                                                    <p className='text-xs font-black uppercase text-[var(--color-text)] truncate'>
-                                                        {linkedEval.title}
-                                                    </p>
-                                                    <p className='text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]'>
-                                                        {linkedEval.courseName ??
-                                                            '—'}
-                                                        {linkedEval.weightage !=
-                                                        null
-                                                            ? ` · ${linkedEval.weightage}%`
-                                                            : ''}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() =>
-                                                        setLinkedEval(null)
-                                                    }
-                                                    className='shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                                                >
-                                                    <X className='w-3.5 h-3.5' />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : linkedTask ? (
-                                        <div className='mb-4 p-3 border border-green-500/40 bg-green-500/10 rounded-lg'>
-                                            <div className='flex items-start justify-between gap-2'>
-                                                <div className='min-w-0'>
-                                                    <p className='text-xs font-black uppercase text-[var(--color-text)] truncate'>
-                                                        {linkedTask.title}
-                                                    </p>
-                                                    <p className='text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]'>
-                                                        {linkedTask.category}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() =>
-                                                        setLinkedTask(null)
-                                                    }
-                                                    className='shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                                                >
-                                                    <X className='w-3.5 h-3.5' />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : quickTitle ? (
-                                        <div className='mb-4 p-3 border border-blue-500/40 bg-blue-500/10 rounded-lg'>
-                                            <div className='flex items-start justify-between gap-2'>
-                                                <div className='min-w-0'>
-                                                    <p className='text-xs font-black uppercase text-[var(--color-text)] truncate'>
-                                                        {quickTitle}
-                                                    </p>
-                                                    <p className='text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]'>
-                                                        {quickCategory}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={clearQuickTask}
-                                                    className='shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                                                >
-                                                    <X className='w-3.5 h-3.5' />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className='space-y-2'>
-                                            {evals.length > 0 && (
-                                                <>
-                                                    <button
-                                                        onClick={() => {
-                                                            setShowEvalPicker(
-                                                                (p) => !p,
-                                                            );
-                                                            setShowTaskPicker(
-                                                                false,
-                                                            );
-                                                            setShowQuickTask(
-                                                                false,
-                                                            );
+                                {linkedEval ? (
+                                    <div className='mb-4 p-3 border border-[var(--color-brand)]/40 bg-[var(--color-brand-glow)] rounded-lg'>
+                                        <div className='flex items-start justify-between gap-2'>
+                                            <div className='min-w-0'>
+                                                <div className='flex items-center gap-1.5 mb-0.5'>
+                                                    <span
+                                                        className='text-5xs font-black uppercase tracking-widest px-1.5 py-0.5 rounded'
+                                                        style={{
+                                                            background:
+                                                                'var(--color-active-bg)',
+                                                            color: 'var(--color-brand)',
+                                                            border: '1px solid var(--color-brand)',
                                                         }}
-                                                        className='w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer border border-[var(--color-glass-border)] text-[var(--color-text-muted)]'
                                                     >
-                                                        <span className='flex items-center gap-2'>
-                                                            <BookOpen className='w-3.5 h-3.5' />
-                                                            Link Eval
-                                                        </span>
-                                                        <ChevronDown
-                                                            className={`w-3.5 h-3.5 transition-transform ${showEvalPicker ? 'rotate-180' : ''}`}
-                                                        />
-                                                    </button>
-                                                    {showEvalPicker && (
-                                                        <div className='overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg'>
-                                                            {evals.map((ev) => (
-                                                                <button
-                                                                    key={ev.id}
-                                                                    onClick={() => {
-                                                                        setLinkedEval(
-                                                                            ev,
-                                                                        );
-                                                                        setShowEvalPicker(
-                                                                            false,
-                                                                        );
-                                                                        setTaskError(
-                                                                            false,
-                                                                        );
-                                                                    }}
-                                                                    className='w-full text-left px-4 py-3 text-xs cursor-pointer border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-active-bg)] hover:text-[var(--color-text)] last:border-0'
-                                                                >
-                                                                    <div className='flex items-center gap-1.5 mb-0.5'>
-                                                                        <span
-                                                                            className='text-[8px] font-bold uppercase px-1 py-0.5 rounded'
-                                                                            style={{
-                                                                                background:
-                                                                                    'var(--color-active-bg)',
-                                                                                color: 'var(--color-brand)',
-                                                                            }}
-                                                                        >
-                                                                            {ev.type ??
-                                                                                'eval'}
-                                                                        </span>
-                                                                        {ev.weightage !=
-                                                                            null && (
-                                                                            <span className='text-[8px] font-mono text-[var(--color-text-faint)]'>
-                                                                                {
-                                                                                    ev.weightage
-                                                                                }
-
-                                                                                %
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    <p className='font-bold uppercase truncate'>
-                                                                        {
-                                                                            ev.title
-                                                                        }
-                                                                    </p>
-                                                                    <p className='text-[10px] font-mono mt-0.5'>
-                                                                        {ev.courseName ??
-                                                                            '—'}
-                                                                    </p>
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </>
-                                            )}
-                                            {tasks.length > 0 && (
+                                                        {linkedEval.type ??
+                                                            'eval'}
+                                                    </span>
+                                                </div>
+                                                <p className='text-xs font-black uppercase text-[var(--color-text)] truncate'>
+                                                    {linkedEval.title}
+                                                </p>
+                                                <p className='text-3xs font-mono mt-0.5 text-[var(--color-text-muted)]'>
+                                                    {linkedEval.courseName ??
+                                                        '—'}
+                                                    {linkedEval.weightage !=
+                                                    null
+                                                        ? ` · ${linkedEval.weightage}%`
+                                                        : ''}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    setLinkedEval(null)
+                                                }
+                                                className='shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                                            >
+                                                <X className='w-3.5 h-3.5' />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : linkedTask ? (
+                                    <div className='mb-4 p-3 border border-green-500/40 bg-green-500/10 rounded-lg'>
+                                        <div className='flex items-start justify-between gap-2'>
+                                            <div className='min-w-0'>
+                                                <p className='text-xs font-black uppercase text-[var(--color-text)] truncate'>
+                                                    {linkedTask.title}
+                                                </p>
+                                                <p className='text-3xs font-mono mt-0.5 text-[var(--color-text-muted)]'>
+                                                    {linkedTask.category}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    setLinkedTask(null)
+                                                }
+                                                className='shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                                            >
+                                                <X className='w-3.5 h-3.5' />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : quickTitle ? (
+                                    <div className='mb-4 p-3 border border-blue-500/40 bg-blue-500/10 rounded-lg'>
+                                        <div className='flex items-start justify-between gap-2'>
+                                            <div className='min-w-0'>
+                                                <p className='text-xs font-black uppercase text-[var(--color-text)] truncate'>
+                                                    {quickTitle}
+                                                </p>
+                                                <p className='text-3xs font-mono mt-0.5 text-[var(--color-text-muted)]'>
+                                                    {quickCategory}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={clearQuickTask}
+                                                className='shrink-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                                            >
+                                                <X className='w-3.5 h-3.5' />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className='space-y-2'>
+                                        {evals.length > 0 && (
+                                            <>
                                                 <button
                                                     onClick={() => {
-                                                        setShowTaskPicker(
+                                                        setShowEvalPicker(
                                                             (p) => !p,
                                                         );
-                                                        setShowEvalPicker(
+                                                        setShowTaskPicker(
                                                             false,
                                                         );
                                                         setShowQuickTask(false);
@@ -1189,270 +1100,327 @@ export default function FocusTimerPage() {
                                                     className='w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer border border-[var(--color-glass-border)] text-[var(--color-text-muted)]'
                                                 >
                                                     <span className='flex items-center gap-2'>
-                                                        <Link2 className='w-3.5 h-3.5' />
-                                                        Link Task
+                                                        <BookOpen className='w-3.5 h-3.5' />
+                                                        Link Eval
                                                     </span>
                                                     <ChevronDown
-                                                        className={`w-3.5 h-3.5 transition-transform ${showTaskPicker ? 'rotate-180' : ''}`}
+                                                        className={`w-3.5 h-3.5 transition-transform ${showEvalPicker ? 'rotate-180' : ''}`}
                                                     />
                                                 </button>
-                                            )}
-                                            {showTaskPicker && (
-                                                <div className='overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg'>
-                                                    {tasks.map((t) => (
-                                                        <button
-                                                            key={t.id}
-                                                            onClick={() => {
-                                                                setLinkedTask(
-                                                                    t,
-                                                                );
-                                                                setShowTaskPicker(
-                                                                    false,
-                                                                );
-                                                                setTaskError(
-                                                                    false,
-                                                                );
-                                                            }}
-                                                            className='w-full text-left px-4 py-3 text-xs cursor-pointer border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-green-500/10 hover:text-[var(--color-text)] last:border-0'
-                                                        >
-                                                            <p className='font-bold uppercase truncate'>
-                                                                {t.title}
-                                                            </p>
-                                                            <p className='text-[10px] font-mono mt-0.5'>
-                                                                {t.category}
-                                                            </p>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
+                                                {showEvalPicker && (
+                                                    <div className='overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg'>
+                                                        {evals.map((ev) => (
+                                                            <button
+                                                                key={ev.id}
+                                                                onClick={() => {
+                                                                    setLinkedEval(
+                                                                        ev,
+                                                                    );
+                                                                    setShowEvalPicker(
+                                                                        false,
+                                                                    );
+                                                                    setTaskError(
+                                                                        false,
+                                                                    );
+                                                                }}
+                                                                className='w-full text-left px-4 py-3 text-xs cursor-pointer border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-active-bg)] hover:text-[var(--color-text)] last:border-0'
+                                                            >
+                                                                <div className='flex items-center gap-1.5 mb-0.5'>
+                                                                    <span
+                                                                        className='text-5xs font-bold uppercase px-1 py-0.5 rounded'
+                                                                        style={{
+                                                                            background:
+                                                                                'var(--color-active-bg)',
+                                                                            color: 'var(--color-brand)',
+                                                                        }}
+                                                                    >
+                                                                        {ev.type ??
+                                                                            'eval'}
+                                                                    </span>
+                                                                    {ev.weightage !=
+                                                                        null && (
+                                                                        <span className='text-5xs font-mono text-[var(--color-text-faint)]'>
+                                                                            {
+                                                                                ev.weightage
+                                                                            }
+                                                                            %
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <p className='font-bold uppercase truncate'>
+                                                                    {ev.title}
+                                                                </p>
+                                                                <p className='text-3xs font-mono mt-0.5'>
+                                                                    {ev.courseName ??
+                                                                        '—'}
+                                                                </p>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                        {tasks.length > 0 && (
                                             <button
                                                 onClick={() => {
-                                                    setShowQuickTask((p) => !p);
-                                                    setShowTaskPicker(false);
+                                                    setShowTaskPicker(
+                                                        (p) => !p,
+                                                    );
                                                     setShowEvalPicker(false);
+                                                    setShowQuickTask(false);
                                                 }}
                                                 className='w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer border border-[var(--color-glass-border)] text-[var(--color-text-muted)]'
                                             >
                                                 <span className='flex items-center gap-2'>
-                                                    <Plus className='w-3.5 h-3.5' />
-                                                    Quick Task
+                                                    <Link2 className='w-3.5 h-3.5' />
+                                                    Link Task
                                                 </span>
                                                 <ChevronDown
-                                                    className={`w-3.5 h-3.5 transition-transform ${showQuickTask ? 'rotate-180' : ''}`}
+                                                    className={`w-3.5 h-3.5 transition-transform ${showTaskPicker ? 'rotate-180' : ''}`}
                                                 />
                                             </button>
-                                            {showQuickTask && (
-                                                <div className='p-3 space-y-2 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg'>
-                                                    <input
-                                                        className='w-full px-3 py-2 text-xs placeholder:text-[var(--color-text-faint)] focus:outline-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg'
-                                                        placeholder='Task title...'
-                                                        value={draftTitle}
-                                                        onChange={(e) =>
-                                                            setDraftTitle(
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                        onKeyDown={(e) => {
-                                                            if (
-                                                                e.key ===
-                                                                'Enter'
-                                                            )
-                                                                commitQuickTask();
-                                                        }}
-                                                    />
-                                                    <select
-                                                        className='w-full px-3 py-2 text-xs focus:outline-none appearance-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg'
-                                                        value={draftCategory}
-                                                        onChange={(e) =>
-                                                            setDraftCategory(
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                    >
-                                                        {CATEGORIES.map((c) => (
-                                                            <option
-                                                                key={c}
-                                                                value={c}
-                                                                style={{
-                                                                    background:
-                                                                        'var(--color-surface-1)',
-                                                                }}
-                                                            >
-                                                                {c}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                        )}
+                                        {showTaskPicker && (
+                                            <div className='overflow-y-auto max-h-48 space-y-1 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg'>
+                                                {tasks.map((t) => (
                                                     <button
-                                                        type='button'
-                                                        onClick={
-                                                            commitQuickTask
-                                                        }
-                                                        className='w-full py-2 text-xs font-black tracking-widest uppercase cursor-pointer border border-green-500 text-green-500 bg-green-500/10 hover:bg-green-500 rounded-lg'
+                                                        key={t.id}
+                                                        onClick={() => {
+                                                            setLinkedTask(t);
+                                                            setShowTaskPicker(
+                                                                false,
+                                                            );
+                                                            setTaskError(false);
+                                                        }}
+                                                        className='w-full text-left px-4 py-3 text-xs cursor-pointer border-b border-[var(--color-glass-border)] text-[var(--color-text-muted)] hover:bg-green-500/10 hover:text-[var(--color-text)] last:border-0'
                                                     >
-                                                        SET TASK
+                                                        <p className='font-bold uppercase truncate'>
+                                                            {t.title}
+                                                        </p>
+                                                        <p className='text-3xs font-mono mt-0.5'>
+                                                            {t.category}
+                                                        </p>
                                                     </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                    {taskError && (
-                                        <p className='text-xs font-bold text-red-500 mt-3 animate-pulse'>
-                                            ⚠ Task selection is mandatory to
-                                            initiate focus.
-                                        </p>
-                                    )}
-                                    {(linkedEval ||
-                                        linkedTask ||
-                                        quickTitle) && (
-                                        <p className='text-[10px] font-mono mt-3 text-[var(--color-text-muted)]'>
-                                            Session will be logged under this{' '}
-                                            {linkedEval ? 'eval' : 'task'}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Active session info */}
-                            {(isActive || finalizing) && (
-                                <div
-                                    style={{
-                                        border: '1px solid var(--color-glass-border)',
-                                        background: 'var(--color-surface-1)',
-                                        padding: '24px',
-                                        borderRadius: 8,
-                                    }}
-                                >
-                                    <span className='text-[10px] font-black tracking-[0.25em] uppercase block mb-4 text-[var(--color-text-muted)]'>
-                                        // SESSION INFO
-                                    </span>
-                                    {finalizing ? (
-                                        <div className='flex items-center gap-2 text-[11px] font-mono text-amber-400'>
-                                            <span className='w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0' />
-                                            Finalizing...
-                                        </div>
-                                    ) : (
-                                        <div className='space-y-2 text-[11px] font-mono text-[var(--color-text-muted)]'>
-                                            <div className='flex justify-between'>
-                                                <span>Planned</span>
-                                                <span className='text-[var(--color-text)]'>
-                                                    {
-                                                        serverTimer?.plannedMinutes
+                                                ))}
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={() => {
+                                                setShowQuickTask((p) => !p);
+                                                setShowTaskPicker(false);
+                                                setShowEvalPicker(false);
+                                            }}
+                                            className='w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-black tracking-widest uppercase cursor-pointer border border-[var(--color-glass-border)] text-[var(--color-text-muted)]'
+                                        >
+                                            <span className='flex items-center gap-2'>
+                                                <Plus className='w-3.5 h-3.5' />
+                                                Quick Task
+                                            </span>
+                                            <ChevronDown
+                                                className={`w-3.5 h-3.5 transition-transform ${showQuickTask ? 'rotate-180' : ''}`}
+                                            />
+                                        </button>
+                                        {showQuickTask && (
+                                            <div className='p-3 space-y-2 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg'>
+                                                <input
+                                                    className='w-full px-3 py-2 text-xs placeholder:text-[var(--color-text-faint)] focus:outline-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg'
+                                                    placeholder='Task title...'
+                                                    value={draftTitle}
+                                                    onChange={(e) =>
+                                                        setDraftTitle(
+                                                            e.target.value,
+                                                        )
                                                     }
-                                                    m
-                                                </span>
-                                            </div>
-                                            <div className='flex justify-between'>
-                                                <span>Elapsed</span>
-                                                <span className='text-[var(--color-text)]'>
-                                                    {Math.floor(
-                                                        (serverTimer?.elapsedSeconds ??
-                                                            0) / 60,
-                                                    )}
-                                                    m{' '}
-                                                    {(serverTimer?.elapsedSeconds ??
-                                                        0) % 60}
-                                                    s
-                                                </span>
-                                            </div>
-                                            <div className='flex justify-between'>
-                                                <span>Status</span>
-                                                <span
-                                                    className={
-                                                        isPaused
-                                                            ? 'text-amber-500'
-                                                            : 'text-green-500'
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter')
+                                                            commitQuickTask();
+                                                    }}
+                                                />
+                                                <select
+                                                    className='w-full px-3 py-2 text-xs focus:outline-none appearance-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg'
+                                                    value={draftCategory}
+                                                    onChange={(e) =>
+                                                        setDraftCategory(
+                                                            e.target.value,
+                                                        )
                                                     }
                                                 >
-                                                    {isPaused
-                                                        ? 'PAUSED'
-                                                        : 'RUNNING'}
-                                                </span>
+                                                    {CATEGORIES.map((c) => (
+                                                        <option
+                                                            key={c}
+                                                            value={c}
+                                                            style={{
+                                                                background:
+                                                                    'var(--color-surface-1)',
+                                                            }}
+                                                        >
+                                                            {c}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    type='button'
+                                                    onClick={commitQuickTask}
+                                                    className='w-full py-2 text-xs font-black tracking-widest uppercase cursor-pointer border border-green-500 text-green-500 bg-green-500/10 hover:bg-green-500 rounded-lg'
+                                                >
+                                                    SET TASK
+                                                </button>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                                        )}
+                                    </div>
+                                )}
+                                {taskError && (
+                                    <p className='text-xs font-bold text-red-500 mt-3 animate-pulse'>
+                                        ⚠ Task selection is mandatory to
+                                        initiate focus.
+                                    </p>
+                                )}
+                                {(linkedEval || linkedTask || quickTitle) && (
+                                    <p className='text-3xs font-mono mt-3 text-[var(--color-text-muted)]'>
+                                        Session will be logged under this{' '}
+                                        {linkedEval ? 'eval' : 'task'}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
-                            {/* Recent sessions from backend */}
+                        {/* Active session info */}
+                        {(isActive || finalizing) && (
                             <div
                                 style={{
                                     border: '1px solid var(--color-glass-border)',
                                     background: 'var(--color-surface-1)',
-                                    padding: '24px',
-                                    borderRadius: 8,
+                                    padding: '1.5rem',
+                                    borderRadius: '0.5rem',
                                 }}
                             >
-                                <span className='text-[10px] font-black tracking-[0.25em] uppercase block mb-4 text-[var(--color-text-muted)]'>
-                                    // RECENT SESSIONS
+                                <span className='text-3xs font-black tracking-[0.25em] uppercase block mb-4 text-[var(--color-text-muted)]'>
+                                    // SESSION INFO
                                 </span>
-                                {!gamifData?.recentSessions?.length ? (
-                                    <div className='flex flex-col items-center justify-center py-8 border border-dashed border-[var(--color-glass-border)] rounded-lg'>
-                                        <Timer className='w-8 h-8 mb-2 text-[var(--color-text-faint)]' />
-                                        <p className='text-[10px] font-bold tracking-widest uppercase text-[var(--color-text-faint)]'>
-                                            No sessions yet
-                                        </p>
+                                {finalizing ? (
+                                    <div className='flex items-center gap-2 text-2xs font-mono text-amber-400'>
+                                        <span className='w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0' />
+                                        Finalizing...
                                     </div>
                                 ) : (
-                                    <div className='space-y-2 max-h-64 overflow-y-auto pr-1'>
-                                        {(gamifData.recentSessions as any[])
-                                            .slice(0, 20)
-                                            .map((s: any) => {
-                                                const isIncomplete =
-                                                    s.metadata?.status ===
-                                                    'incomplete';
-                                                return (
-                                                    <div
-                                                        key={s.id}
-                                                        className='flex items-center justify-between px-3 py-2.5 border border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 rounded-lg'
-                                                    >
-                                                        <div className='min-w-0'>
-                                                            <div className='flex items-center gap-1.5'>
-                                                                <p className='text-xs font-bold uppercase text-[var(--color-text)] truncate'>
-                                                                    {s.metadata
-                                                                        ?.quick_title ||
-                                                                        'Focus Session'}
-                                                                </p>
-                                                                {isIncomplete && (
-                                                                    <span className='text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-500 shrink-0'>
-                                                                        Incomplete
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <p className='text-[10px] font-mono mt-0.5 text-[var(--color-text-muted)]'>
-                                                                {s.metadata
-                                                                    ?.local_date ??
-                                                                    ''}
-                                                            </p>
-                                                        </div>
-                                                        <div className='flex items-center gap-1.5 shrink-0 ml-3'>
-                                                            {isIncomplete ? (
-                                                                <XCircle className='w-3 h-3 text-amber-500' />
-                                                            ) : (
-                                                                <CheckCircle2 className='w-3 h-3 text-green-500' />
-                                                            )}
-                                                            <span
-                                                                className={`text-xs font-black font-mono ${
-                                                                    isIncomplete
-                                                                        ? 'text-amber-500'
-                                                                        : 'text-green-500'
-                                                                }`}
-                                                            >
-                                                                {s.metadata
-                                                                    ?.duration_minutes ??
-                                                                    '?'}
-                                                                m
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                    <div className='space-y-2 text-2xs font-mono text-[var(--color-text-muted)]'>
+                                        <div className='flex justify-between'>
+                                            <span>Planned</span>
+                                            <span className='text-[var(--color-text)]'>
+                                                {serverTimer?.plannedMinutes}m
+                                            </span>
+                                        </div>
+                                        <div className='flex justify-between'>
+                                            <span>Elapsed</span>
+                                            <span className='text-[var(--color-text)]'>
+                                                {Math.floor(
+                                                    (serverTimer?.elapsedSeconds ??
+                                                        0) / 60,
+                                                )}
+                                                m{' '}
+                                                {(serverTimer?.elapsedSeconds ??
+                                                    0) % 60}
+                                                s
+                                            </span>
+                                        </div>
+                                        <div className='flex justify-between'>
+                                            <span>Status</span>
+                                            <span
+                                                className={
+                                                    isPaused
+                                                        ? 'text-amber-500'
+                                                        : 'text-green-500'
+                                                }
+                                            >
+                                                {isPaused
+                                                    ? 'PAUSED'
+                                                    : 'RUNNING'}
+                                            </span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
+                        )}
+
+                        {/* Recent sessions from backend */}
+                        <div
+                            style={{
+                                border: '1px solid var(--color-glass-border)',
+                                background: 'var(--color-surface-1)',
+                                padding: '1.5rem',
+                                borderRadius: '0.5rem',
+                            }}
+                        >
+                            <span className='text-3xs font-black tracking-[0.25em] uppercase block mb-4 text-[var(--color-text-muted)]'>
+                                // RECENT SESSIONS
+                            </span>
+                            {!gamifData?.recentSessions?.length ? (
+                                <div className='flex flex-col items-center justify-center py-8 border border-dashed border-[var(--color-glass-border)] rounded-lg'>
+                                    <Timer className='w-8 h-8 mb-2 text-[var(--color-text-faint)]' />
+                                    <p className='text-3xs font-bold tracking-widest uppercase text-[var(--color-text-faint)]'>
+                                        No sessions yet
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className='space-y-2 max-h-64 overflow-y-auto pr-1'>
+                                    {(gamifData.recentSessions as any[])
+                                        .slice(0, 20)
+                                        .map((s: any) => {
+                                            const isIncomplete =
+                                                s.metadata?.status ===
+                                                'incomplete';
+                                            return (
+                                                <div
+                                                    key={s.id}
+                                                    className='flex items-center justify-between px-3 py-2.5 border border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 rounded-lg'
+                                                >
+                                                    <div className='min-w-0'>
+                                                        <div className='flex items-center gap-1.5'>
+                                                            <p className='text-xs font-bold uppercase text-[var(--color-text)] truncate'>
+                                                                {s.metadata
+                                                                    ?.quick_title ||
+                                                                    'Focus Session'}
+                                                            </p>
+                                                            {isIncomplete && (
+                                                                <span className='text-4xs font-black tracking-wider uppercase px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-500 shrink-0'>
+                                                                    Incomplete
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className='text-3xs font-mono mt-0.5 text-[var(--color-text-muted)]'>
+                                                            {s.metadata
+                                                                ?.local_date ??
+                                                                ''}
+                                                        </p>
+                                                    </div>
+                                                    <div className='flex items-center gap-1.5 shrink-0 ml-3'>
+                                                        {isIncomplete ? (
+                                                            <XCircle className='w-3 h-3 text-amber-500' />
+                                                        ) : (
+                                                            <CheckCircle2 className='w-3 h-3 text-green-500' />
+                                                        )}
+                                                        <span
+                                                            className={`text-xs font-black font-mono ${
+                                                                isIncomplete
+                                                                    ? 'text-amber-500'
+                                                                    : 'text-green-500'
+                                                            }`}
+                                                        >
+                                                            {s.metadata
+                                                                ?.duration_minutes ??
+                                                                '?'}
+                                                            m
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
-            </main>
-        </motion.div>
+            </div>
+        </motion.main>
     );
 }
