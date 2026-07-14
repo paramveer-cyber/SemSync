@@ -4,7 +4,9 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import App from './App';
 import './index.css';
-import { BrowserRouter } from 'react-router-dom';
+import { migrateLegacyLocalStorageKeys } from './lib/localConfiguration';
+
+migrateLegacyLocalStorageKeys();
 
 createRoot(document.getElementById('root')!).render(
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>

@@ -8,6 +8,8 @@ import {
 } from '../lib/api';
 import { useAchievements } from '../context/AchievementContext';
 import { TIER } from '../components/AchievementsGrid';
+import InfoTooltip from '../components/InfoTooltip';
+import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 import type { ReactNode } from 'react';
 
 interface Stats {
@@ -709,7 +711,7 @@ export default function ProgressPage() {
                                     </div>
                                     <div>
                                         <p
-                                            className='text-4xs font-black tracking-[0.3em] uppercase'
+                                            className='text-4xs font-black tracking-[0.3em] uppercase flex items-center gap-1.5'
                                             style={{
                                                 color: 'var(--color-brand)',
                                             }}
@@ -965,7 +967,10 @@ export default function ProgressPage() {
                                         )}
                                     />
                                     <span
-                                        style={{ fontSize: 'var(--type-h4-size)', opacity: 0.5 }}
+                                        style={{
+                                            fontSize: 'var(--type-h4-size)',
+                                            opacity: 0.5,
+                                        }}
                                     >
                                         h
                                     </span>
@@ -1064,11 +1069,14 @@ export default function ProgressPage() {
                         <div className='flex flex-wrap items-center justify-between gap-3 mb-5'>
                             <div className='flex items-baseline gap-3'>
                                 <h2
-                                    className='text-lg font-extrabold tracking-tight uppercase'
+                                    className='text-lg font-extrabold tracking-tight uppercase flex items-center gap-1.5'
                                     style={{ color: 'var(--color-text)' }}
                                 >
                                     Achievements
                                 </h2>
+                                <InfoTooltip
+                                    content={TOOLTIP_CONTENT.achievementTiers}
+                                />
                                 <span
                                     className='text-xs font-mono'
                                     style={{ color: 'var(--color-text-faint)' }}
@@ -1194,7 +1202,12 @@ export default function ProgressPage() {
                             </div>
                         ) : (
                             <div className='card p-12 text-center'>
-                                <span style={{ fontSize: 'var(--type-h2-size)', opacity: 0.3 }}>
+                                <span
+                                    style={{
+                                        fontSize: 'var(--type-h2-size)',
+                                        opacity: 0.3,
+                                    }}
+                                >
                                     🔮
                                 </span>
                                 <p

@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { deleteAccount, exportUserData } from '../../lib/api';
 import { SectionHeader } from './settingsHelpers';
+import { getConfiguration, updateConfiguration } from '../../lib/localConfiguration';
 
 export default function DataTab() {
     const { user, logout } = useAuth();
@@ -24,13 +25,11 @@ export default function DataTab() {
     const [exportError, setExportError] = useState<string | null>(null);
     const [exportSuccess, setExportSuccess] = useState(false);
 
-    const EXPORT_COOLDOWN_KEY = 'semsync_last_export_ts';
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const DELETE_PHRASE = 'delete my account';
 
     const getLocalExportTimestamp = (): number | null => {
-        const stored = localStorage.getItem(EXPORT_COOLDOWN_KEY);
-        return stored ? parseInt(stored, 10) : null;
+        return getConfiguration().lastExportTimestamp;
     };
 
     const buildCSV = (exportData: Record<string, any>): string => {
@@ -131,7 +130,7 @@ export default function DataTab() {
             anchor.click();
             document.body.removeChild(anchor);
             URL.revokeObjectURL(downloadUrl);
-            localStorage.setItem(EXPORT_COOLDOWN_KEY, String(Date.now()));
+            updateConfiguration({ lastExportTimestamp: Date.now() });
             setExportSuccess(true);
             setTimeout(() => setExportSuccess(false), 4000);
         } catch (err: any) {

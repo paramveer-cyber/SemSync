@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import AddCourseModal from '../components/modals/AddCourseModal';
+import { getConfiguration } from '../lib/localConfiguration';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import OnboardingTutorial, {
     hasSeenTutorial,
@@ -116,14 +117,9 @@ function parseClassroomUpcoming(): {
     hue: number;
 }[] {
     try {
-        const data: any[] = JSON.parse(
-            localStorage.getItem('semsync_classroom_data') ?? '[]',
-        );
-        const doneIds: Set<string> = new Set(
-            JSON.parse(
-                localStorage.getItem('semsync_classroom_done_ids') ?? '[]',
-            ),
-        );
+        const config = getConfiguration();
+        const data: any[] = config.classroomData ?? [];
+        const doneIds: Set<string> = new Set(config.classroomDoneIds);
         const items: {
             id: string;
             title: string;
@@ -243,11 +239,7 @@ export default function Dashboard() {
     }, []);
 
     const classroomLinked = useMemo(() => {
-        try {
-            return !!localStorage.getItem('semsync_classroom_data');
-        } catch {
-            return false;
-        }
+        return !!getConfiguration().classroomData;
     }, []);
 
     const classroomUpcoming = useMemo(

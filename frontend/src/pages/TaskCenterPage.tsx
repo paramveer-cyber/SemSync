@@ -2,6 +2,9 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useMotionDisabled } from '../context/AnimationPreferenceContext';
 import Header from '../components/Header';
+import InfoTooltip from '../components/InfoTooltip';
+import { getConfiguration, updateConfiguration } from '../lib/localConfiguration';
+import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 import {
     Plus,
     Calendar,
@@ -31,21 +34,11 @@ interface Task {
     progress?: number;
 }
 
-const STORAGE_KEY = 'architect_tasks_v1';
 const loadTasks = (): Task[] => {
-    try {
-        const r = localStorage.getItem(STORAGE_KEY);
-        return r ? JSON.parse(r) : [];
-    } catch {
-        return [];
-    }
+    return getConfiguration().tasks as Task[];
 };
 const saveTasks = (t: Task[]) => {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(t));
-    } catch {
-        /* noop */
-    }
+    updateConfiguration({ tasks: t });
 };
 
 const COLUMNS: {
@@ -691,7 +684,7 @@ export default function TaskCenterPage() {
                     <div className='flex flex-col md:flex-row md:items-end justify-between gap-6 shrink-0'>
                         <div>
                             <span
-                                className='text-3xs font-black tracking-[0.3em] uppercase block mb-2'
+                                className='text-3xs font-black tracking-[0.3em] uppercase mb-2 flex items-center gap-1.5'
                                 style={{ color: 'var(--color-brand)' }}
                             >
                                 // OPS_BOARD_V1
@@ -708,7 +701,10 @@ export default function TaskCenterPage() {
                                     borderRadius: 8,
                                 }}
                             >
-                                <div className='w-2 h-2 bg-green-500 animate-pulse' />
+                                {/* <div className='w-2 h-2 bg-green-500 animate-pulse' /> */}
+                                <InfoTooltip
+                                    content={TOOLTIP_CONTENT.taskColumns}
+                                />
                                 <span className='text-3xs font-bold tracking-widest text-[var(--color-text-muted)] uppercase'>
                                     {tasks.length} TASK NODE$
                                     {tasks.length > 1 ? 'S' : ''}

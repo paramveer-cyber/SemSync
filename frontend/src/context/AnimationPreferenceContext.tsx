@@ -1,11 +1,9 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { useReducedMotion as useOsReducedMotion } from 'motion/react';
-
-const STORAGE_KEY = 'semsync_animations_enabled';
+import { getConfiguration, updateConfiguration } from '../lib/localConfiguration';
 
 function loadAnimationsEnabled(): boolean {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored === null ? true : stored === 'true';
+    return getConfiguration().animationsEnabled;
 }
 
 interface AnimationPreferenceCtx {
@@ -27,7 +25,7 @@ export function AnimationPreferenceProvider({
     );
 
     const setAnimationsEnabled = (enabled: boolean) => {
-        localStorage.setItem(STORAGE_KEY, String(enabled));
+        updateConfiguration({ animationsEnabled: enabled });
         setAnimationsEnabledState(enabled);
     };
 

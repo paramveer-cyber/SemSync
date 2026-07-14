@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { getConfiguration, updateConfiguration } from '../lib/localConfiguration';
 
 export interface TypeScaleLevel {
     size: string;
@@ -206,7 +207,6 @@ export const TYPOGRAPHY_PRESETS: TypographyPreset[] = [
     },
 ];
 
-const STORAGE_KEY = 'semsync_typography';
 const DEFAULT_ID = 'default';
 const ACTIVE_LINK_ID = 'semsync-typography-font-link';
 
@@ -259,9 +259,9 @@ const TypographyContext = createContext<TypographyCtx | null>(null);
 
 export function TypographyProvider({ children }: { children: ReactNode }) {
     const [presetId, setPresetId] = useState<string>(() => {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = getConfiguration().typography;
         return TYPOGRAPHY_PRESETS.some((p) => p.id === stored)
-            ? (stored as string)
+            ? stored
             : DEFAULT_ID;
     });
 
@@ -277,7 +277,7 @@ export function TypographyProvider({ children }: { children: ReactNode }) {
         const valid = TYPOGRAPHY_PRESETS.some((p) => p.id === id)
             ? id
             : DEFAULT_ID;
-        localStorage.setItem(STORAGE_KEY, valid);
+        updateConfiguration({ typography: valid });
         setPresetId(valid);
     };
 

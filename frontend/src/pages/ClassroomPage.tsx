@@ -8,6 +8,11 @@ import {
 } from '../lib/api';
 import { invalidateAllCourseData } from '../lib/dataService';
 import {
+    getConfiguration,
+    updateConfiguration,
+    onConfigurationChanged,
+} from '../lib/localConfiguration';
+import {
     GraduationCap,
     RefreshCw,
     Megaphone,
@@ -27,8 +32,6 @@ import {
     Lock,
 } from 'lucide-react';
 
-const LS_DATA_KEY = 'semsync_classroom_data';
-const CALENDAR_LS_KEY = 'semsync_calendar_items';
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 
 const CLASSROOM_SCOPES = [
@@ -229,23 +232,17 @@ async function clearTokenFromDB(): Promise<void> {
     try {
         await apiClearClassroomToken();
     } catch {}
-    localStorage.removeItem(LS_DATA_KEY);
+    updateConfiguration({ classroomData: null });
 }
 function getCachedData(): ClassroomCourse[] | null {
-    try {
-        return JSON.parse(localStorage.getItem(LS_DATA_KEY) ?? 'null');
-    } catch {
-        return null;
-    }
+    return getConfiguration().classroomData as ClassroomCourse[] | null;
 }
 function setCachedData(data: ClassroomCourse[]) {
-    localStorage.setItem(LS_DATA_KEY, JSON.stringify(data));
+    updateConfiguration({ classroomData: data });
 }
 function syncToCalendar(courses: ClassroomCourse[]) {
     try {
-        const existing: any[] = JSON.parse(
-            localStorage.getItem(CALENDAR_LS_KEY) ?? '[]',
-        );
+        const existing: any[] = getConfiguration().calendarItems;
         const filtered = existing.filter((i: any) => !i._fromClassroom);
         const items: any[] = [];
         courses.forEach((course) => {
@@ -267,10 +264,7 @@ function syncToCalendar(courses: ClassroomCourse[]) {
                 });
             });
         });
-        localStorage.setItem(
-            CALENDAR_LS_KEY,
-            JSON.stringify([...filtered, ...items]),
-        );
+        updateConfiguration({ calendarItems: [...filtered, ...items] });
     } catch {}
 }
 
@@ -421,7 +415,10 @@ function StatCard({
             </span>
             {sub && (
                 <span
-                    style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}
+                    style={{
+                        fontSize: 'var(--text-xs)',
+                        color: 'var(--color-text-muted)',
+                    }}
                 >
                     {sub}
                 </span>
@@ -796,7 +793,13 @@ function GradeRow({
                         {pct}%
                     </span>
                 ) : (
-                    <Trophy style={{ width: '0.875rem', height: '0.875rem', color: gc }} />
+                    <Trophy
+                        style={{
+                            width: '0.875rem',
+                            height: '0.875rem',
+                            color: gc,
+                        }}
+                    />
                 )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -813,7 +816,12 @@ function GradeRow({
                 >
                     {cw?.title ?? 'Assignment'}
                 </p>
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                <p
+                    style={{
+                        fontSize: 'var(--text-xs)',
+                        color: 'var(--color-text-muted)',
+                    }}
+                >
                     Returned {timeAgo(sub.updateTime)}
                     {cw?.workType && (
                         <span
@@ -958,12 +966,16 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
                 >
                     {expanded ? (
                         <>
-                            <ChevronUp style={{ width: '0.75rem', height: 12 }} />
+                            <ChevronUp
+                                style={{ width: '0.75rem', height: 12 }}
+                            />
                             Show less
                         </>
                     ) : (
                         <>
-                            <ChevronDown style={{ width: '0.75rem', height: 12 }} />
+                            <ChevronDown
+                                style={{ width: '0.75rem', height: 12 }}
+                            />
                             Read more
                         </>
                     )}
@@ -1107,18 +1119,9 @@ export default function ClassroomPage() {
         null,
     );
     const [syncQueue, setSyncQueue] = useState<ClassroomCourse[]>([]);
-    const [syncedIds, setSyncedIds] = useState<Set<string>>(() => {
-        try {
-            return new Set(
-                JSON.parse(
-                    localStorage.getItem('semsync_synced_classroom_ids') ??
-                        '[]',
-                ),
-            );
-        } catch {
-            return new Set();
-        }
-    });
+    const [syncedIds, setSyncedIds] = useState<Set<string>>(
+        () => new Set(getConfiguration().syncedClassroomIds),
+    );
 
     const pillRailRef = useRef<HTMLDivElement>(null);
     const coursesRef = useRef<ClassroomCourse[]>(courses);
@@ -1130,15 +1133,9 @@ export default function ClassroomPage() {
     }, [courses]);
 
     useEffect(() => {
-        const onStorage = (e: StorageEvent) => {
-            if (e.key === 'semsync_synced_classroom_ids') {
-                try {
-                    setSyncedIds(new Set(JSON.parse(e.newValue ?? '[]')));
-                } catch {}
-            }
-        };
-        window.addEventListener('storage', onStorage);
-        return () => window.removeEventListener('storage', onStorage);
+        return onConfigurationChanged((config) => {
+            setSyncedIds(new Set(config.syncedClassroomIds));
+        });
     }, []);
 
     const loadData = useCallback(
@@ -1237,13 +1234,10 @@ export default function ClassroomPage() {
         if (autoTimerRef.current) clearInterval(autoTimerRef.current);
         await clearTokenFromDB();
         try {
-            const existing: any[] = JSON.parse(
-                localStorage.getItem(CALENDAR_LS_KEY) ?? '[]',
-            );
-            localStorage.setItem(
-                CALENDAR_LS_KEY,
-                JSON.stringify(existing.filter((i: any) => !i._fromClassroom)),
-            );
+            const existing: any[] = getConfiguration().calendarItems;
+            updateConfiguration({
+                calendarItems: existing.filter((i: any) => !i._fromClassroom),
+            });
         } catch {}
         setLinked(false);
         setCourses([]);
@@ -1474,7 +1468,10 @@ export default function ClassroomPage() {
                                         }}
                                     >
                                         <Loader2
-                                            style={{ width: '0.75rem', height: 12 }}
+                                            style={{
+                                                width: '0.75rem',
+                                                height: 12,
+                                            }}
                                             className='animate-spin'
                                         />
                                         Syncing…
@@ -1499,7 +1496,10 @@ export default function ClassroomPage() {
                                     }}
                                 >
                                     <RefreshCw
-                                        style={{ width: '0.8125rem', height: 13 }}
+                                        style={{
+                                            width: '0.8125rem',
+                                            height: 13,
+                                        }}
                                     />
                                     Refresh
                                 </button>
@@ -1520,7 +1520,10 @@ export default function ClassroomPage() {
                                     }}
                                 >
                                     <Link2Off
-                                        style={{ width: '0.8125rem', height: 13 }}
+                                        style={{
+                                            width: '0.8125rem',
+                                            height: 13,
+                                        }}
                                     />
                                     Unlink
                                 </button>
@@ -1730,7 +1733,9 @@ export default function ClassroomPage() {
                                         '0 0 24px var(--color-brand-glow)',
                                 }}
                             >
-                                <Link2 style={{ width: '0.875rem', height: 14 }} />
+                                <Link2
+                                    style={{ width: '0.875rem', height: 14 }}
+                                />
                                 Connect Classroom
                             </button>
                             <div
@@ -1895,7 +1900,11 @@ export default function ClassroomPage() {
                         }}
                     >
                         <WifiOff
-                            style={{ width: '1.5rem', height: '1.5rem', color: '#E24B4A' }}
+                            style={{
+                                width: '1.5rem',
+                                height: '1.5rem',
+                                color: '#E24B4A',
+                            }}
                         />
                         <p
                             style={{
@@ -2110,8 +2119,10 @@ export default function ClassroomPage() {
                                                     <span
                                                         style={{
                                                             padding: '1px 6px',
-                                                            borderRadius: '0.25rem',
-                                                            fontSize: 'var(--text-3xs)',
+                                                            borderRadius:
+                                                                '0.25rem',
+                                                            fontSize:
+                                                                'var(--text-3xs)',
                                                             fontWeight: 800,
                                                             background:
                                                                 activeTab ===
@@ -2172,7 +2183,8 @@ export default function ClassroomPage() {
                                                         background: 'none',
                                                         border: 'none',
                                                         outline: 'none',
-                                                        fontSize: 'var(--text-13)',
+                                                        fontSize:
+                                                            'var(--text-13)',
                                                         color: 'var(--color-text)',
                                                         width: '6.875rem',
                                                     }}
@@ -2193,8 +2205,10 @@ export default function ClassroomPage() {
                                                     }
                                                     style={{
                                                         padding: '4px 12px',
-                                                        borderRadius: '6.1875rem',
-                                                        fontSize: 'var(--text-xs)',
+                                                        borderRadius:
+                                                            '6.1875rem',
+                                                        fontSize:
+                                                            'var(--text-xs)',
                                                         fontWeight: 600,
                                                         cursor: 'pointer',
                                                         textTransform:
@@ -2285,8 +2299,10 @@ export default function ClassroomPage() {
                                                             background:
                                                                 'var(--color-glass)',
                                                             border: '1px solid var(--color-glass-border)',
-                                                            borderRadius: '0.5rem',
-                                                            fontSize: 'var(--text-13)',
+                                                            borderRadius:
+                                                                '0.5rem',
+                                                            fontSize:
+                                                                'var(--text-13)',
                                                             fontWeight: 600,
                                                             color: 'var(--color-text-muted)',
                                                             cursor: 'pointer',
@@ -2413,16 +2429,15 @@ export default function ClassroomPage() {
                         setSyncingCourse(null);
                         setSyncQueue([]);
                     }}
-                    onSynced={(created) => {
+                    onSynced={() => {
                         const newIds = new Set([
                             ...syncedIds,
                             syncingCourse.id,
                         ]);
                         setSyncedIds(newIds);
-                        localStorage.setItem(
-                            'semsync_synced_classroom_ids',
-                            JSON.stringify([...newIds]),
-                        );
+                        updateConfiguration({
+                            syncedClassroomIds: [...newIds],
+                        });
                         invalidateAllCourseData();
                         if (syncQueue.length > 0) {
                             const [next, ...rest] = syncQueue;

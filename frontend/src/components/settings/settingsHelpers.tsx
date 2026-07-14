@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Check, Moon, Pencil, Sun, Trash2, X } from 'lucide-react';
-import { buildCustomThemeVars } from '../../context/ThemeContext';
+import { buildCustomThemeVars } from '../../data/Themes';
 
 export function Toggle({
     on,

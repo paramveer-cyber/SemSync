@@ -53,6 +53,7 @@ export const evaluations = pgTable("evaluations", {
     weightage: real("weightage").notNull(),
     maxScore: real("max_score").notNull(),
     score: real("score"),
+    minutesSpent: integer("minutes_spent").notNull().default(0),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: updatedAt(),
 }, (t) => [

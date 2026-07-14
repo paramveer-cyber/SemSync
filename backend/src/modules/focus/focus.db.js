@@ -1,6 +1,12 @@
 import { db } from "../../db/index.js";
-import { events, userStats, userStreaks, dailyGoals, timers } from "../../db/schema.js";
+import { events, userStats, userStreaks, dailyGoals, timers, evaluations } from "../../db/schema.js";
 import { eq, and, gte, desc, sql, inArray } from "drizzle-orm";
+
+export const incrementEvalMinutesSpent = (evalId, additionalMinutes, tx) =>
+    (tx ?? db)
+        .update(evaluations)
+        .set({ minutesSpent: sql`${evaluations.minutesSpent} + ${additionalMinutes}` })
+        .where(eq(evaluations.id, evalId));
 
 export const getStats = (userId) =>
     db.query.userStats.findFirst({ where: eq(userStats.userId, userId) });

@@ -9,7 +9,8 @@ import {
     Sun,
     Type,
 } from 'lucide-react';
-import { useTheme, THEMES } from '../../context/ThemeContext';
+import { useTheme } from '../../context/ThemeContext';
+import { THEMES } from '../../data/Themes';
 import { useTypography } from '../../context/TypographyContext';
 import { experienceAchievement } from '../../lib/api';
 import {

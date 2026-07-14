@@ -10,6 +10,7 @@ import {
 import { getGamificationDashboard, getAchievementCatalog } from '../lib/api';
 import { cacheGet, cacheSet, cacheHas, dedupe, CACHE_KEYS } from '../lib/sessionCache';
 import { getToken } from '../lib/tokenStore';
+import { getConfiguration, updateConfiguration } from '../lib/localConfiguration';
 import { useAuth } from './AuthContext';
 import {
     playToastUnlock,
@@ -56,29 +57,17 @@ interface AchievementCtx {
 
 export const CINEMATIC_TIERS = new Set(['platinum', 'legendary', 'hidden']);
 
-const SEEN_KEY = 'semsync_seen_achievements_v2';
-const XP_STATE_KEY = 'semsync_xp_state_v1';
-
 function loadSeen(): Set<string> {
-    try {
-        return new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'));
-    } catch {
-        return new Set();
-    }
+    return new Set(getConfiguration().seenAchievements);
 }
 function saveSeen(s: Set<string>) {
-    localStorage.setItem(SEEN_KEY, JSON.stringify([...s].slice(-200)));
+    updateConfiguration({ seenAchievements: [...s].slice(-200) });
 }
 function loadXPState(): XPState | null {
-    try {
-        const raw = localStorage.getItem(XP_STATE_KEY);
-        return raw ? JSON.parse(raw) : null;
-    } catch {
-        return null;
-    }
+    return getConfiguration().xpState;
 }
 function saveXPState(s: XPState) {
-    localStorage.setItem(XP_STATE_KEY, JSON.stringify(s));
+    updateConfiguration({ xpState: s });
 }
 
 const BASE = import.meta.env.VITE_BASE_URL ?? '';

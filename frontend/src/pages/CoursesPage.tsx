@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import InfoTooltip from '../components/InfoTooltip';
+import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 import AddCourseModal from '../components/modals/AddCourseModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import { deleteCourse } from '../lib/api';
@@ -105,10 +107,13 @@ export default function CoursesPage() {
                     <div className='flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6'>
                         <div>
                             <span
-                                className='font-bold text-xs tracking-[0.3em] uppercase block mb-2'
+                                className='font-bold text-xs tracking-[0.3em] uppercase mb-2 flex items-center gap-1.5'
                                 style={{ color: 'var(--color-brand)' }}
                             >
                                 // DIRECTORY_V2.0
+                                <InfoTooltip
+                                    content={TOOLTIP_CONTENT.targetGrade}
+                                />
                             </span>
                             <h2
                                 className='text-7xl font-extrabold tracking-tighter uppercase leading-none'

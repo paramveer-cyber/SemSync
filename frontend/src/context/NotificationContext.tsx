@@ -3,6 +3,7 @@ import {
   useCallback, useRef, ReactNode,
 } from 'react';
 import { getUpcomingEvals } from '../lib/api';
+import { getConfiguration, updateConfiguration } from '../lib/localConfiguration';
 
 export interface NotifSettings {
   enabled: boolean;
@@ -29,24 +30,13 @@ interface NotifCtx {
   requestPermission: () => Promise<void>;
 }
 
-const SETTINGS_KEY = 'semsync_notif_settings';
-const FIRED_KEY    = 'semsync_notif_fired';
+const loadSettings = (): NotifSettings => getConfiguration().notifSettings;
+const saveSettings = (s: NotifSettings) => updateConfiguration({ notifSettings: s });
 
-const DEFAULT: NotifSettings = { enabled: true, at6h: true, at12h: true, at24h: true, at48h: false };
-
-const loadSettings = (): NotifSettings => {
-  try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }; }
-  catch { return DEFAULT; }
-};
-const saveSettings = (s: NotifSettings) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-
-const getFired = (): Set<string> => {
-  try { return new Set(JSON.parse(localStorage.getItem(FIRED_KEY) || '[]')); }
-  catch { return new Set(); }
-};
+const getFired = (): Set<string> => new Set(getConfiguration().notifFiredIds);
 const addFired = (key: string) => {
   const s = getFired(); s.add(key);
-  localStorage.setItem(FIRED_KEY, JSON.stringify([...s]));
+  updateConfiguration({ notifFiredIds: [...s] });
 };
 
 function uid() { return Math.random().toString(36).slice(2, 9); }

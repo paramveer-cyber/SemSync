@@ -98,7 +98,7 @@ export const connectingClassroom = async (req, res) => {
         if (!authCode) return res.status(400).json({ message: "Missing authCode" });
 
         const userId = req.user.userId;
-        const { access_token, expires_in } = await verifyGoogleClassroomAuthCode({ authCode, id: userId });
+        const data = await verifyGoogleClassroomAuthCode({ authCode, id: userId });
         if (!access_token) {
             await clearUserGoogleToken(userId);
             return res.status(400).json({ message: "Failed to exchange auth code" });

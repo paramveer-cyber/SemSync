@@ -9,7 +9,7 @@ import {
     getRecentSessions, get7DayAvgMinutes, getGoalCompletionRate,
     runInTransaction, getActiveTimer, insertTimer, updateTimer, deleteTimer,
     getWeekSessionDates, getTodaySessionHours, findRecentBelowTargetEval, getTodayMinutesTotal,
-    insertSessionEvents, findFinalStreak,
+    insertSessionEvents, findFinalStreak, incrementEvalMinutesSpent,
 } from "./focus.db.js";
 
 async function completeSession(userId, { actualMinutes, plannedMinutes, linkedTaskId, linkedEvalId, linkedEvalDueDate }) {
@@ -32,6 +32,8 @@ async function completeSession(userId, { actualMinutes, plannedMinutes, linkedTa
             upsertStats(userId, actualMinutes, rawXp, today, weekStart, true, tx),
             upsertStreak(userId, today, yesterday, tx),
         ]);
+
+        if (linkedEvalId) await incrementEvalMinutesSpent(linkedEvalId, actualMinutes, tx);
 
         const eventRows = [];
         if (daysSinceLastSession !== null && daysSinceLastSession >= 3) {
@@ -319,6 +321,8 @@ export async function syncTimer(userId) {
 async function settleIncompleteSession(userId, { actualMinutes, plannedMinutes, linkedTaskId, linkedEvalId }) {
     const { today, hourOfDay } = getISTContext();
     const isLinked = !!(linkedTaskId || linkedEvalId);
+
+    if (linkedEvalId) await incrementEvalMinutesSpent(linkedEvalId, actualMinutes);
 
     await insertEvent({
         userId,

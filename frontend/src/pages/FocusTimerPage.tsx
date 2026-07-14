@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '../components/Header';
+import { getConfiguration } from '../lib/localConfiguration';
 import { motion } from 'motion/react';
 import { useDelayedSkeleton } from '../hooks/useDelayedSkeleton';
 import { fetchCourses, Course, Evaluation } from '../lib/dataService';
@@ -33,6 +34,8 @@ import {
 import SessionComplete from '../components/SessionComplete';
 import DailyGoals from '../components/DailyGoals';
 import StreakDisplay from '../components/StreakDisplay';
+import InfoTooltip from '../components/InfoTooltip';
+import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 
 interface ServerTimer {
     id: string;
@@ -238,9 +241,7 @@ export default function FocusTimerPage() {
     const [evals, setEvals] = useState<EvalItem[]>([]);
     const [tasks] = useState<TimerTask[]>(() => {
         try {
-            const r = localStorage.getItem('architect_tasks_v1');
-            if (!r) return [];
-            return JSON.parse(r).map((t: any) => ({
+            return (getConfiguration().tasks as any[]).map((t: any) => ({
                 id: t.id,
                 title: t.title,
                 category: t.course || 'General',
@@ -990,12 +991,17 @@ export default function FocusTimerPage() {
                                             }}
                                         />
                                         <span
-                                            className='text-3xs font-black tracking-[0.25em] uppercase'
+                                            className='text-3xs font-black tracking-[0.25em] uppercase flex items-center gap-1.5'
                                             style={{
                                                 color: 'var(--color-brand)',
                                             }}
                                         >
                                             LINK TASK
+                                            <InfoTooltip
+                                                content={
+                                                    TOOLTIP_CONTENT.sessionLinking
+                                                }
+                                            />
                                         </span>
                                     </div>
                                     {taskError && (

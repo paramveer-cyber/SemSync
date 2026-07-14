@@ -12,6 +12,8 @@ import {
 } from '../lib/dataService';
 import { AlertTriangle, Plus, Pencil, Trash2, Archive } from 'lucide-react';
 import { LineChart } from '@mui/x-charts';
+import InfoTooltip from '../components/InfoTooltip';
+import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 
 const TYPE_COLOR: Record<string, string> = {
     midsem: 'text-[var(--color-danger)] border-[var(--color-danger)]',
@@ -58,7 +60,9 @@ export default function CoursePage() {
                 const aEval = a.score !== null && a.score !== undefined;
                 const bEval = b.score !== null && b.score !== undefined;
                 if (aEval !== bEval) return aEval ? 1 : -1;
-                return a.title.localeCompare(b.title);
+                return a.title.localeCompare(b.title, undefined, {
+                    numeric: true,
+                });
             });
             setEvals(sorted);
         } catch (err: any) {
@@ -232,8 +236,13 @@ export default function CoursePage() {
                                             </div>
                                         )}
                                         <div>
-                                            <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1'>
+                                            <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1 flex items-center gap-1.5'>
                                                 Target
+                                                <InfoTooltip
+                                                    content={
+                                                        TOOLTIP_CONTENT.targetGrade
+                                                    }
+                                                />
                                             </p>
                                             <p className='text-2xl font-extrabold font-mono text-[var(--color-text)]'>
                                                 {course.targetGrade}%
@@ -339,6 +348,7 @@ export default function CoursePage() {
                                                 sub: `out of ${computedStats.totalWeight}% total`,
                                                 accent: true,
                                                 warn: false,
+                                                tooltipKey: 'gradeEarned',
                                             },
                                             {
                                                 label: 'Weight Allocated',
@@ -346,6 +356,7 @@ export default function CoursePage() {
                                                 sub: `across ${evals.length} evaluation${evals.length !== 1 ? 's' : ''}`,
                                                 accent: false,
                                                 warn: false,
+                                                tooltipKey: 'weightAllocated',
                                             },
                                             {
                                                 label: 'Remaining Weight',
@@ -353,6 +364,7 @@ export default function CoursePage() {
                                                 sub: 'Yet to be assessed',
                                                 accent: false,
                                                 warn: false,
+                                                tooltipKey: 'remainingWeight',
                                             },
                                             {
                                                 label: 'Need to Score',
@@ -369,14 +381,22 @@ export default function CoursePage() {
                                                 warn:
                                                     computedStats.needToScore >
                                                     100,
+                                                tooltipKey: 'needToScore',
                                             },
                                         ].map((s, i) => (
                                             <div
                                                 key={s.label}
                                                 className={`p-6 ${i < 3 ? 'border-r border-[var(--color-glass-border)]' : ''} ${s.accent ? 'bg-[var(--color-brand-glow)]' : ''}`}
                                             >
-                                                <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-2'>
+                                                <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-2 flex items-center gap-1.5'>
                                                     {s.label}
+                                                    <InfoTooltip
+                                                        content={
+                                                            TOOLTIP_CONTENT[
+                                                                s.tooltipKey
+                                                            ]
+                                                        }
+                                                    />
                                                 </p>
                                                 <p
                                                     className={`text-3xl font-extrabold font-mono ${s.accent ? 'text-[var(--color-brand)]' : s.warn ? 'text-[var(--color-danger)]' : 'text-[var(--color-text)]'}`}
@@ -737,31 +757,50 @@ export default function CoursePage() {
                                     </div>
                                 ) : (
                                     <div className='border border-[var(--color-glass-border)] overflow-hidden'>
-                                        <div className='grid grid-cols-12 border-b border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 px-6 py-3'>
+                                        <div className='grid grid-cols-13 border-b border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 px-6 py-3'>
                                             {[
-                                                'Title',
-                                                'Type',
-                                                'Date',
-                                                'Weight',
-                                                'Score',
-                                                'Earned',
-                                                '',
-                                            ].map((h, i) => (
+                                                ['Title', 'col-span-3'],
+                                                [
+                                                    'Type',
+                                                    'col-span-2 text-right',
+                                                ],
+                                                [
+                                                    'Date',
+                                                    'col-span-2 text-right',
+                                                ],
+                                                [
+                                                    'Weight',
+                                                    'col-span-2 text-right',
+                                                ],
+                                                [
+                                                    'Score',
+                                                    'col-span-1 text-right',
+                                                ],
+                                                [
+                                                    'Earned',
+                                                    'col-span-1 text-right',
+                                                ],
+                                                [
+                                                    'Time Spent',
+                                                    'col-span-1 text-right',
+                                                ],
+                                                ['', 'col-span-1 text-right'],
+                                            ].map(([label, spanClass]) => (
                                                 <div
-                                                    key={h}
-                                                    className={`text-4xs font-black tracking-[0.2em] uppercase text-[var(--color-text-faint)] ${
-                                                        i === 0
-                                                            ? 'col-span-3'
-                                                            : i === 6
-                                                              ? 'col-span-1 text-right'
-                                                              : 'col-span-2 text-right'
-                                                    }`}
+                                                    key={label}
+                                                    className={`text-4xs font-black tracking-[0.2em] uppercase text-[var(--color-text-faint)] ${spanClass}`}
                                                 >
-                                                    {h}
+                                                    {label}
                                                 </div>
                                             ))}
                                         </div>
                                         {evals.map((e) => {
+                                            const timeSpentLabel =
+                                                e.minutesSpent > 0
+                                                    ? e.minutesSpent >= 60
+                                                        ? `${Math.floor(e.minutesSpent / 60)}h ${e.minutesSpent % 60}m`
+                                                        : `${e.minutesSpent}m`
+                                                    : '—';
                                             const earned =
                                                 e.score !== null &&
                                                 e.score !== undefined
@@ -774,7 +813,7 @@ export default function CoursePage() {
                                             return (
                                                 <div
                                                     key={e.id}
-                                                    className='grid grid-cols-12 border-b border-[var(--color-glass-border)] px-6 py-4 hover:bg-[var(--color-surface-2)]/30 transition-colors group items-center'
+                                                    className='grid grid-cols-13 border-b border-[var(--color-glass-border)] px-6 py-4 hover:bg-[var(--color-surface-2)]/30 transition-colors group items-center'
                                                 >
                                                     <div className='col-span-3'>
                                                         <p className='text-sm font-bold text-[var(--color-text)] uppercase tracking-tight'>
@@ -822,6 +861,13 @@ export default function CoursePage() {
                                                                 —
                                                             </span>
                                                         )}
+                                                    </div>
+                                                    <div className='col-span-1 text-right'>
+                                                        <span
+                                                            className={`text-2xs font-mono ${e.minutesSpent > 0 ? 'text-[var(--color-text)]' : 'text-[var(--color-text-faint)]'}`}
+                                                        >
+                                                            {timeSpentLabel}
+                                                        </span>
                                                     </div>
 
                                                     <div className='col-span-1 text-right flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity'>
