@@ -1,39 +1,20 @@
-Copyright (c) 2026 Paramveer. All rights reserved.
+MIT License
 
-PROPRIETARY SOFTWARE LICENSE
+Copyright (c) 2026 Paramveer
 
-This software and its source code ("Software") are the exclusive property of
-Paramveer ("Author"). By accessing, viewing, or interacting with this Software
-in any form, you agree to the following terms:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
 
-1. GRANT OF RIGHTS
-   No license, express or implied, is granted to any person or entity except
-   as explicitly set out in this agreement. You may view and study the source
-   code for personal, non-commercial, educational purposes only.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-2. RESTRICTIONS
-   Without prior explicit written permission from the Author, you may NOT:
-   a. copy, reproduce, or duplicate any portion of the Software;
-   b. modify, adapt, translate, or create derivative works based on the Software;
-   c. distribute, publish, sublicense, sell, or otherwise transfer the Software
-      or any portion of it to any third party;
-   d. use the Software, in whole or in part, in any production, commercial, or
-      client-facing environment;
-   e. reverse-engineer the Software beyond what is already visible in the
-      provided source code.
-
-3. PERMISSION REQUESTS
-   To request a license for any use not covered above, contact the Author
-   directly. Permissions granted in writing by the Author supersede these
-   restrictions only to the extent explicitly stated.
-
-4. NO WARRANTY
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
-   FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. THE AUTHOR SHALL NOT BE
-   LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM USE OF OR
-   IN CONNECTION WITH THE SOFTWARE.
-
-5. TERMINATION
-   Any rights granted under this license terminate immediately and automatically
-   upon breach of any of these terms.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

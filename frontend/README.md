@@ -1,68 +1,172 @@
-# SEMSYNC — Academic Tracker
+# SemSync — Frontend
 
-A streamlined, minimalist tracker for college students to manage courses, deadlines, and deep-work sessions.
+React 19 + TypeScript SPA, built with Vite, styled with Tailwind CSS v4.
 
----
-
-## Features
-
-- **Dashboard** — A high-level weekly overview of all your courses, current grades vs. targets, and upcoming evaluations with urgency indicators (CRITICAL / OPERATIONAL / ROUTINE).
-- **Course Management** — Add courses with credit weights and target grades. Track evaluations (quizzes, assignments, mid-sems, end-sems, labs, vivas, projects) with scores and weightages. The app automatically calculates your current grade and the average you need on remaining assessments.
-- **Task Center** — A Kanban-style board (Upcoming → Active → Done) to manage tasks with priorities, due dates, and drag-and-drop reordering.
-- **Academic Calendar** — Visual semester calendar mapping all your evaluation deadlines in one place.
-- **Focus Timer** — A Pomodoro-style work timer with configurable focus/break durations. Link sessions to specific tasks or upcoming evaluations, and track your study history by category.
-- **Themes & Settings** — Multiple built-in dark/light themes, custom theme builder, and notification preferences.
+Part of the [SemSync](../README.md) monorepo — see the root README for overall
+architecture, core flows, and API reference.
 
 ---
 
-## Run Locally
+## Table of Contents
 
-**Prerequisites:** Node.js
-
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-
-3. Run the app:
-   ```bash
-   npm run dev
-   ```
-
-> **Note:** The app is designed for desktop use only (minimum viewport width: 1024px).
+- [Stack](#stack)
+- [Structure](#structure)
+- [Context Layer](#context-layer)
+- [Styling Approach](#styling-approach)
+- [Data Flow](#data-flow)
+- [Getting Started](#getting-started)
 
 ---
 
-## How to Use
+## Stack
 
-### 1. Sign In
-Navigate to the app and click **Login**. Authentication is handled via Google Sign-In. Your session token is stored locally and used to communicate with the backend at `https://semsyncbackend.vercel.app`.
+```
+React 19 + TypeScript
+Vite                      — dev server / bundler
+React Router 7            — routing
+Tailwind CSS v4           — CSS-native @theme config, not tailwind.config.js
+MUI X Charts / Charts Pro — progress + XP visualisations (+ Emotion, required by MUI)
+motion (Framer Motion)    — micro-interactions, achievement reveals
+lucide-react              — icon set
+react-fast-marquee        — ticker component
+@react-oauth/google       — Google login button
+```
 
-### 2. Add Your Courses
-From the **Dashboard**, click the **+** button to add a course. Enter the course name, credit hours, and your target grade. You can delete courses from the dashboard as well.
-
-### 3. Track Evaluations
-Open a course to view its detail page. Click **Add Evaluation** to log an assessment — choose the type (quiz, assignment, mid-sem, lab, project, viva, etc.), enter the weightage, date, and your score once results are out. The course page calculates your running grade and tells you the average required on remaining assessments to hit your target.
-
-### 4. Manage Tasks
-Go to **Task Center** to create tasks with a title, description, linked course, due date, and priority (low / medium / high). Drag cards between the **Upcoming**, **Active**, and **Done** columns as you make progress.
-
-### 5. Use the Focus Timer
-Head to **Focus Timer** to start a Pomodoro session. Set your focus and break durations, optionally link the session to a task or an upcoming evaluation, and pick a study category (Reading, Coding, Note Making, etc.). Completed sessions are saved to your local history.
-
-### 6. View the Calendar
-The **Calendar** page gives a month-by-month view of all evaluation dates across your courses so you can spot crunch periods at a glance.
-
-### 7. Customize Settings
-Under **Settings**, switch between built-in themes, create a custom theme, toggle desktop notifications, and replay the onboarding tutorial at any time.
+State management is plain React Context — no Redux, no Zustand.
 
 ---
 
-## Tech Stack
+## Structure
 
-- **Frontend:** React + TypeScript, Tailwind CSS, React Router
-- **Backend:** REST API hosted on Vercel (`semsyncbackend.vercel.app`)
-- **Auth:** Google OAuth (JWT stored in `localStorage`)
-- **State:** React Context (Auth, Theme, Notifications) + `localStorage` for tasks and focus sessions
+```
+src/
+├── pages/                 one file per route, mostly self-contained
+│   ├── Dashboard.tsx
+│   ├── CoursesPage.tsx / CoursePage.tsx
+│   ├── ClassroomPage.tsx
+│   ├── FocusTimerPage.tsx
+│   ├── TaskCenterPage.tsx
+│   ├── CalendarPage.tsx
+│   ├── ProgressPage.tsx
+│   ├── SettingsPage.tsx
+│   └── LoginPage / LandingPage / AboutPage / LegalPage / UserPage
+│
+├── components/
+│   ├── Sidebar.tsx / Header.tsx / Layout.tsx      shared shell
+│   ├── XPBar.tsx / StreakDisplay.tsx / DailyGoals.tsx
+│   ├── Ticker.tsx / ToastStack.tsx / LoadingBar.tsx / InfoTooltip.tsx
+│   ├── OnboardingTutorial.tsx / SessionComplete.tsx
+│   ├── modals/          AddCourseModal, AddEvalModal, EditEvalModal,
+│   │                     SyncCourseModal, ConfirmModal, Modal (base)
+│   ├── achievements/    AchievementToastStack, CinematicUnlock
+│   └── settings/        AppearanceTab, DataTab, InfoTab, PreferencesTab
+│
+├── context/              6 providers, see below
+├── lib/                  api client, caching, sound, token storage
+├── data/                 static content (themes, onboarding copy, tooltips)
+├── hooks/                useDelayedSkeleton.ts
+└── main.tsx
+```
+
+Pages own most of their logic directly rather than delegating to custom hooks —
+the `hooks/` folder is intentionally thin. Shared UI beyond the Sidebar / Header
+/ Layout shell is pulled out only where it's reused across more than one page.
+
+---
+
+## Context Layer
+
+```
+        ┌────────────────┐
+        │  AuthContext     │  user session, login/logout, token refresh
+        └────────┬─────────┘
+                 │
+        ┌────────▼─────────┐
+        │  ThemeContext      │  colour preset → CSS custom properties
+        └────────┬─────────┘  → document.documentElement → localStorage
+                 │
+        ┌────────▼─────────┐
+        │  TypographyContext │  font preset → CSS custom properties
+        └────────┬─────────┘  → document.documentElement → localStorage
+                 │
+        ┌────────▼─────────┐
+        │ AnimationPreferenceContext │  reduced-motion toggle,
+        └────────┬─────────┘         read by every `motion` animation
+                 │
+        ┌────────▼─────────┐
+        │ NotificationContext │  toast queue
+        └────────┬─────────┘
+                 │
+        ┌────────▼─────────┐
+        │ AchievementContext │  subscribes to /events/stream (SSE),
+        └──────────────────┘   drives AchievementToastStack + CinematicUnlock
+```
+
+Theme and Typography follow an identical pattern: a preset object is mapped to
+CSS variables, written onto `document.documentElement`, then persisted to
+`localStorage` so the choice survives a reload without a round trip to the
+backend.
+
+---
+
+## Styling Approach
+
+```
+index.css
+  └── Tailwind v4 @theme block
+        defines --color-*, --font-*, --text-* as CSS variables
+        (these are the same variables ThemeContext / TypographyContext
+         overwrite at runtime for live customisation)
+
+Per-page styling
+  └── inline style={{}} objects are the dominant method,
+      Tailwind utility classes used alongside, not instead of
+```
+
+This is a deliberate trade-off: inline styles make each page trivially
+self-contained at the cost of some duplication across pages. If you're adding a
+new page, follow the existing pages' pattern rather than introducing a new
+styling convention.
+
+---
+
+## Data Flow
+
+```
+   Page component
+        │
+        ▼
+   lib/api.js  ─────────►  Express backend (JWT cookie auth)
+        │
+        ▼
+   lib/dataService.ts  ── shapes/aggregates API responses for pages
+        │
+        ▼
+   lib/sessionCache.ts ── short-lived in-memory cache to avoid
+                            refetching on every navigation
+```
+
+`lib/api.js` and `lib/tokenStore.js` are plain JS, not TypeScript — everything
+else in `src/` is typed. This is a known gap, not an intentional split; PRs
+converting them to `.ts` with proper request/response types are welcome.
+
+---
+
+## Getting Started
+
+```bash
+npm install
+```
+
+Create `.env` in `frontend/` (see root README's
+[Getting Started](../README.md#getting-started) for the required keys), then:
+
+```bash
+npm run dev
+```
+
+```
+npm run dev        vite dev server
+npm run build       production build
+npm run preview     preview the production build locally
+```
