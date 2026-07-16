@@ -40,7 +40,7 @@ const fieldStyle = {
     color: 'var(--color-text)',
 };
 const inputCls =
-    'w-full px-4 py-3 text-sm placeholder:text-[var(--color-text)]/25 focus:outline-none transition-colors bg-transparent';
+    'w-full px-4 py-3 text-sm placeholder:text-[var(--color-text)]/25 focus:outline-none focus-ring transition-colors bg-transparent';
 const labelCls = 'block text-3xs font-black tracking-[0.25em] uppercase mb-2';
 const labelStyle = { color: 'var(--color-text-muted)' };
 
@@ -343,10 +343,15 @@ export default function AddCourseModal({
                 {step === 1 && (
                     <div className='p-8 space-y-5'>
                         <div>
-                            <label className={labelCls} style={labelStyle}>
+                            <label
+                                htmlFor='course-name'
+                                className={labelCls}
+                                style={labelStyle}
+                            >
                                 Course Name *
                             </label>
                             <input
+                                id='course-name'
                                 autoFocus
                                 className={inputCls}
                                 style={fieldStyle}
@@ -360,10 +365,15 @@ export default function AddCourseModal({
                         </div>
                         <div className='grid grid-cols-2 gap-4'>
                             <div>
-                                <label className={labelCls} style={labelStyle}>
+                                <label
+                                    htmlFor='course-credits'
+                                    className={labelCls}
+                                    style={labelStyle}
+                                >
                                     Credits
                                 </label>
                                 <input
+                                    id='course-credits'
                                     className={inputCls}
                                     style={fieldStyle}
                                     type='number'
@@ -375,10 +385,15 @@ export default function AddCourseModal({
                                 />
                             </div>
                             <div>
-                                <label className={labelCls} style={labelStyle}>
+                                <label
+                                    htmlFor='course-target-grade'
+                                    className={labelCls}
+                                    style={labelStyle}
+                                >
                                     Target Grade %
                                 </label>
                                 <input
+                                    id='course-target-grade'
                                     className={inputCls}
                                     style={fieldStyle}
                                     type='number'
@@ -482,7 +497,7 @@ export default function AddCourseModal({
                             <div>
                                 <p
                                     className='text-4xs font-black tracking-[0.3em] uppercase mb-1'
-                                    style={{ color: 'var(--color-text-faint)' }}
+                                    style={{ color: 'var(--color-text-muted)' }}
                                 >
                                     Configuring
                                 </p>
@@ -493,7 +508,7 @@ export default function AddCourseModal({
                             <div className='text-right'>
                                 <p
                                     className='text-4xs font-black tracking-widest uppercase mb-1'
-                                    style={{ color: 'var(--color-text-faint)' }}
+                                    style={{ color: 'var(--color-text-muted)' }}
                                 >
                                     Target
                                 </p>
@@ -592,7 +607,7 @@ export default function AddCourseModal({
                                 <span
                                     key={h}
                                     className='text-4xs font-black tracking-[0.2em] uppercase'
-                                    style={{ color: 'var(--color-text-faint)' }}
+                                    style={{ color: 'var(--color-text-muted)' }}
                                 >
                                     {h}
                                 </span>
@@ -613,7 +628,8 @@ export default function AddCourseModal({
                                     }}
                                 >
                                     <input
-                                        className='w-full px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/20 focus:outline-none transition-colors'
+                                        aria-label='Evaluation name'
+                                        className='w-full px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/20 focus:outline-none focus-ring transition-colors'
                                         style={fieldStyle}
                                         placeholder='e.g. Midsem Exam'
                                         value={row.label}
@@ -626,7 +642,8 @@ export default function AddCourseModal({
                                         }
                                     />
                                     <select
-                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] focus:outline-none cursor-pointer'
+                                        aria-label='Evaluation type'
+                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] focus:outline-none focus-ring cursor-pointer'
                                         style={fieldStyle}
                                         value={row.type}
                                         onChange={(e) =>
@@ -648,7 +665,8 @@ export default function AddCourseModal({
                                         ))}
                                     </select>
                                     <input
-                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-right focus:outline-none transition-colors font-mono'
+                                        aria-label='Evaluation weight percent'
+                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-right focus:outline-none focus-ring transition-colors font-mono'
                                         style={fieldStyle}
                                         type='number'
                                         min='0'
@@ -665,7 +683,8 @@ export default function AddCourseModal({
                                         }
                                     />
                                     <input
-                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none transition-colors font-mono'
+                                        aria-label='Evaluation count'
+                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none focus-ring transition-colors font-mono'
                                         style={fieldStyle}
                                         type='number'
                                         min='1'
@@ -682,7 +701,8 @@ export default function AddCourseModal({
                                         }
                                     />
                                     <input
-                                        className='w-full px-2 py-2 text-xs text-[var(--color-text)] focus:outline-none transition-colors font-mono'
+                                        aria-label='Evaluation date'
+                                        className='w-full px-2 py-2 text-xs text-[var(--color-text)] focus:outline-none focus-ring transition-colors font-mono'
                                         style={{
                                             ...fieldStyle,
                                             colorScheme: 'dark',

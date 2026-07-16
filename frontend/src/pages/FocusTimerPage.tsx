@@ -36,6 +36,7 @@ import DailyGoals from '../components/DailyGoals';
 import StreakDisplay from '../components/StreakDisplay';
 import InfoTooltip from '../components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '../data/TooltipContent';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface ServerTimer {
     id: string;
@@ -212,6 +213,7 @@ function TimerArc({ progress, phase }: { progress: number; phase: UIPhase }) {
 }
 
 export default function FocusTimerPage() {
+    useDocumentTitle('Focus Timer');
     const FOCUS_CHIPS = [15, 30, 45, 60];
 
     const [serverTimer, setServerTimer] = useState<ServerTimer | null>(null);
@@ -1229,7 +1231,7 @@ export default function FocusTimerPage() {
                                         {showQuickTask && (
                                             <div className='p-3 space-y-2 border border-[var(--color-glass-border)] bg-[var(--color-surface-1)] rounded-lg'>
                                                 <input
-                                                    className='w-full px-3 py-2 text-xs placeholder:text-[var(--color-text-faint)] focus:outline-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg'
+                                                    className='w-full px-3 py-2 text-xs placeholder:text-[var(--color-text-faint)] focus:outline-none focus-ring border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg'
                                                     placeholder='Task title...'
                                                     value={draftTitle}
                                                     onChange={(e) =>
@@ -1243,7 +1245,7 @@ export default function FocusTimerPage() {
                                                     }}
                                                 />
                                                 <select
-                                                    className='w-full px-3 py-2 text-xs focus:outline-none appearance-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg'
+                                                    className='w-full px-3 py-2 text-xs focus:outline-none focus-ring appearance-none border border-[var(--color-glass-border)] bg-[var(--color-surface-2)] text-[var(--color-text)] rounded-lg'
                                                     value={draftCategory}
                                                     onChange={(e) =>
                                                         setDraftCategory(
@@ -1368,7 +1370,10 @@ export default function FocusTimerPage() {
                                     </p>
                                 </div>
                             ) : (
-                                <div className='space-y-2 max-h-64 overflow-y-auto pr-1'>
+                                <div
+                                    className='space-y-2 max-h-64 overflow-y-auto pr-1'
+                                    tabIndex={0}
+                                >
                                     {(gamifData.recentSessions as any[])
                                         .slice(0, 20)
                                         .map((s: any) => {

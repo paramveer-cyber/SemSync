@@ -1,8 +1,10 @@
 import Header from '../components/Header';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function LegalPage() {
+    useDocumentTitle('Legal');
     return (
-        <main className='grow flex flex-col overflow-hidden'>
+        <div className='grow flex flex-col overflow-hidden'>
             <Header title='Legal & Privacy' subtitle='The fine print' />
             <div className='grow overflow-y-auto p-8 max-w-3xl'>
                 <div
@@ -128,6 +130,6 @@ export default function LegalPage() {
                     </section>
                 </div>
             </div>
-        </main>
+        </div>
     );
 }

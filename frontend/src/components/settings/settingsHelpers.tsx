@@ -487,6 +487,7 @@ export function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
             >
                 <div>
                     <label
+                        htmlFor='theme-name'
                         style={{
                             fontSize: 'var(--text-3xs)',
                             fontWeight: 600,
@@ -500,6 +501,7 @@ export function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
                         Theme Name
                     </label>
                     <input
+                        id='theme-name'
                         type='text'
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -587,6 +589,7 @@ export function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
 
                 <div>
                     <label
+                        htmlFor='theme-accent-hex'
                         style={{
                             fontSize: 'var(--text-3xs)',
                             fontWeight: 600,
@@ -646,6 +649,7 @@ export function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
                         }}
                     >
                         <input
+                            aria-label='Accent color picker'
                             type='color'
                             value={isValid ? brandHex : '#6366f1'}
                             onChange={(e) => setBrandHex(e.target.value)}
@@ -660,6 +664,7 @@ export function ThemeBuilder({ editing, onSave, onCancel }: ThemeBuilderProps) {
                             }}
                         />
                         <input
+                            id='theme-accent-hex'
                             type='text'
                             value={brandHex}
                             onChange={(e) => setBrandHex(e.target.value)}

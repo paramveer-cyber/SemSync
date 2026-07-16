@@ -11,6 +11,7 @@ import {
     ArrowRight,
     ChevronDown,
 } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 function FeatureCard({
     index,
@@ -45,7 +46,7 @@ function FeatureCard({
                     </div>
                     <span
                         className='text-4xs font-black tracking-[0.35em]'
-                        style={{ color: 'var(--color-text-faint)' }}
+                        style={{ color: 'var(--color-text-muted)' }}
                     >
                         {index}
                     </span>
@@ -68,6 +69,7 @@ function FeatureCard({
 }
 
 export default function LandingPage() {
+    useDocumentTitle('SemSync', false);
     const { user, loading } = useAuth();
 
     const features = [
@@ -130,7 +132,7 @@ export default function LandingPage() {
                 style={{ background: 'var(--color-sidebar-bg)' }}
             >
                 <Link to='/' className='flex items-center gap-2'>
-                    <img src={icon} width={30} height={30} />
+                    <img src={icon} width={30} height={30} alt='' />
                     <span
                         className='text-base font-black tracking-[0.2em] uppercase'
                         style={{ color: 'var(--color-text)' }}
@@ -360,7 +362,7 @@ export default function LandingPage() {
                             </div>
                             <span
                                 className='hidden md:block text-3xs tracking-widest mb-1'
-                                style={{ color: 'var(--color-text-faint)' }}
+                                style={{ color: 'var(--color-text-muted)' }}
                             >
                                 ZERO BLOAT
                             </span>
@@ -531,11 +533,12 @@ export default function LandingPage() {
                             src={icon}
                             width={18}
                             height={18}
+                            alt=''
                             className='opacity-50'
                         />
                         <span
                             className='text-3xs font-bold tracking-[0.25em] uppercase'
-                            style={{ color: 'var(--color-text-faint)' }}
+                            style={{ color: 'var(--color-text-muted)' }}
                         >
                             © 2026 SEMSYNC
                         </span>
@@ -551,14 +554,14 @@ export default function LandingPage() {
                                 key={label}
                                 href={href}
                                 className='text-3xs font-bold tracking-[0.2em] uppercase transition-colors'
-                                style={{ color: 'var(--color-text-faint)' }}
+                                style={{ color: 'var(--color-text-muted)' }}
                                 onMouseEnter={(e) =>
                                     (e.currentTarget.style.color =
                                         'var(--color-text)')
                                 }
                                 onMouseLeave={(e) =>
                                     (e.currentTarget.style.color =
-                                        'var(--color-text-faint)')
+                                        'var(--color-text-muted)')
                                 }
                             >
                                 {label}

@@ -14,6 +14,7 @@ import { AlertTriangle, Plus, Pencil, Trash2, Archive } from 'lucide-react';
 import { LineChart } from '@mui/x-charts';
 import InfoTooltip from '../components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '../data/TooltipContent';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const TYPE_COLOR: Record<string, string> = {
     midsem: 'text-[var(--color-danger)] border-[var(--color-danger)]',
@@ -25,7 +26,7 @@ const TYPE_COLOR: Record<string, string> = {
     project:
         'text-[var(--color-text-muted)] border-[var(--color-glass-border)]',
     viva: 'text-[var(--color-text-muted)] border-[var(--color-glass-border)]',
-    other: 'text-[var(--color-text-faint)] border-[var(--color-glass-border)]',
+    other: 'text-[var(--color-text-muted)] border-[var(--color-glass-border)]',
 };
 const fmtDate = (d: string) =>
     new Date(d).toLocaleDateString('en-IN', {
@@ -35,6 +36,7 @@ const fmtDate = (d: string) =>
     });
 
 export default function CoursePage() {
+    useDocumentTitle('Course');
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [course, setCourse] = useState<any>(null);
@@ -168,7 +170,7 @@ export default function CoursePage() {
 
     return (
         <>
-            <main className='grow flex flex-col'>
+            <div className='grow flex flex-col'>
                 <Header
                     title={course?.name ?? 'Course'}
                     subtitle='Track_Detail'
@@ -227,7 +229,7 @@ export default function CoursePage() {
                                     <div className='flex items-center space-x-8'>
                                         {course.credits && (
                                             <div>
-                                                <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1'>
+                                                <p className='text-4xs font-bold text-[var(--color-text-muted)] tracking-[0.2em] uppercase mb-1'>
                                                     Credits
                                                 </p>
                                                 <p className='text-2xl font-extrabold font-mono text-[var(--color-text)]'>
@@ -236,7 +238,7 @@ export default function CoursePage() {
                                             </div>
                                         )}
                                         <div>
-                                            <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-1 flex items-center gap-1.5'>
+                                            <p className='text-4xs font-bold text-[var(--color-text-muted)] tracking-[0.2em] uppercase mb-1 flex items-center gap-1.5'>
                                                 Target
                                                 <InfoTooltip
                                                     content={
@@ -388,7 +390,7 @@ export default function CoursePage() {
                                                 key={s.label}
                                                 className={`p-6 ${i < 3 ? 'border-r border-[var(--color-glass-border)]' : ''} ${s.accent ? 'bg-[var(--color-brand-glow)]' : ''}`}
                                             >
-                                                <p className='text-4xs font-bold text-[var(--color-text-faint)] tracking-[0.2em] uppercase mb-2 flex items-center gap-1.5'>
+                                                <p className='text-4xs font-bold text-[var(--color-text-muted)] tracking-[0.2em] uppercase mb-2 flex items-center gap-1.5'>
                                                     {s.label}
                                                     <InfoTooltip
                                                         content={
@@ -403,7 +405,7 @@ export default function CoursePage() {
                                                 >
                                                     {s.value}
                                                 </p>
-                                                <p className='text-xs mt-1 leading-snug text-[var(--color-text-faint)]'>
+                                                <p className='text-xs mt-1 leading-snug text-[var(--color-text-muted)]'>
                                                     {s.sub}
                                                 </p>
                                             </div>
@@ -519,7 +521,7 @@ export default function CoursePage() {
                                                                 <span
                                                                     className='text-4xs font-bold tracking-widest uppercase font-mono'
                                                                     style={{
-                                                                        color: 'var(--color-text-faint)',
+                                                                        color: 'var(--color-text-muted)',
                                                                     }}
                                                                 >
                                                                     {label}
@@ -788,7 +790,7 @@ export default function CoursePage() {
                                             ].map(([label, spanClass]) => (
                                                 <div
                                                     key={label}
-                                                    className={`text-4xs font-black tracking-[0.2em] uppercase text-[var(--color-text-faint)] ${spanClass}`}
+                                                    className={`text-4xs font-black tracking-[0.2em] uppercase text-[var(--color-text-muted)] ${spanClass}`}
                                                 >
                                                     {label}
                                                 </div>
@@ -828,7 +830,7 @@ export default function CoursePage() {
                                                         </span>
                                                     </div>
                                                     <div className='col-span-2 text-right'>
-                                                        <span className='text-xs text-[var(--color-text-faint)] font-mono'>
+                                                        <span className='text-xs text-[var(--color-text-muted)] font-mono'>
                                                             {fmtDate(e.date)}
                                                         </span>
                                                     </div>
@@ -864,7 +866,7 @@ export default function CoursePage() {
                                                     </div>
                                                     <div className='col-span-1 text-right'>
                                                         <span
-                                                            className={`text-2xs font-mono ${e.minutesSpent > 0 ? 'text-[var(--color-text)]' : 'text-[var(--color-text-faint)]'}`}
+                                                            className={`text-2xs font-mono ${e.minutesSpent > 0 ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}
                                                         >
                                                             {timeSpentLabel}
                                                         </span>
@@ -971,7 +973,7 @@ export default function CoursePage() {
                         )
                     )}
                 </div>
-            </main>
+            </div>
 
             {showAdd && (
                 <AddEvalModal

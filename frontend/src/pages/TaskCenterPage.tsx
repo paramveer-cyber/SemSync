@@ -3,7 +3,10 @@ import { motion } from 'motion/react';
 import { useMotionDisabled } from '../context/AnimationPreferenceContext';
 import Header from '../components/Header';
 import InfoTooltip from '../components/InfoTooltip';
-import { getConfiguration, updateConfiguration } from '../lib/localConfiguration';
+import {
+    getConfiguration,
+    updateConfiguration,
+} from '../lib/localConfiguration';
 import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 import {
     Plus,
@@ -17,6 +20,7 @@ import {
     Pencil,
     Save,
 } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const KANBAN_SPRING = { type: 'spring', stiffness: 500, damping: 34 } as const;
 
@@ -107,7 +111,7 @@ const fieldStyle = {
     color: 'white',
 };
 const inputCls =
-    'w-full px-4 py-3 text-sm placeholder:text-[var(--color-text)]/25 focus:outline-none transition-colors';
+    'w-full px-4 py-3 text-sm placeholder:text-[var(--color-text)]/25 focus:outline-none focus-ring transition-colors';
 const labelCls = 'block text-3xs font-black tracking-[0.25em] uppercase mb-2';
 const labelStyle = { color: 'var(--color-text-muted)' };
 
@@ -282,7 +286,7 @@ function TaskCard({
                 <div className='flex items-center justify-between'>
                     <div
                         className='flex items-center gap-1.5'
-                        style={{ color: 'var(--color-text-faint)' }}
+                        style={{ color: 'var(--color-text-muted)' }}
                     >
                         <Calendar className='w-3 h-3' />
                         <span className='text-3xs font-mono'>
@@ -429,10 +433,15 @@ function TaskModal({
 
                 <div className='p-8 space-y-5'>
                     <div>
-                        <label className={labelCls} style={labelStyle}>
+                        <label
+                            htmlFor='task-title'
+                            className={labelCls}
+                            style={labelStyle}
+                        >
                             Task Title *
                         </label>
                         <input
+                            id='task-title'
                             autoFocus
                             className={inputCls}
                             style={fieldStyle}
@@ -445,10 +454,15 @@ function TaskModal({
                         />
                     </div>
                     <div>
-                        <label className={labelCls} style={labelStyle}>
+                        <label
+                            htmlFor='task-description'
+                            className={labelCls}
+                            style={labelStyle}
+                        >
                             Description
                         </label>
                         <textarea
+                            id='task-description'
                             className={inputCls}
                             style={{
                                 ...fieldStyle,
@@ -461,10 +475,15 @@ function TaskModal({
                         />
                     </div>
                     <div>
-                        <label className={labelCls} style={labelStyle}>
+                        <label
+                            htmlFor='task-course'
+                            className={labelCls}
+                            style={labelStyle}
+                        >
                             Course / Module
                         </label>
                         <input
+                            id='task-course'
                             className={inputCls}
                             style={fieldStyle}
                             placeholder='e.g. Physics 301'
@@ -474,10 +493,15 @@ function TaskModal({
                     </div>
                     <div className='grid grid-cols-2 gap-4'>
                         <div>
-                            <label className={labelCls} style={labelStyle}>
+                            <label
+                                htmlFor='task-due-date'
+                                className={labelCls}
+                                style={labelStyle}
+                            >
                                 Due Date
                             </label>
                             <input
+                                id='task-due-date'
                                 type='date'
                                 className={inputCls}
                                 style={fieldStyle}
@@ -486,10 +510,15 @@ function TaskModal({
                             />
                         </div>
                         <div>
-                            <label className={labelCls} style={labelStyle}>
+                            <label
+                                htmlFor='task-priority'
+                                className={labelCls}
+                                style={labelStyle}
+                            >
                                 Priority
                             </label>
                             <select
+                                id='task-priority'
                                 className={inputCls}
                                 style={fieldStyle}
                                 value={form.priority}
@@ -502,10 +531,15 @@ function TaskModal({
                         </div>
                     </div>
                     <div>
-                        <label className={labelCls} style={labelStyle}>
+                        <label
+                            htmlFor='task-status'
+                            className={labelCls}
+                            style={labelStyle}
+                        >
                             Status
                         </label>
                         <select
+                            id='task-status'
                             className={inputCls}
                             style={fieldStyle}
                             value={form.status}
@@ -600,6 +634,7 @@ function TaskModal({
 }
 
 export default function TaskCenterPage() {
+    useDocumentTitle('Task Center');
     const [tasks, setTasks] = useState<Task[]>(loadTasks);
     const [showNew, setShowNew] = useState(false);
     const [editing, setEditing] = useState<Task | null>(null);
@@ -677,7 +712,7 @@ export default function TaskCenterPage() {
 
     return (
         <>
-            <main className='grow flex flex-col overflow-hidden'>
+            <div className='grow flex flex-col overflow-hidden'>
                 <Header title='Task Center' subtitle='Ops_Board_V1' />
 
                 <div className='grow overflow-hidden flex flex-col p-8 gap-8'>
@@ -925,7 +960,7 @@ export default function TaskCenterPage() {
                         })}
                     </div>
                 </div>
-            </main>
+            </div>
 
             {showNew && (
                 <TaskModal

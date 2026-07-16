@@ -23,6 +23,7 @@ import {
     ChevronUp,
     Archive,
 } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const daysUntil = (d: string) =>
     Math.ceil((new Date(d).getTime() - Date.now()) / 86_400_000);
@@ -162,6 +163,7 @@ function parseClassroomUpcoming(): {
 }
 
 export default function Dashboard() {
+    useDocumentTitle('Dashboard');
     const [courses, setCourses] = useState<CourseWithStats[]>([]);
     const [upcoming, setUpcoming] = useState<any[]>([]);
     const [showAdd, setShowAdd] = useState(false);
@@ -268,7 +270,7 @@ export default function Dashboard() {
 
     if (loading) {
         return (
-            <main className='grow p-8 space-y-14'>
+            <div className='grow p-8 space-y-14'>
                 <div>
                     <div className='flex justify-between items-baseline mb-8'>
                         <div className='h-12 w-72 bg-[var(--color-surface-2)] animate-pulse' />
@@ -297,13 +299,13 @@ export default function Dashboard() {
                         ))}
                     </div>
                 </div>
-            </main>
+            </div>
         );
     }
 
     return (
         <>
-            <main className='grow flex flex-col overflow-y-auto'>
+            <div className='grow flex flex-col overflow-y-auto'>
                 <div className='p-8 space-y-14'>
                     {error && (
                         <div className='border border-red-500/30 bg-red-500/5 px-6 py-4 flex items-center gap-3 rounded-lg'>
@@ -404,7 +406,7 @@ export default function Dashboard() {
                             </h2>
                             <span
                                 className='text-sm font-mono tracking-[0.15em]'
-                                style={{ color: 'var(--color-text-faint)' }}
+                                style={{ color: 'var(--color-text-muted)' }}
                             >
                                 WEEK {week} — {month}
                             </span>
@@ -460,7 +462,7 @@ export default function Dashboard() {
                                                     <span
                                                         className='text-xs font-mono tracking-widest'
                                                         style={{
-                                                            color: 'var(--color-text-faint)',
+                                                            color: 'var(--color-text-muted)',
                                                         }}
                                                     >
                                                         {fmtDate(e.date)}
@@ -507,7 +509,7 @@ export default function Dashboard() {
                                                                 urg.label ===
                                                                 'CRITICAL'
                                                                     ? 'var(--color-brand)'
-                                                                    : 'var(--color-text-faint)',
+                                                                    : 'var(--color-text-muted)',
                                                         }}
                                                     >
                                                         <Clock className='w-3 h-3' />
@@ -530,7 +532,7 @@ export default function Dashboard() {
                                 </h2>
                                 <span
                                     className='text-xs font-mono tracking-widest'
-                                    style={{ color: 'var(--color-text-faint)' }}
+                                    style={{ color: 'var(--color-text-muted)' }}
                                 >
                                     [ {String(courses.length).padStart(2, '0')}{' '}
                                     Nodes Active ]
@@ -803,7 +805,7 @@ export default function Dashboard() {
                                                 <p
                                                     className='text-4xs font-bold tracking-[0.25em] uppercase mt-4 mb-1.5 group-hover:text-[var(--color-brand)] transition-colors'
                                                     style={{
-                                                        color: 'var(--color-text-faint)',
+                                                        color: 'var(--color-text-muted)',
                                                     }}
                                                 >
                                                     Current Progress
@@ -841,14 +843,14 @@ export default function Dashboard() {
                                                     <span
                                                         className='text-4xs font-mono transition-colors group-hover:text-[var(--color-brand)]'
                                                         style={{
-                                                            color: 'var(--color-text-faint)',
+                                                            color: 'var(--color-text-muted)',
                                                         }}
                                                     >
                                                         TARGET:{' '}
                                                         {course.targetGrade}%
                                                     </span>
                                                     <span
-                                                        className='text-4xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity'
+                                                        className='text-4xs font-bold uppercase tracking-widest'
                                                         style={{
                                                             color: 'var(--color-brand)',
                                                         }}
@@ -977,7 +979,7 @@ export default function Dashboard() {
                                                       }
                                                     : {
                                                           label: `${item.days}d`,
-                                                          color: 'var(--color-text-faint)',
+                                                          color: 'var(--color-text-muted)',
                                                       };
                                         return (
                                             <Link
@@ -1036,7 +1038,7 @@ export default function Dashboard() {
                                                         style={{
                                                             fontSize:
                                                                 'var(--text-2xs)',
-                                                            color: 'var(--color-text-faint)',
+                                                            color: 'var(--color-text-muted)',
                                                             margin: '3px 0 0',
                                                             overflow: 'hidden',
                                                             textOverflow:
@@ -1091,7 +1093,7 @@ export default function Dashboard() {
                         </a>
                     </div>
                 </footer>
-            </main>
+            </div>
 
             {showAdd && (
                 <AddCourseModal

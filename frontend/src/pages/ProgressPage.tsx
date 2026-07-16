@@ -11,6 +11,7 @@ import { TIER } from '../components/AchievementsGrid';
 import InfoTooltip from '../components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 import type { ReactNode } from 'react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface Stats {
     totalXp: number;
@@ -215,7 +216,7 @@ function StatCard({
             <div className='flex items-center justify-between'>
                 <span
                     className='text-3xs font-black tracking-[0.22em] uppercase'
-                    style={{ color: 'var(--color-text-faint)' }}
+                    style={{ color: 'var(--color-text-muted)' }}
                 >
                     {label}
                 </span>
@@ -236,7 +237,7 @@ function StatCard({
             {sub && (
                 <p
                     className='text-3xs font-mono'
-                    style={{ color: 'var(--color-text-faint)' }}
+                    style={{ color: 'var(--color-text-muted)' }}
                 >
                     {sub}
                 </p>
@@ -294,7 +295,7 @@ function AchievementTile({
             <span
                 className='text-5xs font-black tracking-[0.22em] uppercase px-2 py-0.5 rounded-full'
                 style={{
-                    color: earned ? ts.color : 'var(--color-text-faint)',
+                    color: earned ? ts.color : 'var(--color-text-muted)',
                     background: earned ? ts.bg : 'var(--color-surface-2)',
                     border: `1px solid ${earned ? ts.color + '33' : 'var(--color-glass-border)'}`,
                 }}
@@ -344,7 +345,7 @@ function AchievementTile({
                 </p>
                 <p
                     className='text-2xs leading-snug'
-                    style={{ color: 'var(--color-text-faint)' }}
+                    style={{ color: 'var(--color-text-muted)' }}
                 >
                     {isHidden ? 'Hidden achievement' : a.desc}
                 </p>
@@ -369,7 +370,7 @@ function AchievementTile({
                     </div>
                     <p
                         className='text-4xs font-mono mt-1 text-center'
-                        style={{ color: 'var(--color-text-faint)' }}
+                        style={{ color: 'var(--color-text-muted)' }}
                     >
                         {progress.value.toLocaleString()} /{' '}
                         {progress.max.toLocaleString()}
@@ -386,7 +387,7 @@ function AchievementTile({
                     <div className='flex items-center justify-between'>
                         <span
                             className='text-4xs font-mono'
-                            style={{ color: 'var(--color-text-faint)' }}
+                            style={{ color: 'var(--color-text-muted)' }}
                         >
                             {date}
                         </span>
@@ -402,7 +403,7 @@ function AchievementTile({
                 <div className='w-full mt-auto pt-2'>
                     <span
                         className='text-4xs font-bold tracking-widest uppercase'
-                        style={{ color: 'var(--color-text-faint)' }}
+                        style={{ color: 'var(--color-text-muted)' }}
                     >
                         {isHidden ? '???' : 'Locked'}
                     </span>
@@ -511,7 +512,7 @@ function GoalsPanel({ goals }: { goals: Goal[] }) {
                                 style={{
                                     color: isDone
                                         ? 'var(--color-brand)'
-                                        : 'var(--color-text-faint)',
+                                        : 'var(--color-text-muted)',
                                 }}
                             >
                                 +{g.xpReward}
@@ -537,6 +538,7 @@ function GoalsPanel({ goals }: { goals: Goal[] }) {
 type FilterMode = 'all' | 'earned' | 'locked';
 
 export default function ProgressPage() {
+    useDocumentTitle('Progress');
     const { checkAchievements } = useAchievements();
     const [data, setData] = useState<{
         stats: Stats | null;
@@ -651,7 +653,7 @@ export default function ProgressPage() {
 
     if (loading) {
         return (
-            <main className='grow p-8 space-y-4'>
+            <div className='grow p-8 space-y-4'>
                 <div className='h-10 w-64 rounded-lg bg-[var(--color-surface-2)] animate-pulse' />
                 <div className='grid grid-cols-4 gap-4'>
                     {[0, 1, 2, 3].map((i) => (
@@ -670,13 +672,13 @@ export default function ProgressPage() {
                         />
                     ))}
                 </div>
-            </main>
+            </div>
         );
     }
 
     return (
         <>
-            <main className='grow overflow-y-auto'>
+            <div className='grow overflow-y-auto'>
                 <Header
                     title='Progress'
                     subtitle='Your academic momentum at a glance'
@@ -740,7 +742,7 @@ export default function ProgressPage() {
                                         <p
                                             className='text-xs font-mono mb-0.5'
                                             style={{
-                                                color: 'var(--color-text-faint)',
+                                                color: 'var(--color-text-muted)',
                                             }}
                                         >
                                             Total XP
@@ -761,7 +763,7 @@ export default function ProgressPage() {
                                     <span
                                         className='text-4xs font-black tracking-[0.18em] uppercase'
                                         style={{
-                                            color: 'var(--color-text-faint)',
+                                            color: 'var(--color-text-muted)',
                                         }}
                                     >
                                         Progress to Level {level + 1}
@@ -785,7 +787,7 @@ export default function ProgressPage() {
                                     <span
                                         className='text-4xs font-mono'
                                         style={{
-                                            color: 'var(--color-text-faint)',
+                                            color: 'var(--color-text-muted)',
                                         }}
                                     >
                                         {xpInLevel.toLocaleString()} XP
@@ -793,7 +795,7 @@ export default function ProgressPage() {
                                     <span
                                         className='text-4xs font-mono'
                                         style={{
-                                            color: 'var(--color-text-faint)',
+                                            color: 'var(--color-text-muted)',
                                         }}
                                     >
                                         {(
@@ -830,7 +832,7 @@ export default function ProgressPage() {
                                     <p
                                         className='text-4xs uppercase tracking-[0.18em] mt-1.5 font-black'
                                         style={{
-                                            color: 'var(--color-text-faint)',
+                                            color: 'var(--color-text-muted)',
                                         }}
                                     >
                                         Streak
@@ -853,7 +855,7 @@ export default function ProgressPage() {
                                         <p
                                             className='text-4xs uppercase tracking-[0.18em] font-black'
                                             style={{
-                                                color: 'var(--color-text-faint)',
+                                                color: 'var(--color-text-muted)',
                                             }}
                                         >
                                             Snapshot
@@ -871,7 +873,7 @@ export default function ProgressPage() {
                                             <p
                                                 className='text-3xs'
                                                 style={{
-                                                    color: 'var(--color-text-faint)',
+                                                    color: 'var(--color-text-muted)',
                                                 }}
                                             >
                                                 Achievements
@@ -888,7 +890,7 @@ export default function ProgressPage() {
                                             <p
                                                 className='text-3xs'
                                                 style={{
-                                                    color: 'var(--color-text-faint)',
+                                                    color: 'var(--color-text-muted)',
                                                 }}
                                             >
                                                 Focus time
@@ -1051,7 +1053,7 @@ export default function ProgressPage() {
                                             <p
                                                 className='text-4xs font-bold uppercase tracking-widest mt-1'
                                                 style={{
-                                                    color: 'var(--color-text-faint)',
+                                                    color: 'var(--color-text-muted)',
                                                 }}
                                             >
                                                 {label}
@@ -1079,7 +1081,7 @@ export default function ProgressPage() {
                                 />
                                 <span
                                     className='text-xs font-mono'
-                                    style={{ color: 'var(--color-text-faint)' }}
+                                    style={{ color: 'var(--color-text-muted)' }}
                                 >
                                     {catalog.filter((a) => a.earned).length}/
                                     {catalog.length}
@@ -1245,7 +1247,7 @@ export default function ProgressPage() {
                         © 2026 SEMSYNC
                     </span>
                 </footer>
-            </main>
+            </div>
         </>
     );
 }

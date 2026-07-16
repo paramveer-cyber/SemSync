@@ -5,6 +5,7 @@ import AppearanceTab from '../components/settings/AppearanceTab';
 import PreferencesTab from '../components/settings/PreferencesTab';
 import InfoTab from '../components/settings/InfoTab';
 import DataTab from '../components/settings/DataTab';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type SettingsTabId = 'appearance' | 'preferences' | 'info' | 'data';
 
@@ -20,6 +21,7 @@ const SETTINGS_TABS: {
 ];
 
 export default function SettingsPage() {
+    useDocumentTitle('Settings');
     const [activeTab, setActiveTab] = useState<SettingsTabId>('appearance');
 
     useEffect(() => {
@@ -29,7 +31,7 @@ export default function SettingsPage() {
     }, []);
 
     return (
-        <main className='grow flex flex-col'>
+        <div className='grow flex flex-col'>
             <Header title='Settings' subtitle='Preferences & Configuration' />
 
             <div
@@ -70,6 +72,6 @@ export default function SettingsPage() {
             {activeTab === 'preferences' && <PreferencesTab />}
             {activeTab === 'info' && <InfoTab />}
             {activeTab === 'data' && <DataTab />}
-        </main>
+        </div>
     );
 }

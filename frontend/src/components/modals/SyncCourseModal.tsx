@@ -407,6 +407,7 @@ export default function SyncCourseModal({
                     >
                         <div>
                             <label
+                                htmlFor='sync-course-credits'
                                 style={{
                                     display: 'block',
                                     fontSize: 'var(--text-4xs)',
@@ -420,6 +421,7 @@ export default function SyncCourseModal({
                                 Credits (optional)
                             </label>
                             <input
+                                id='sync-course-credits'
                                 type='number'
                                 min='0'
                                 max='20'
@@ -436,6 +438,7 @@ export default function SyncCourseModal({
                         </div>
                         <div>
                             <label
+                                htmlFor='sync-course-target-grade'
                                 style={{
                                     display: 'block',
                                     fontSize: 'var(--text-4xs)',
@@ -449,6 +452,7 @@ export default function SyncCourseModal({
                                 Target Grade %
                             </label>
                             <input
+                                id='sync-course-target-grade'
                                 type='number'
                                 min='0'
                                 max='100'
@@ -647,7 +651,7 @@ export default function SyncCourseModal({
                                                 fontWeight: 900,
                                                 letterSpacing: '0.15em',
                                                 textTransform: 'uppercase',
-                                                color: 'var(--color-text-faint)',
+                                                color: 'var(--color-text-muted)',
                                             }}
                                         >
                                             {h}
@@ -678,6 +682,7 @@ export default function SyncCourseModal({
                                         }}
                                     >
                                         <input
+                                            aria-label='Evaluation name'
                                             style={{
                                                 ...field,
                                                 padding: '6px 8px',
@@ -694,6 +699,7 @@ export default function SyncCourseModal({
                                             }
                                         />
                                         <select
+                                            aria-label='Evaluation type'
                                             style={{
                                                 ...field,
                                                 padding: '6px 4px',
@@ -723,6 +729,7 @@ export default function SyncCourseModal({
                                             ))}
                                         </select>
                                         <input
+                                            aria-label='Evaluation weight percent'
                                             type='number'
                                             min='0'
                                             max='100'
@@ -745,6 +752,7 @@ export default function SyncCourseModal({
                                             }
                                         />
                                         <input
+                                            aria-label='Evaluation count'
                                             type='number'
                                             min='1'
                                             max='20'
@@ -766,6 +774,7 @@ export default function SyncCourseModal({
                                             }
                                         />
                                         <input
+                                            aria-label='Evaluation date'
                                             type='date'
                                             style={{
                                                 ...field,
@@ -882,7 +891,7 @@ export default function SyncCourseModal({
                                         fontWeight: 900,
                                         letterSpacing: '0.2em',
                                         textTransform: 'uppercase',
-                                        color: 'var(--color-text-faint)',
+                                        color: 'var(--color-text-muted)',
                                     }}
                                 >
                                     {course.gradedSubmissions.length > 0
@@ -973,7 +982,7 @@ export default function SyncCourseModal({
                                             style={{
                                                 padding: '6px 12px',
                                                 fontSize: 'var(--text-3xs)',
-                                                color: 'var(--color-text-faint)',
+                                                color: 'var(--color-text-muted)',
                                             }}
                                         >
                                             +

@@ -12,6 +12,7 @@ import {
     invalidateAllCourseData,
 } from '../lib/dataService';
 import { Plus, AlertTriangle, Trash2, Archive } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const deleteStyle = {
     base: {
@@ -28,6 +29,7 @@ const deleteStyle = {
 };
 
 export default function CoursesPage() {
+    useDocumentTitle('Courses');
     const [tab, setTab] = useState<'active' | 'past'>('active');
     const [courses, setCourses] = useState<any[]>([]);
     const [archived, setArchived] = useState<any[]>([]);
@@ -101,7 +103,7 @@ export default function CoursesPage() {
 
     return (
         <>
-            <main className='grow flex flex-col'>
+            <div className='grow flex flex-col'>
                 <Header title='Academic Tracks' subtitle='Directory_V2.0' />
                 <div className='p-12'>
                     <div className='flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6'>
@@ -140,7 +142,7 @@ export default function CoursesPage() {
                                 />
                                 <span
                                     className='text-3xs font-bold tracking-widest uppercase'
-                                    style={{ color: 'var(--color-text-faint)' }}
+                                    style={{ color: 'var(--color-text-muted)' }}
                                 >
                                     {nodeCount}{' '}
                                     {tab === 'active' ? 'ACTIVE' : 'ARCHIVED'}{' '}
@@ -357,7 +359,7 @@ export default function CoursesPage() {
                                                 <span
                                                     className='text-3xs font-black tracking-[0.4em] uppercase'
                                                     style={{
-                                                        color: 'var(--color-text-faint)',
+                                                        color: 'var(--color-text-muted)',
                                                     }}
                                                 >
                                                     {tab === 'past'
@@ -417,7 +419,7 @@ export default function CoursesPage() {
                                             <div
                                                 className='flex items-center space-x-4 mb-10 text-3xs font-mono'
                                                 style={{
-                                                    color: 'var(--color-text-faint)',
+                                                    color: 'var(--color-text-muted)',
                                                 }}
                                             >
                                                 {course.credits && (
@@ -470,7 +472,7 @@ export default function CoursesPage() {
                         © 2026 SEMSYNC
                     </span>
                 </footer>
-            </main>
+            </div>
 
             {showAdd && (
                 <AddCourseModal

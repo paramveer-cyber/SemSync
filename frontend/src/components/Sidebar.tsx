@@ -51,7 +51,8 @@ export default function Sidebar() {
     };
 
     return (
-        <aside
+        <nav
+            aria-label='Primary'
             className='w-72 flex flex-col h-screen sticky top-0 shrink-0'
             style={{
                 background: 'var(--color-sidebar-bg)',
@@ -281,6 +282,6 @@ export default function Sidebar() {
                     </>
                 )}
             </div>
-        </aside>
+        </nav>
     );
 }

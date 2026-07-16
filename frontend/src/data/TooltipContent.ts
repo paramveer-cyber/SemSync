@@ -21,7 +21,8 @@ export const TOOLTIP_CONTENT: Record<string, string> = {
         'Pulls your course and coursework structure from Google Classroom. It does not import grades or file attachments.',
     importScope:
         'Only course names and assignment titles/due dates are imported. Submissions, files, and grades stay in Classroom.',
-    taskColumns: 'Drag a task between columns to update its status.',
+    taskColumns:
+        'Drag a task between columns to update its status, or use Edit on a task card to change its status without dragging.',
     deadlineColors:
         'Color reflects how soon the deadline is: closer dates are shown in warmer colors.',
     themeCustomiser:

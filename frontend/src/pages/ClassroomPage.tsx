@@ -31,6 +31,7 @@ import {
     ArrowUpRight,
     Lock,
 } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
 
@@ -150,7 +151,7 @@ function urgencyLabel(days: number): { text: string; color: string } {
     if (days === 1) return { text: 'TOMORROW', color: '#EF9F27' };
     if (days <= 3) return { text: `${days}d`, color: '#EF9F27' };
     if (days <= 7) return { text: `${days}d`, color: '#378ADD' };
-    return { text: `${days}d`, color: 'var(--color-text-faint)' };
+    return { text: `${days}d`, color: 'var(--color-text-muted)' };
 }
 
 function gradeColor(pct: number | null): string {
@@ -519,7 +520,7 @@ function CoursePill({
                             : 'var(--color-glass-border)',
                         color: isSelected
                             ? `hsl(${hue},70%,60%)`
-                            : 'var(--color-text-faint)',
+                            : 'var(--color-text-muted)',
                     }}
                 >
                     {pendingCount}
@@ -570,11 +571,14 @@ function AssignmentRow({
         .filter(Boolean)
         .join(' · ');
 
+    const CardWrapper = cw.alternateLink ? 'a' : 'div';
+
     return (
-        <div
-            onClick={() =>
-                cw.alternateLink && window.open(cw.alternateLink, '_blank')
-            }
+        <CardWrapper
+            href={cw.alternateLink || undefined}
+            target={cw.alternateLink ? '_blank' : undefined}
+            rel={cw.alternateLink ? 'noopener noreferrer' : undefined}
+            className={cw.alternateLink ? 'focus-ring' : undefined}
             style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -586,6 +590,8 @@ function AssignmentRow({
                 padding: '13px 16px 13px 14px',
                 cursor: cw.alternateLink ? 'pointer' : 'default',
                 transition: 'background 0.15s ease',
+                textDecoration: 'none',
+                color: 'inherit',
             }}
             onMouseEnter={(e) => {
                 if (cw.alternateLink)
@@ -737,7 +743,7 @@ function AssignmentRow({
                     </>
                 )}
             </div>
-        </div>
+        </CardWrapper>
     );
 }
 
@@ -827,7 +833,7 @@ function GradeRow({
                         <span
                             style={{
                                 marginLeft: '0.375rem',
-                                color: 'var(--color-text-faint)',
+                                color: 'var(--color-text-muted)',
                             }}
                         >
                             · {WORK_TYPE_LABEL[cw.workType] ?? cw.workType}
@@ -930,7 +936,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
                 <span
                     style={{
                         fontSize: 'var(--text-2xs)',
-                        color: 'var(--color-text-faint)',
+                        color: 'var(--color-text-muted)',
                         fontFamily: 'monospace',
                     }}
                 >
@@ -984,7 +990,7 @@ function AnnouncementCard({ ann }: { ann: Announcement }) {
             <p
                 style={{
                     fontSize: 'var(--text-2xs)',
-                    color: 'var(--color-text-faint)',
+                    color: 'var(--color-text-muted)',
                     marginTop: '0.75rem',
                 }}
             >
@@ -1080,7 +1086,7 @@ function NextRefreshBadge({ nextRefreshAt }: { nextRefreshAt: number }) {
         <span
             style={{
                 fontSize: 'var(--text-2xs)',
-                color: 'var(--color-text-faint)',
+                color: 'var(--color-text-muted)',
                 fontFamily: 'monospace',
                 display: 'flex',
                 alignItems: 'center',
@@ -1096,6 +1102,7 @@ function NextRefreshBadge({ nextRefreshAt }: { nextRefreshAt: number }) {
 }
 
 export default function ClassroomPage() {
+    useDocumentTitle('Classroom');
     const [linked, setLinked] = useState(false);
     const [initialAuthChecking, setInitialAuthChecking] = useState(true);
     const [courses, setCourses] = useState<ClassroomCourse[]>(
@@ -1341,7 +1348,7 @@ export default function ClassroomPage() {
 
     return (
         <>
-            <main className='flex-1 flex flex-col min-h-screen overflow-hidden'>
+            <div className='flex-1 flex flex-col min-h-screen overflow-hidden'>
                 {/* Top bar */}
                 <div
                     style={{
@@ -1390,7 +1397,7 @@ export default function ClassroomPage() {
                             <span
                                 style={{
                                     fontSize: 'var(--text-13)',
-                                    color: 'var(--color-text-faint)',
+                                    color: 'var(--color-text-muted)',
                                     flexShrink: 0,
                                 }}
                             >
@@ -2419,7 +2426,7 @@ export default function ClassroomPage() {
                         )}
                     </div>
                 )}
-            </main>
+            </div>
 
             {syncingCourse && (
                 <SyncCourseModal

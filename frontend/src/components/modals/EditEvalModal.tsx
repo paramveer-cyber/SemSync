@@ -89,7 +89,7 @@ export default function EditEvalModal({
     };
 
     const iCls =
-        'w-full px-4 py-2.5 text-sm text-[var(--color-text)] focus:outline-none transition-colors duration-150';
+        'w-full px-4 py-2.5 text-sm text-[var(--color-text)] focus:outline-none focus-ring transition-colors duration-150';
     const iSty = {
         background: 'var(--color-glass)',
         border: '1px solid var(--color-glass-border)',
@@ -105,10 +105,15 @@ export default function EditEvalModal({
                     className='space-y-4'
                 >
                     <div>
-                        <label className={lCls} style={lSty}>
+                        <label
+                            htmlFor='edit-eval-title'
+                            className={lCls}
+                            style={lSty}
+                        >
                             Title
                         </label>
                         <input
+                            id='edit-eval-title'
                             className={iCls}
                             style={iSty}
                             value={form.title}
@@ -118,10 +123,15 @@ export default function EditEvalModal({
                     </div>
                     <div className='grid grid-cols-2 gap-3'>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='edit-eval-type'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Type
                             </label>
                             <select
+                                id='edit-eval-type'
                                 className={iCls}
                                 style={{ ...iSty, cursor: 'pointer' }}
                                 value={form.type}
@@ -139,10 +149,15 @@ export default function EditEvalModal({
                             </select>
                         </div>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='edit-eval-date'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Date
                             </label>
                             <input
+                                id='edit-eval-date'
                                 className={iCls}
                                 style={iSty}
                                 type='date'
@@ -153,7 +168,11 @@ export default function EditEvalModal({
                     </div>
                     <div className='grid grid-cols-3 gap-3'>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='edit-eval-weight'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Weight %{' '}
                                 <span
                                     style={{
@@ -168,6 +187,7 @@ export default function EditEvalModal({
                                 </span>
                             </label>
                             <input
+                                id='edit-eval-weight'
                                 className={iCls}
                                 style={iSty}
                                 type='number'
@@ -179,10 +199,15 @@ export default function EditEvalModal({
                             />
                         </div>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='edit-eval-max-score'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Max Score
                             </label>
                             <input
+                                id='edit-eval-max-score'
                                 className={iCls}
                                 style={iSty}
                                 type='number'
@@ -193,10 +218,15 @@ export default function EditEvalModal({
                             />
                         </div>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='edit-eval-score'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Score
                             </label>
                             <input
+                                id='edit-eval-score'
                                 className={iCls}
                                 style={iSty}
                                 type='number'

@@ -83,7 +83,7 @@ export default function AddEvalModal({
     };
 
     const iCls =
-        'w-full px-4 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/25 focus:outline-none transition-colors duration-150';
+        'w-full px-4 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/25 focus:outline-none focus-ring transition-colors duration-150';
     const iSty = {
         background: 'var(--color-glass)',
         border: '1px solid var(--color-glass-border)',
@@ -99,10 +99,15 @@ export default function AddEvalModal({
                     className='space-y-4'
                 >
                     <div>
-                        <label className={lCls} style={lSty}>
+                        <label
+                            htmlFor='eval-title'
+                            className={lCls}
+                            style={lSty}
+                        >
                             Title *
                         </label>
                         <input
+                            id='eval-title'
                             className={iCls}
                             style={iSty}
                             placeholder='e.g. Midsem Exam'
@@ -113,10 +118,15 @@ export default function AddEvalModal({
                     </div>
                     <div className='grid grid-cols-2 gap-3'>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='eval-type'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Type
                             </label>
                             <select
+                                id='eval-type'
                                 className={iCls}
                                 style={{ ...iSty, cursor: 'pointer' }}
                                 value={form.type}
@@ -134,10 +144,15 @@ export default function AddEvalModal({
                             </select>
                         </div>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='eval-date'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Date
                             </label>
                             <input
+                                id='eval-date'
                                 className={iCls}
                                 style={iSty}
                                 type='date'
@@ -148,7 +163,11 @@ export default function AddEvalModal({
                     </div>
                     <div className='grid grid-cols-3 gap-3'>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='eval-weight'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Weight %{' '}
                                 <span
                                     style={{
@@ -163,6 +182,7 @@ export default function AddEvalModal({
                                 </span>
                             </label>
                             <input
+                                id='eval-weight'
                                 className={iCls}
                                 style={iSty}
                                 type='number'
@@ -175,10 +195,15 @@ export default function AddEvalModal({
                             />
                         </div>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='eval-max-score'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Max Score
                             </label>
                             <input
+                                id='eval-max-score'
                                 className={iCls}
                                 style={iSty}
                                 type='number'
@@ -190,10 +215,15 @@ export default function AddEvalModal({
                             />
                         </div>
                         <div>
-                            <label className={lCls} style={lSty}>
+                            <label
+                                htmlFor='eval-score'
+                                className={lCls}
+                                style={lSty}
+                            >
                                 Score
                             </label>
                             <input
+                                id='eval-score'
                                 className={iCls}
                                 style={iSty}
                                 type='number'

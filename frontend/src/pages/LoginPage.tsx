@@ -7,8 +7,10 @@ import { Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authGoogle } from '../lib/api';
 import { TopLoadingBar } from '../components/LoadingBar';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 export default function LoginPage() {
+    useDocumentTitle('Login');
     const { user, login, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -48,7 +50,7 @@ export default function LoginPage() {
                 <Link to='/'>
                     <div className='flex items-center gap-3'>
                         <div className='w-8 h-8 rounded-lg flex items-center justify-center'>
-                            <img src={image} />
+                            <img src={image} alt='' />
                         </div>
                         <span className='font-bold text-[var(--color-text)] font-headline tracking-wide'>
                             SEMSYNC

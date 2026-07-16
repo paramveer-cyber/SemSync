@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchCourses, fetchCourse } from '../lib/dataService';
-import { getConfiguration, updateConfiguration } from '../lib/localConfiguration';
+import {
+    getConfiguration,
+    updateConfiguration,
+} from '../lib/localConfiguration';
 import {
     ChevronLeft,
     ChevronRight,
@@ -19,6 +22,7 @@ import {
     Tag,
     BarChart2,
 } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
@@ -238,7 +242,7 @@ function ItemDetail({
                                     fontFamily: 'monospace',
                                     color: rel.urgent
                                         ? '#f59e0b'
-                                        : 'var(--color-text-faint)',
+                                        : 'var(--color-text-muted)',
                                 }}
                             >
                                 {rel.label}
@@ -736,7 +740,7 @@ function QuickCreateModal({
                                 <span
                                     style={{
                                         fontSize: 'var(--text-3xs)',
-                                        color: 'var(--color-text-faint)',
+                                        color: 'var(--color-text-muted)',
                                         fontWeight: 600,
                                     }}
                                 >
@@ -898,6 +902,7 @@ function QuickCreateModal({
                         >
                             <div>
                                 <label
+                                    htmlFor='quick-create-title'
                                     style={{
                                         fontSize: 'var(--text-3xs)',
                                         fontWeight: 700,
@@ -914,6 +919,7 @@ function QuickCreateModal({
                                     <span style={{ color: accent }}>*</span>
                                 </label>
                                 <input
+                                    id='quick-create-title'
                                     ref={titleRef}
                                     type='text'
                                     className={`qc-input${shake ? ' modal-shake' : ''}`}
@@ -947,6 +953,7 @@ function QuickCreateModal({
                                 <>
                                     <div>
                                         <label
+                                            htmlFor='quick-create-course'
                                             style={{
                                                 fontSize: 'var(--text-3xs)',
                                                 fontWeight: 700,
@@ -969,6 +976,7 @@ function QuickCreateModal({
                                             </span>
                                         </label>
                                         <select
+                                            id='quick-create-course'
                                             className='qc-input'
                                             value={courseId}
                                             onChange={(e) =>
@@ -1003,6 +1011,7 @@ function QuickCreateModal({
                                     <div style={{ display: 'flex', gap: 10 }}>
                                         <div style={{ flex: 1 }}>
                                             <label
+                                                htmlFor='quick-create-eval-type'
                                                 style={{
                                                     fontSize: 'var(--text-3xs)',
                                                     fontWeight: 700,
@@ -1016,6 +1025,7 @@ function QuickCreateModal({
                                                 Type
                                             </label>
                                             <select
+                                                id='quick-create-eval-type'
                                                 className='qc-input'
                                                 value={evalType}
                                                 onChange={(e) =>
@@ -1047,6 +1057,7 @@ function QuickCreateModal({
                                         </div>
                                         <div style={{ width: 110 }}>
                                             <label
+                                                htmlFor='quick-create-weight'
                                                 style={{
                                                     fontSize: 'var(--text-3xs)',
                                                     fontWeight: 700,
@@ -1060,6 +1071,7 @@ function QuickCreateModal({
                                                 Weight %
                                             </label>
                                             <input
+                                                id='quick-create-weight'
                                                 type='number'
                                                 className='qc-input'
                                                 value={weightage}
@@ -1090,6 +1102,7 @@ function QuickCreateModal({
 
                             <div>
                                 <label
+                                    htmlFor='quick-create-note'
                                     style={{
                                         fontSize: 'var(--text-3xs)',
                                         fontWeight: 700,
@@ -1112,6 +1125,7 @@ function QuickCreateModal({
                                     </span>
                                 </label>
                                 <textarea
+                                    id='quick-create-note'
                                     className='qc-input'
                                     value={note}
                                     onChange={(e) => setNote(e.target.value)}
@@ -1179,6 +1193,7 @@ function QuickCreateModal({
 }
 
 export default function CalendarPage() {
+    useDocumentTitle('Calendar');
     const today = new Date();
     const [year, setYear] = useState(today.getFullYear());
     const [month, setMonth] = useState(today.getMonth());
@@ -1347,7 +1362,7 @@ export default function CalendarPage() {
 
     return (
         <>
-            <main className='grow flex flex-col overflow-hidden'>
+            <div className='grow flex flex-col overflow-hidden'>
                 {/* ── Header ── */}
                 <header
                     className='border-b border-[var(--color-glass-border)] px-6 py-4 flex justify-between items-center shrink-0'
@@ -1471,9 +1486,12 @@ export default function CalendarPage() {
                                 const past = isPast(day) && !todayCell;
 
                                 return (
-                                    <div
+                                    <button
+                                        type='button'
                                         key={day}
                                         onClick={() => handleDayClick(day)}
+                                        aria-pressed={isSelected}
+                                        aria-label={`Day ${day}${dayItems.length > 0 ? `, ${dayItems.length} evaluation${dayItems.length > 1 ? 's' : ''}` : ''}`}
                                         style={{
                                             userSelect: 'none',
                                             opacity:
@@ -1481,7 +1499,7 @@ export default function CalendarPage() {
                                                     ? 0.4
                                                     : 1,
                                         }}
-                                        className={`border-r border-b border-[var(--color-glass-border)] min-h-28 cursor-pointer transition-all duration-100 relative group flex flex-col
+                                        className={`border-r border-b border-[var(--color-glass-border)] min-h-28 cursor-pointer transition-all duration-100 relative group flex flex-col w-full text-left bg-transparent p-0 m-0 font-sans focus-ring
                       ${isSelected ? 'bg-[var(--color-surface-2)]' : 'hover:bg-[var(--color-surface-2)]/50'}
                       ${todayCell ? 'ring-1 ring-inset ring-[var(--color-brand)]/60' : ''}`}
                                     >
@@ -1504,7 +1522,7 @@ export default function CalendarPage() {
                                                         : isSelected
                                                           ? 'var(--color-text)'
                                                           : past
-                                                            ? 'var(--color-text-faint)'
+                                                            ? 'var(--color-text-muted)'
                                                             : 'var(--color-text-muted)',
                                                 }}
                                             >
@@ -1517,7 +1535,7 @@ export default function CalendarPage() {
                                                             'var(--text-4xs)',
                                                         fontWeight: 700,
                                                         fontFamily: 'monospace',
-                                                        color: 'var(--color-text-faint)',
+                                                        color: 'var(--color-text-muted)',
                                                         paddingTop: 4,
                                                     }}
                                                 >
@@ -1572,7 +1590,7 @@ export default function CalendarPage() {
                                                         fontSize:
                                                             'var(--text-4xs)',
                                                         fontWeight: 700,
-                                                        color: 'var(--color-text-faint)',
+                                                        color: 'var(--color-text-muted)',
                                                         paddingLeft: 5,
                                                     }}
                                                 >
@@ -1598,7 +1616,7 @@ export default function CalendarPage() {
                                                 dbl+
                                             </span>
                                         </div>
-                                    </div>
+                                    </button>
                                 );
                             })}
                         </div>
@@ -1685,7 +1703,7 @@ export default function CalendarPage() {
                                                     style={{
                                                         fontSize:
                                                             'var(--text-3xs)',
-                                                        color: 'var(--color-text-faint)',
+                                                        color: 'var(--color-text-muted)',
                                                         fontWeight: 700,
                                                         textTransform:
                                                             'uppercase',
@@ -1802,7 +1820,7 @@ export default function CalendarPage() {
                                         <p
                                             style={{
                                                 fontSize: 'var(--text-3xs)',
-                                                color: 'var(--color-text-faint)',
+                                                color: 'var(--color-text-muted)',
                                                 marginTop: 5,
                                             }}
                                         >
@@ -1983,7 +2001,7 @@ export default function CalendarPage() {
                                                                         style={{
                                                                             fontSize:
                                                                                 'var(--text-5xs)',
-                                                                            color: 'var(--color-text-faint)',
+                                                                            color: 'var(--color-text-muted)',
                                                                             fontFamily:
                                                                                 'monospace',
                                                                         }}
@@ -2034,7 +2052,7 @@ export default function CalendarPage() {
                                                                         margin: '2px 0 0',
                                                                         fontSize:
                                                                             'var(--text-3xs)',
-                                                                        color: 'var(--color-text-faint)',
+                                                                        color: 'var(--color-text-muted)',
                                                                         overflow:
                                                                             'hidden',
                                                                         textOverflow:
@@ -2254,7 +2272,7 @@ export default function CalendarPage() {
                                                                         style={{
                                                                             fontSize:
                                                                                 'var(--text-5xs)',
-                                                                            color: 'var(--color-text-faint)',
+                                                                            color: 'var(--color-text-muted)',
                                                                             fontFamily:
                                                                                 'monospace',
                                                                         }}
@@ -2289,7 +2307,7 @@ export default function CalendarPage() {
                                                                         margin: '2px 0 0',
                                                                         fontSize:
                                                                             'var(--text-3xs)',
-                                                                        color: 'var(--color-text-faint)',
+                                                                        color: 'var(--color-text-muted)',
                                                                         overflow:
                                                                             'hidden',
                                                                         textOverflow:
@@ -2313,7 +2331,7 @@ export default function CalendarPage() {
                                                                     'monospace',
                                                                 color: rel.urgent
                                                                     ? '#f59e0b'
-                                                                    : 'var(--color-text-faint)',
+                                                                    : 'var(--color-text-muted)',
                                                                 flexShrink: 0,
                                                                 paddingTop: 2,
                                                             }}
@@ -2330,7 +2348,7 @@ export default function CalendarPage() {
                         )}
                     </aside>
                 </div>
-            </main>
+            </div>
 
             {modal && (
                 <QuickCreateModal
