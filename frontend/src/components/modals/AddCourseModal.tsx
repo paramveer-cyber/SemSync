@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createCourse, createEval } from '../../lib/api';
 import { EVAL_TYPE_COLORS } from '../../lib/evalTypeColors';
+import { EVAL_TYPE_ORDER, EVAL_TYPE_LABELS } from '../../lib/evalTypes';
 import {
     Plus,
+    Minus,
     Trash2,
     ChevronRight,
     ChevronLeft,
@@ -16,19 +18,15 @@ interface StructureRow {
     label: string;
     weight: string;
     count: string;
-    date: string;
 }
 
-const EVAL_TYPES = [
-    { value: 'midsem', label: 'Mid Semester' },
-    { value: 'endsem', label: 'End Semester' },
-    { value: 'quiz', label: 'Quiz' },
-    { value: 'assignment', label: 'Assignment' },
-    { value: 'lab', label: 'Lab' },
-    { value: 'project', label: 'Project' },
-    { value: 'viva', label: 'Viva' },
-    { value: 'other', label: 'Other' },
-];
+const EVAL_TYPES = EVAL_TYPE_ORDER.map((type) => ({
+    value: type,
+    label: EVAL_TYPE_LABELS[type],
+}));
+
+const MIN_EVAL_COUNT = 1;
+const MAX_EVAL_COUNT = 20;
 
 function uid() {
     return Math.random().toString(36).slice(2, 9);
@@ -68,7 +66,6 @@ export default function AddCourseModal({
             label: 'Mid Semester Exam',
             weight: '25',
             count: '1',
-            date: '',
         },
         {
             id: uid(),
@@ -76,7 +73,6 @@ export default function AddCourseModal({
             label: 'End Semester Exam',
             weight: '35',
             count: '1',
-            date: '',
         },
         {
             id: uid(),
@@ -84,7 +80,6 @@ export default function AddCourseModal({
             label: 'Assignments',
             weight: '20',
             count: '3',
-            date: '',
         },
         {
             id: uid(),
@@ -92,7 +87,6 @@ export default function AddCourseModal({
             label: 'Quizzes',
             weight: '20',
             count: '4',
-            date: '',
         },
     ]);
     const [loading, setLoading] = useState(false);
@@ -129,6 +123,21 @@ export default function AddCourseModal({
             ),
         [],
     );
+    const stepCount = useCallback(
+        (id: string, delta: number) =>
+            setRows((prev) =>
+                prev.map((r) => {
+                    if (r.id !== id) return r;
+                    const current = parseInt(r.count) || MIN_EVAL_COUNT;
+                    const nextCount = Math.min(
+                        MAX_EVAL_COUNT,
+                        Math.max(MIN_EVAL_COUNT, current + delta),
+                    );
+                    return { ...r, count: String(nextCount) };
+                }),
+            ),
+        [],
+    );
     const addRow = useCallback(
         () =>
             setRows((prev) => [
@@ -139,7 +148,6 @@ export default function AddCourseModal({
                     label: '',
                     weight: '',
                     count: '1',
-                    date: '',
                 },
             ]),
         [],
@@ -198,9 +206,7 @@ export default function AddCourseModal({
                 const count = Math.max(1, parseInt(row.count) || 1);
                 const weight = parseFloat(row.weight) || 0;
                 const perEval = parseFloat((weight / count).toFixed(1));
-                const evalDate = row.date
-                    ? new Date(row.date).toISOString()
-                    : fallbackDate;
+                const evalDate = fallbackDate;
 
                 for (let i = 1; i <= count; i++) {
                     const title =
@@ -597,7 +603,7 @@ export default function AddCourseModal({
                                     className='grid gap-3 mt-5 mb-2'
                                     style={{
                                         gridTemplateColumns:
-                                            '1fr 120px 80px 60px 100px 32px',
+                                            '1fr 120px 80px 132px 32px',
                                     }}
                                 >
                                     {[
@@ -605,7 +611,6 @@ export default function AddCourseModal({
                                         'Type',
                                         'Weight %',
                                         'Count',
-                                        'Date',
                                         '',
                                     ].map((h) => (
                                         <span
@@ -633,7 +638,7 @@ export default function AddCourseModal({
                                             className='grid gap-2 items-center'
                                             style={{
                                                 gridTemplateColumns:
-                                                    '1fr 120px 72px 56px 110px 32px',
+                                                    '1fr 120px 72px 132px 32px',
                                             }}
                                         >
                                             <input
@@ -691,42 +696,48 @@ export default function AddCourseModal({
                                                     )
                                                 }
                                             />
-                                            <input
-                                                aria-label='Evaluation count'
-                                                className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none focus-ring transition-colors font-mono'
-                                                style={fieldStyle}
-                                                type='number'
-                                                min='1'
-                                                max='20'
-                                                step='1'
-                                                placeholder='1'
-                                                value={row.count}
-                                                onChange={(e) =>
-                                                    updateRow(
-                                                        row.id,
-                                                        'count',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            />
-                                            <input
-                                                aria-label='Evaluation date'
-                                                className='w-full px-2 py-2 text-xs text-[var(--color-text)] focus:outline-none focus-ring transition-colors font-mono'
-                                                style={{
-                                                    ...fieldStyle,
-                                                    colorScheme: 'dark',
-                                                }}
-                                                type='date'
-                                                value={row.date}
-                                                onChange={(e) =>
-                                                    updateRow(
-                                                        row.id,
-                                                        'date',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                title='Evaluation date (optional)'
-                                            />
+                                            <div className='flex items-center gap-1'>
+                                                <button
+                                                    type='button'
+                                                    aria-label='Decrease count'
+                                                    onClick={() =>
+                                                        stepCount(row.id, -1)
+                                                    }
+                                                    className='w-7 h-7 shrink-0 flex items-center justify-center cursor-pointer transition-colors'
+                                                    style={fieldStyle}
+                                                >
+                                                    <Minus className='w-3 h-3' />
+                                                </button>
+                                                <input
+                                                    aria-label='Evaluation count'
+                                                    className='w-full px-1 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none focus-ring transition-colors font-mono font-bold'
+                                                    style={fieldStyle}
+                                                    type='number'
+                                                    min={MIN_EVAL_COUNT}
+                                                    max={MAX_EVAL_COUNT}
+                                                    step='1'
+                                                    placeholder='1'
+                                                    value={row.count}
+                                                    onChange={(e) =>
+                                                        updateRow(
+                                                            row.id,
+                                                            'count',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <button
+                                                    type='button'
+                                                    aria-label='Increase count'
+                                                    onClick={() =>
+                                                        stepCount(row.id, 1)
+                                                    }
+                                                    className='w-7 h-7 shrink-0 flex items-center justify-center cursor-pointer transition-colors'
+                                                    style={fieldStyle}
+                                                >
+                                                    <Plus className='w-3 h-3' />
+                                                </button>
+                                            </div>
                                             <button
                                                 onClick={() =>
                                                     removeRow(row.id)

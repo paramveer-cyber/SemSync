@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import AddEvalModal from '../components/modals/AddEvalModal';
@@ -15,6 +15,7 @@ import { LineChart } from '@mui/x-charts';
 import InfoTooltip from '../components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { EVAL_TYPE_ORDER, EVAL_TYPE_LABELS } from '../lib/evalTypes';
 
 const TYPE_COLOR: Record<string, string> = {
     midsem: 'text-[var(--color-danger)] border-[var(--color-danger)]',
@@ -41,6 +42,7 @@ export default function CoursePage() {
     const navigate = useNavigate();
     const [course, setCourse] = useState<any>(null);
     const [evals, setEvals] = useState<any[]>([]);
+    const [typeFilter, setTypeFilter] = useState<string>('all');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showAdd, setShowAdd] = useState(false);
@@ -73,6 +75,33 @@ export default function CoursePage() {
             setLoading(false);
         }
     }, [id]);
+
+    const presentEvalTypes = useMemo(
+        () =>
+            EVAL_TYPE_ORDER.map((type) => ({
+                type,
+                label: EVAL_TYPE_LABELS[type],
+                count: evals.filter((e) => e.type === type).length,
+            })).filter((entry) => entry.count > 0),
+        [evals],
+    );
+
+    useEffect(() => {
+        if (
+            typeFilter !== 'all' &&
+            !presentEvalTypes.some((entry) => entry.type === typeFilter)
+        ) {
+            setTypeFilter('all');
+        }
+    }, [presentEvalTypes, typeFilter]);
+
+    const visibleEvals = useMemo(
+        () =>
+            typeFilter === 'all'
+                ? evals
+                : evals.filter((e) => e.type === typeFilter),
+        [evals, typeFilter],
+    );
 
     const computedStats = course
         ? (() => {
@@ -423,8 +452,10 @@ export default function CoursePage() {
                                         )
                                         .sort(
                                             (a, b) =>
-                                                new Date(a.date).getTime() -
-                                                new Date(b.date).getTime(),
+                                                new Date(
+                                                    a.updatedAt,
+                                                ).getTime() -
+                                                new Date(b.updatedAt).getTime(),
                                         );
 
                                     if (graded.length < 1) return null;
@@ -718,6 +749,64 @@ export default function CoursePage() {
                                     )}
                                 </div>
 
+                                {evals.length > 0 && (
+                                    <div
+                                        className='flex items-center gap-1 p-1 rounded-lg mb-6 overflow-x-auto'
+                                        style={{
+                                            background:
+                                                'var(--color-surface-2)',
+                                            border: '1px solid var(--color-glass-border)',
+                                            width: 'fit-content',
+                                        }}
+                                    >
+                                        <button
+                                            onClick={() => setTypeFilter('all')}
+                                            className='px-3 py-1.5 text-4xs font-black tracking-widest uppercase rounded-md cursor-pointer transition-all duration-150 shrink-0'
+                                            style={{
+                                                background:
+                                                    typeFilter === 'all'
+                                                        ? 'var(--color-brand)'
+                                                        : 'transparent',
+                                                color:
+                                                    typeFilter === 'all'
+                                                        ? 'var(--color-surface)'
+                                                        : 'var(--color-text-faint)',
+                                            }}
+                                        >
+                                            All
+                                            <span className='ml-1 opacity-60'>
+                                                {evals.length}
+                                            </span>
+                                        </button>
+                                        {presentEvalTypes.map((entry) => (
+                                            <button
+                                                key={entry.type}
+                                                onClick={() =>
+                                                    setTypeFilter(entry.type)
+                                                }
+                                                className='px-3 py-1.5 text-4xs font-black tracking-widest uppercase rounded-md cursor-pointer transition-all duration-150 shrink-0'
+                                                style={{
+                                                    background:
+                                                        typeFilter ===
+                                                        entry.type
+                                                            ? 'var(--color-brand)'
+                                                            : 'transparent',
+                                                    color:
+                                                        typeFilter ===
+                                                        entry.type
+                                                            ? 'var(--color-surface)'
+                                                            : 'var(--color-text-faint)',
+                                                }}
+                                            >
+                                                {entry.label}
+                                                <span className='ml-1 opacity-60'>
+                                                    {entry.count}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
                                 {evals.length === 0 ? (
                                     <div className='border border-dashed border-[var(--color-glass-border)] p-16 text-center'>
                                         <p className='text-3xs font-bold tracking-[0.3em] text-[var(--color-text-faint)] uppercase mb-6'>
@@ -796,7 +885,7 @@ export default function CoursePage() {
                                                 </div>
                                             ))}
                                         </div>
-                                        {evals.map((e) => {
+                                        {visibleEvals.map((e) => {
                                             const timeSpentLabel =
                                                 e.minutesSpent > 0
                                                     ? e.minutesSpent >= 60
