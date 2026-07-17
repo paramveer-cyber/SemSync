@@ -35,7 +35,7 @@ export default function SettingsPage() {
             <Header title='Settings' subtitle='Preferences & Configuration' />
 
             <div
-                className='flex items-center gap-1 px-6 pt-4'
+                className='flex items-center gap-1 px-6 pt-4 overflow-x-auto'
                 style={{ borderBottom: '1px solid var(--color-glass-border)' }}
             >
                 {SETTINGS_TABS.map((tab) => {
@@ -44,7 +44,7 @@ export default function SettingsPage() {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className='flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150'
+                            className='flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150 shrink-0'
                             style={{
                                 color: isActive
                                     ? 'var(--color-brand)'

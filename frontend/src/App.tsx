@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import {
     BrowserRouter as Router,
     Routes,
@@ -31,33 +31,6 @@ const AboutPage = lazy(() => import('./pages/AboutPage'));
 const LegalPage = lazy(() => import('./pages/LegalPage'));
 const ClassroomPage = lazy(() => import('./pages/ClassroomPage'));
 const ProgressPage = lazy(() => import('./pages/ProgressPage'));
-
-function DesktopOnly({ children }: { children: React.ReactNode }) {
-    const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
-
-    useEffect(() => {
-        const handler = () => setIsDesktop(window.innerWidth >= 768);
-        window.addEventListener('resize', handler);
-        return () => window.removeEventListener('resize', handler);
-    }, []);
-
-    if (!isDesktop) {
-        return (
-            <div className='min-h-screen flex items-center justify-center mesh-bg text-center px-6'>
-                <div>
-                    <h1 className='text-2xl font-semibold mb-3'>
-                        Desktop Only
-                    </h1>
-                    <p className='text-sm opacity-60'>
-                        This app is designed for desktop use only. Please switch
-                        to a larger screen.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-    return <>{children}</>;
-}
 
 function PageLoader() {
     return (
@@ -118,8 +91,7 @@ const ProtectedRoute = () => {
 
 export default function App() {
     return (
-        <DesktopOnly>
-            <ThemeProvider>
+        <ThemeProvider>
                 <TypographyProvider>
                     <AnimationPreferenceProvider>
                         <Router>
@@ -220,6 +192,5 @@ export default function App() {
                     </AnimationPreferenceProvider>
                 </TypographyProvider>
             </ThemeProvider>
-        </DesktopOnly>
     );
 }

@@ -118,6 +118,21 @@ export const getRecentSessions = async (userId, limit = 20) =>
         limit,
     });
 
+export const getDailyFocusMinutes = async (userId, sinceDateStr) => {
+    const rows = await db.select({
+        localDate: sql`metadata->>'local_date'`,
+        minutes: sql`sum((metadata->>'duration_minutes')::int)`,
+    })
+        .from(events)
+        .where(and(
+            eq(events.userId, userId),
+            inArray(events.type, ["session.completed", "session.incomplete"]),
+            sql`metadata->>'local_date' >= ${sinceDateStr}`
+        ))
+        .groupBy(sql`metadata->>'local_date'`);
+    return rows.map((r) => ({ date: r.localDate, minutes: Number(r.minutes) || 0 }));
+};
+
 export const getSessionsInRange = async (userId, from) =>
     db.query.events.findMany({
         where: and(eq(events.userId, userId), eq(events.type, "session.completed"), gte(events.occurredAt, from)),

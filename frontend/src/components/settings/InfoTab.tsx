@@ -5,18 +5,16 @@ import { SectionHeader } from './settingsHelpers';
 export default function InfoTab() {
     return (
         <div
-            className='p-6'
+            className='p-6 grid grid-cols-1 sm:grid-cols-2'
             style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
                 gap: '0.75rem',
                 maxWidth: '68.75rem',
             }}
         >
             {/* about & legal */}
             <div
+                className='sm:col-span-2'
                 style={{
-                    gridColumn: 'span 2',
                     border: '1px solid var(--color-glass-border)',
                     borderRadius: '0.625rem',
                     overflow: 'hidden',
@@ -28,10 +26,9 @@ export default function InfoTab() {
                     color='#38bdf8'
                 />
                 <div
+                    className='grid grid-cols-1 sm:grid-cols-2'
                     style={{
                         background: 'var(--color-surface-1)',
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
                         gap: '0.0625rem',
                         backgroundColor: 'var(--color-glass-border)',
                     }}
@@ -198,8 +195,8 @@ export default function InfoTab() {
 
             {/* feature requests */}
             <div
+                className='sm:col-span-2'
                 style={{
-                    gridColumn: 'span 2',
                     border: '1px solid var(--color-glass-border)',
                     borderRadius: '0.625rem',
                     overflow: 'hidden',

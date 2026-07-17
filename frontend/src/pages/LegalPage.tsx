@@ -6,9 +6,9 @@ export default function LegalPage() {
     return (
         <div className='grow flex flex-col overflow-hidden'>
             <Header title='Legal & Privacy' subtitle='The fine print' />
-            <div className='grow overflow-y-auto p-8 max-w-3xl'>
+            <div className='grow overflow-y-auto p-4 sm:p-8 max-w-3xl'>
                 <div
-                    className='p-8 rounded-lg space-y-8 text-sm leading-relaxed'
+                    className='p-4 sm:p-8 rounded-lg space-y-8 text-sm leading-relaxed'
                     style={{
                         border: '1px solid var(--color-glass-border)',
                         background: 'var(--color-surface-1)',

@@ -251,16 +251,18 @@ export default function AddCourseModal({
             onClick={handleBackdropClick}
         >
             <div
-                className='w-full overflow-hidden'
+                className='w-full flex flex-col'
                 style={{
                     maxWidth: step === 2 ? '720px' : '420px',
+                    maxHeight: '90vh',
                     background: 'var(--color-surface)',
                     border: '1px solid var(--color-glass-border)',
                     transition: 'max-width 0.25s ease',
+                    overflow: 'hidden',
                 }}
             >
                 <div
-                    className='flex items-center justify-between px-8 py-6'
+                    className='flex flex-wrap items-center justify-between gap-3 px-4 sm:px-8 py-4 sm:py-6 shrink-0'
                     style={{
                         borderBottom: '1px solid var(--color-glass-border)',
                     }}
@@ -341,7 +343,7 @@ export default function AddCourseModal({
                 </div>
 
                 {step === 1 && (
-                    <div className='p-8 space-y-5'>
+                    <div className='p-4 sm:p-8 space-y-5 overflow-y-auto'>
                         <div>
                             <label
                                 htmlFor='course-name'
@@ -363,7 +365,7 @@ export default function AddCourseModal({
                                 }}
                             />
                         </div>
-                        <div className='grid grid-cols-2 gap-4'>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                             <div>
                                 <label
                                     htmlFor='course-credits'
@@ -486,7 +488,7 @@ export default function AddCourseModal({
                 )}
 
                 {step === 2 && (
-                    <div className='p-8'>
+                    <div className='p-4 sm:p-8 overflow-y-auto'>
                         <div
                             className='flex items-center justify-between mb-6 pb-5'
                             style={{
@@ -589,168 +591,180 @@ export default function AddCourseModal({
                             </div>
                         </div>
 
-                        <div
-                            className='grid gap-3 mt-5 mb-2'
-                            style={{
-                                gridTemplateColumns:
-                                    '1fr 120px 80px 60px 100px 32px',
-                            }}
-                        >
-                            {[
-                                'Label',
-                                'Type',
-                                'Weight %',
-                                'Count',
-                                'Date',
-                                '',
-                            ].map((h) => (
-                                <span
-                                    key={h}
-                                    className='text-4xs font-black tracking-[0.2em] uppercase'
-                                    style={{ color: 'var(--color-text-muted)' }}
-                                >
-                                    {h}
-                                </span>
-                            ))}
-                        </div>
-
-                        <div
-                            className='space-y-2 mb-4'
-                            style={{ maxHeight: '260px', overflowY: 'auto' }}
-                        >
-                            {rows.map((row) => (
+                        <div className='overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0'>
+                            <div style={{ minWidth: '540px' }}>
                                 <div
-                                    key={row.id}
-                                    className='grid gap-2 items-center'
+                                    className='grid gap-3 mt-5 mb-2'
                                     style={{
                                         gridTemplateColumns:
-                                            '1fr 120px 72px 56px 110px 32px',
+                                            '1fr 120px 80px 60px 100px 32px',
                                     }}
                                 >
-                                    <input
-                                        aria-label='Evaluation name'
-                                        className='w-full px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/20 focus:outline-none focus-ring transition-colors'
-                                        style={fieldStyle}
-                                        placeholder='e.g. Midsem Exam'
-                                        value={row.label}
-                                        onChange={(e) =>
-                                            updateRow(
-                                                row.id,
-                                                'label',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    <select
-                                        aria-label='Evaluation type'
-                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] focus:outline-none focus-ring cursor-pointer'
-                                        style={fieldStyle}
-                                        value={row.type}
-                                        onChange={(e) =>
-                                            updateRow(
-                                                row.id,
-                                                'type',
-                                                e.target.value,
-                                            )
-                                        }
-                                    >
-                                        {EVAL_TYPES.map((t) => (
-                                            <option
-                                                key={t.value}
-                                                value={t.value}
-                                                className='bg-[var(--color-surface-2)]'
-                                            >
-                                                {t.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <input
-                                        aria-label='Evaluation weight percent'
-                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-right focus:outline-none focus-ring transition-colors font-mono'
-                                        style={fieldStyle}
-                                        type='number'
-                                        min='0'
-                                        max='100'
-                                        step='0.5'
-                                        placeholder='0'
-                                        value={row.weight}
-                                        onChange={(e) =>
-                                            updateRow(
-                                                row.id,
-                                                'weight',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    <input
-                                        aria-label='Evaluation count'
-                                        className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none focus-ring transition-colors font-mono'
-                                        style={fieldStyle}
-                                        type='number'
-                                        min='1'
-                                        max='20'
-                                        step='1'
-                                        placeholder='1'
-                                        value={row.count}
-                                        onChange={(e) =>
-                                            updateRow(
-                                                row.id,
-                                                'count',
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    <input
-                                        aria-label='Evaluation date'
-                                        className='w-full px-2 py-2 text-xs text-[var(--color-text)] focus:outline-none focus-ring transition-colors font-mono'
-                                        style={{
-                                            ...fieldStyle,
-                                            colorScheme: 'dark',
-                                        }}
-                                        type='date'
-                                        value={row.date}
-                                        onChange={(e) =>
-                                            updateRow(
-                                                row.id,
-                                                'date',
-                                                e.target.value,
-                                            )
-                                        }
-                                        title='Evaluation date (optional)'
-                                    />
-                                    <button
-                                        onClick={() => removeRow(row.id)}
-                                        className='w-8 h-8 flex items-center justify-center cursor-pointer transition-all duration-150'
-                                        style={{
-                                            color: 'rgba(239,68,68,0.5)',
-                                            border: '1px solid rgba(239,68,68,0.15)',
-                                            background: 'rgba(239,68,68,0.06)',
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            (
-                                                e.currentTarget as HTMLButtonElement
-                                            ).style.color =
-                                                'var(--color-danger)';
-                                            (
-                                                e.currentTarget as HTMLButtonElement
-                                            ).style.background =
-                                                'rgba(239,68,68,0.15)';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            (
-                                                e.currentTarget as HTMLButtonElement
-                                            ).style.color =
-                                                'rgba(239,68,68,0.5)';
-                                            (
-                                                e.currentTarget as HTMLButtonElement
-                                            ).style.background =
-                                                'rgba(239,68,68,0.06)';
-                                        }}
-                                    >
-                                        <Trash2 className='w-3.5 h-3.5' />
-                                    </button>
+                                    {[
+                                        'Label',
+                                        'Type',
+                                        'Weight %',
+                                        'Count',
+                                        'Date',
+                                        '',
+                                    ].map((h) => (
+                                        <span
+                                            key={h}
+                                            className='text-4xs font-black tracking-[0.2em] uppercase'
+                                            style={{
+                                                color: 'var(--color-text-muted)',
+                                            }}
+                                        >
+                                            {h}
+                                        </span>
+                                    ))}
                                 </div>
-                            ))}
+
+                                <div
+                                    className='space-y-2 mb-4'
+                                    style={{
+                                        maxHeight: '260px',
+                                        overflowY: 'auto',
+                                    }}
+                                >
+                                    {rows.map((row) => (
+                                        <div
+                                            key={row.id}
+                                            className='grid gap-2 items-center'
+                                            style={{
+                                                gridTemplateColumns:
+                                                    '1fr 120px 72px 56px 110px 32px',
+                                            }}
+                                        >
+                                            <input
+                                                aria-label='Evaluation name'
+                                                className='w-full px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text)]/20 focus:outline-none focus-ring transition-colors'
+                                                style={fieldStyle}
+                                                placeholder='e.g. Midsem Exam'
+                                                value={row.label}
+                                                onChange={(e) =>
+                                                    updateRow(
+                                                        row.id,
+                                                        'label',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            />
+                                            <select
+                                                aria-label='Evaluation type'
+                                                className='w-full px-2 py-2 text-sm text-[var(--color-text)] focus:outline-none focus-ring cursor-pointer'
+                                                style={fieldStyle}
+                                                value={row.type}
+                                                onChange={(e) =>
+                                                    updateRow(
+                                                        row.id,
+                                                        'type',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            >
+                                                {EVAL_TYPES.map((t) => (
+                                                    <option
+                                                        key={t.value}
+                                                        value={t.value}
+                                                        className='bg-[var(--color-surface-2)]'
+                                                    >
+                                                        {t.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                aria-label='Evaluation weight percent'
+                                                className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-right focus:outline-none focus-ring transition-colors font-mono'
+                                                style={fieldStyle}
+                                                type='number'
+                                                min='0'
+                                                max='100'
+                                                step='0.5'
+                                                placeholder='0'
+                                                value={row.weight}
+                                                onChange={(e) =>
+                                                    updateRow(
+                                                        row.id,
+                                                        'weight',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            />
+                                            <input
+                                                aria-label='Evaluation count'
+                                                className='w-full px-2 py-2 text-sm text-[var(--color-text)] text-center focus:outline-none focus-ring transition-colors font-mono'
+                                                style={fieldStyle}
+                                                type='number'
+                                                min='1'
+                                                max='20'
+                                                step='1'
+                                                placeholder='1'
+                                                value={row.count}
+                                                onChange={(e) =>
+                                                    updateRow(
+                                                        row.id,
+                                                        'count',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            />
+                                            <input
+                                                aria-label='Evaluation date'
+                                                className='w-full px-2 py-2 text-xs text-[var(--color-text)] focus:outline-none focus-ring transition-colors font-mono'
+                                                style={{
+                                                    ...fieldStyle,
+                                                    colorScheme: 'dark',
+                                                }}
+                                                type='date'
+                                                value={row.date}
+                                                onChange={(e) =>
+                                                    updateRow(
+                                                        row.id,
+                                                        'date',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                title='Evaluation date (optional)'
+                                            />
+                                            <button
+                                                onClick={() =>
+                                                    removeRow(row.id)
+                                                }
+                                                className='w-8 h-8 flex items-center justify-center cursor-pointer transition-all duration-150'
+                                                style={{
+                                                    color: 'rgba(239,68,68,0.5)',
+                                                    border: '1px solid rgba(239,68,68,0.15)',
+                                                    background:
+                                                        'rgba(239,68,68,0.06)',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    (
+                                                        e.currentTarget as HTMLButtonElement
+                                                    ).style.color =
+                                                        'var(--color-danger)';
+                                                    (
+                                                        e.currentTarget as HTMLButtonElement
+                                                    ).style.background =
+                                                        'rgba(239,68,68,0.15)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    (
+                                                        e.currentTarget as HTMLButtonElement
+                                                    ).style.color =
+                                                        'rgba(239,68,68,0.5)';
+                                                    (
+                                                        e.currentTarget as HTMLButtonElement
+                                                    ).style.background =
+                                                        'rgba(239,68,68,0.06)';
+                                                }}
+                                            >
+                                                <Trash2 className='w-3.5 h-3.5' />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
 
                         <button

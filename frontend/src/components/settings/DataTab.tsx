@@ -10,7 +10,10 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { deleteAccount, exportUserData } from '../../lib/api';
 import { SectionHeader } from './settingsHelpers';
-import { getConfiguration, updateConfiguration } from '../../lib/localConfiguration';
+import {
+    getConfiguration,
+    updateConfiguration,
+} from '../../lib/localConfiguration';
 
 export default function DataTab() {
     const { user, logout } = useAuth();
@@ -160,18 +163,16 @@ export default function DataTab() {
 
     return (
         <div
-            className='p-6'
+            className='p-6 grid grid-cols-1 sm:grid-cols-2'
             style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
                 gap: '0.75rem',
                 maxWidth: '68.75rem',
             }}
         >
             {/* export data */}
             <div
+                className='sm:col-span-2'
                 style={{
-                    gridColumn: 'span 2',
                     border: '1px solid var(--color-glass-border)',
                     borderRadius: '0.625rem',
                     overflow: 'hidden',
@@ -186,8 +187,8 @@ export default function DataTab() {
                     className='px-5 py-5'
                     style={{ background: 'var(--color-surface-1)' }}
                 >
-                    <div className='flex items-start justify-between gap-6'>
-                        <div style={{ flex: 1 }}>
+                    <div className='flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6'>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                             <p
                                 className='text-sm font-semibold'
                                 style={{ color: 'var(--color-text)' }}
@@ -241,7 +242,7 @@ export default function DataTab() {
                         <button
                             onClick={handleExportData}
                             disabled={exportLoading}
-                            className='shrink-0 flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150'
+                            className='shrink-0 w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150'
                             style={{
                                 background: exportLoading
                                     ? 'var(--color-glass)'
@@ -317,8 +318,8 @@ export default function DataTab() {
 
             {/* delete account */}
             <div
+                className='sm:col-span-2'
                 style={{
-                    gridColumn: 'span 2',
                     border: '1px solid rgba(239,68,68,0.25)',
                     borderRadius: '0.625rem',
                     overflow: 'hidden',
@@ -352,8 +353,8 @@ export default function DataTab() {
                     style={{ background: 'var(--color-surface-1)' }}
                 >
                     {deleteStep === 0 && (
-                        <div className='flex items-start justify-between gap-6'>
-                            <div>
+                        <div className='flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6'>
+                            <div style={{ minWidth: 0 }}>
                                 <p
                                     className='text-sm font-semibold'
                                     style={{
@@ -377,7 +378,7 @@ export default function DataTab() {
                             </div>
                             <button
                                 onClick={() => setDeleteStep(1)}
-                                className='shrink-0 flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150'
+                                className='shrink-0 w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wide cursor-pointer transition-all duration-150'
                                 style={{
                                     background: 'rgba(239,68,68,0.08)',
                                     color: '#f87171',

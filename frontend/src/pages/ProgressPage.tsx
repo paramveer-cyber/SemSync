@@ -655,7 +655,7 @@ export default function ProgressPage() {
         return (
             <div className='grow p-8 space-y-4'>
                 <div className='h-10 w-64 rounded-lg bg-[var(--color-surface-2)] animate-pulse' />
-                <div className='grid grid-cols-4 gap-4'>
+                <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
                     {[0, 1, 2, 3].map((i) => (
                         <div
                             key={i}
@@ -664,7 +664,7 @@ export default function ProgressPage() {
                     ))}
                 </div>
                 <div className='h-40 rounded-xl bg-[var(--color-surface-2)] animate-pulse' />
-                <div className='grid grid-cols-3 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
                     {[0, 1, 2].map((i) => (
                         <div
                             key={i}
@@ -807,7 +807,7 @@ export default function ProgressPage() {
                             </div>
 
                             {/* Right: streak + snapshot */}
-                            <div className='grid grid-cols-2 gap-3'>
+                            <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                                 <div
                                     className='rounded-xl p-5 text-center'
                                     style={{
@@ -1020,7 +1020,7 @@ export default function ProgressPage() {
                                 >
                                     Streak History
                                 </p>
-                                <div className='grid grid-cols-2 gap-4'>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                                     {[
                                         {
                                             label: 'Current',

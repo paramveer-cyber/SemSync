@@ -635,208 +635,230 @@ export default function SyncCourseModal({
 
                             <div
                                 style={{
-                                    display: 'grid',
-                                    gridTemplateColumns:
-                                        '1fr 90px 60px 44px 90px 26px',
-                                    gap: '0.3125rem',
-                                    marginBottom: 5,
+                                    overflowX: 'auto',
+                                    margin: '0 -20px',
+                                    padding: '0 20px',
                                 }}
                             >
-                                {['Label', 'Type', 'Wt %', '#', 'Date', ''].map(
-                                    (h) => (
-                                        <span
-                                            key={h}
-                                            style={{
-                                                fontSize: 'var(--text-4xs)',
-                                                fontWeight: 900,
-                                                letterSpacing: '0.15em',
-                                                textTransform: 'uppercase',
-                                                color: 'var(--color-text-muted)',
-                                            }}
-                                        >
-                                            {h}
-                                        </span>
-                                    ),
-                                )}
-                            </div>
-
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.3125rem',
-                                    maxHeight: '13.125rem',
-                                    overflowY: 'auto',
-                                    marginBottom: 8,
-                                }}
-                            >
-                                {rows.map((row) => (
+                                <div style={{ minWidth: '420px' }}>
                                     <div
-                                        key={row.id}
                                         style={{
                                             display: 'grid',
                                             gridTemplateColumns:
                                                 '1fr 90px 60px 44px 90px 26px',
                                             gap: '0.3125rem',
-                                            alignItems: 'center',
+                                            marginBottom: 5,
                                         }}
                                     >
-                                        <input
-                                            aria-label='Evaluation name'
-                                            style={{
-                                                ...field,
-                                                padding: '6px 8px',
-                                                fontSize: 12,
-                                            }}
-                                            placeholder='Label'
-                                            value={row.label}
-                                            onChange={(e) =>
-                                                updateRow(
-                                                    row.id,
-                                                    'label',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <select
-                                            aria-label='Evaluation type'
-                                            style={{
-                                                ...field,
-                                                padding: '6px 4px',
-                                                fontSize: 'var(--text-2xs)',
-                                                cursor: 'pointer',
-                                            }}
-                                            value={row.type}
-                                            onChange={(e) =>
-                                                updateRow(
-                                                    row.id,
-                                                    'type',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        >
-                                            {EVAL_TYPES.map((t) => (
-                                                <option
-                                                    key={t.value}
-                                                    value={t.value}
+                                        {[
+                                            'Label',
+                                            'Type',
+                                            'Wt %',
+                                            '#',
+                                            'Date',
+                                            '',
+                                        ].map((h) => (
+                                            <span
+                                                key={h}
+                                                style={{
+                                                    fontSize: 'var(--text-4xs)',
+                                                    fontWeight: 900,
+                                                    letterSpacing: '0.15em',
+                                                    textTransform: 'uppercase',
+                                                    color: 'var(--color-text-muted)',
+                                                }}
+                                            >
+                                                {h}
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.3125rem',
+                                            maxHeight: '13.125rem',
+                                            overflowY: 'auto',
+                                            marginBottom: 8,
+                                        }}
+                                    >
+                                        {rows.map((row) => (
+                                            <div
+                                                key={row.id}
+                                                style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns:
+                                                        '1fr 90px 60px 44px 90px 26px',
+                                                    gap: '0.3125rem',
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <input
+                                                    aria-label='Evaluation name'
                                                     style={{
+                                                        ...field,
+                                                        padding: '6px 8px',
+                                                        fontSize: 12,
+                                                    }}
+                                                    placeholder='Label'
+                                                    value={row.label}
+                                                    onChange={(e) =>
+                                                        updateRow(
+                                                            row.id,
+                                                            'label',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <select
+                                                    aria-label='Evaluation type'
+                                                    style={{
+                                                        ...field,
+                                                        padding: '6px 4px',
+                                                        fontSize:
+                                                            'var(--text-2xs)',
+                                                        cursor: 'pointer',
+                                                    }}
+                                                    value={row.type}
+                                                    onChange={(e) =>
+                                                        updateRow(
+                                                            row.id,
+                                                            'type',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                >
+                                                    {EVAL_TYPES.map((t) => (
+                                                        <option
+                                                            key={t.value}
+                                                            value={t.value}
+                                                            style={{
+                                                                background:
+                                                                    'var(--color-surface-2)',
+                                                            }}
+                                                        >
+                                                            {t.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <input
+                                                    aria-label='Evaluation weight percent'
+                                                    type='number'
+                                                    min='0'
+                                                    max='100'
+                                                    step='0.5'
+                                                    placeholder='0'
+                                                    style={{
+                                                        ...field,
+                                                        padding: '6px 5px',
+                                                        fontSize:
+                                                            'var(--text-xs)',
+                                                        textAlign: 'right',
+                                                        fontFamily: 'monospace',
+                                                    }}
+                                                    value={row.weight}
+                                                    onChange={(e) =>
+                                                        updateRow(
+                                                            row.id,
+                                                            'weight',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <input
+                                                    aria-label='Evaluation count'
+                                                    type='number'
+                                                    min='1'
+                                                    max='20'
+                                                    placeholder='1'
+                                                    style={{
+                                                        ...field,
+                                                        padding: '6px 4px',
+                                                        fontSize:
+                                                            'var(--text-xs)',
+                                                        textAlign: 'center',
+                                                        fontFamily: 'monospace',
+                                                    }}
+                                                    value={row.count}
+                                                    onChange={(e) =>
+                                                        updateRow(
+                                                            row.id,
+                                                            'count',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <input
+                                                    aria-label='Evaluation date'
+                                                    type='date'
+                                                    style={{
+                                                        ...field,
+                                                        padding: '6px 4px',
+                                                        fontSize:
+                                                            'var(--text-2xs)',
+                                                        fontFamily: 'monospace',
+                                                        colorScheme: 'dark',
+                                                    }}
+                                                    value={row.date}
+                                                    onChange={(e) =>
+                                                        updateRow(
+                                                            row.id,
+                                                            'date',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <button
+                                                    onClick={() =>
+                                                        removeRow(row.id)
+                                                    }
+                                                    style={{
+                                                        width: '1.625rem',
+                                                        height: '1.625rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent:
+                                                            'center',
                                                         background:
-                                                            'var(--color-surface-2)',
+                                                            'rgba(239,68,68,0.06)',
+                                                        border: '1px solid rgba(239,68,68,0.15)',
+                                                        color: 'rgba(239,68,68,0.45)',
+                                                        cursor: 'pointer',
+                                                        borderRadius: 0,
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        (
+                                                            e.currentTarget as HTMLButtonElement
+                                                        ).style.background =
+                                                            'rgba(239,68,68,0.14)';
+                                                        (
+                                                            e.currentTarget as HTMLButtonElement
+                                                        ).style.color =
+                                                            'var(--color-danger)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        (
+                                                            e.currentTarget as HTMLButtonElement
+                                                        ).style.background =
+                                                            'rgba(239,68,68,0.06)';
+                                                        (
+                                                            e.currentTarget as HTMLButtonElement
+                                                        ).style.color =
+                                                            'rgba(239,68,68,0.45)';
                                                     }}
                                                 >
-                                                    {t.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <input
-                                            aria-label='Evaluation weight percent'
-                                            type='number'
-                                            min='0'
-                                            max='100'
-                                            step='0.5'
-                                            placeholder='0'
-                                            style={{
-                                                ...field,
-                                                padding: '6px 5px',
-                                                fontSize: 'var(--text-xs)',
-                                                textAlign: 'right',
-                                                fontFamily: 'monospace',
-                                            }}
-                                            value={row.weight}
-                                            onChange={(e) =>
-                                                updateRow(
-                                                    row.id,
-                                                    'weight',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <input
-                                            aria-label='Evaluation count'
-                                            type='number'
-                                            min='1'
-                                            max='20'
-                                            placeholder='1'
-                                            style={{
-                                                ...field,
-                                                padding: '6px 4px',
-                                                fontSize: 'var(--text-xs)',
-                                                textAlign: 'center',
-                                                fontFamily: 'monospace',
-                                            }}
-                                            value={row.count}
-                                            onChange={(e) =>
-                                                updateRow(
-                                                    row.id,
-                                                    'count',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <input
-                                            aria-label='Evaluation date'
-                                            type='date'
-                                            style={{
-                                                ...field,
-                                                padding: '6px 4px',
-                                                fontSize: 'var(--text-2xs)',
-                                                fontFamily: 'monospace',
-                                                colorScheme: 'dark',
-                                            }}
-                                            value={row.date}
-                                            onChange={(e) =>
-                                                updateRow(
-                                                    row.id,
-                                                    'date',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <button
-                                            onClick={() => removeRow(row.id)}
-                                            style={{
-                                                width: '1.625rem',
-                                                height: '1.625rem',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                background:
-                                                    'rgba(239,68,68,0.06)',
-                                                border: '1px solid rgba(239,68,68,0.15)',
-                                                color: 'rgba(239,68,68,0.45)',
-                                                cursor: 'pointer',
-                                                borderRadius: 0,
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                (
-                                                    e.currentTarget as HTMLButtonElement
-                                                ).style.background =
-                                                    'rgba(239,68,68,0.14)';
-                                                (
-                                                    e.currentTarget as HTMLButtonElement
-                                                ).style.color =
-                                                    'var(--color-danger)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                (
-                                                    e.currentTarget as HTMLButtonElement
-                                                ).style.background =
-                                                    'rgba(239,68,68,0.06)';
-                                                (
-                                                    e.currentTarget as HTMLButtonElement
-                                                ).style.color =
-                                                    'rgba(239,68,68,0.45)';
-                                            }}
-                                        >
-                                            <Trash2
-                                                style={{
-                                                    width: '0.6875rem',
-                                                    height: 11,
-                                                }}
-                                            />
-                                        </button>
+                                                    <Trash2
+                                                        style={{
+                                                            width: '0.6875rem',
+                                                            height: 11,
+                                                        }}
+                                                    />
+                                                </button>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
                             </div>
 
                             <button

@@ -109,7 +109,7 @@ export default function AchievementsGrid({
                 />
             </div>
 
-            <div className='grid grid-cols-4 gap-2'>
+            <div className='grid grid-cols-3 sm:grid-cols-4 gap-2'>
                 {visible.map((a, i) => {
                     const isEarned = !!a.earned;
                     const ts = TIER[a.tier] ?? TIER.bronze;

@@ -29,7 +29,13 @@ const navItems = [
     { name: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+    isOpen = false,
+    onClose,
+}: {
+    isOpen?: boolean;
+    onClose?: () => void;
+}) {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
@@ -53,7 +59,9 @@ export default function Sidebar() {
     return (
         <nav
             aria-label='Primary'
-            className='w-72 flex flex-col h-screen sticky top-0 shrink-0'
+            className={`w-72 flex flex-col h-screen fixed top-0 left-0 z-40 transition-transform duration-200 lg:sticky lg:translate-x-0 lg:shrink-0 ${
+                isOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
             style={{
                 background: 'var(--color-sidebar-bg)',
                 borderRight: '1px solid var(--color-sidebar-border)',
@@ -91,6 +99,7 @@ export default function Sidebar() {
                         <Link
                             key={item.name}
                             to={item.path}
+                            onClick={onClose}
                             className='flex items-center gap-3 px-4 py-3 transition-all duration-200'
                             style={{
                                 background: active
@@ -181,6 +190,7 @@ export default function Sidebar() {
                     <>
                         <Link
                             to='/profile'
+                            onClick={onClose}
                             className='flex items-center gap-3 px-4 py-3 transition-all duration-200'
                             style={{
                                 background:

@@ -1,8 +1,15 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import icon from '/favicon.ico';
 import Ticker from '../components/Ticker';
-import { LayoutDashboard, ArrowRight, ChevronDown } from 'lucide-react';
+import {
+    LayoutDashboard,
+    ArrowRight,
+    ChevronDown,
+    Menu,
+    X,
+} from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import ProgressTrail from '../components/landing/ProgressTrail';
 import MascotWalker from '../components/landing/MascotWalker';
@@ -72,6 +79,7 @@ function FeatureCard({
 export default function LandingPage() {
     useDocumentTitle('SemSync', false);
     const { user, loading } = useAuth();
+    const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
     return (
         <div
@@ -81,7 +89,7 @@ export default function LandingPage() {
             <ProgressTrail />
             <MascotWalker />
             <nav
-                className='sticky top-0 z-50 border-b border-[var(--color-glass-border)] px-6 py-4 flex justify-between items-center backdrop-blur-md'
+                className='sticky top-0 z-50 border-b border-[var(--color-glass-border)] px-6 py-4 flex justify-between items-center backdrop-blur-md relative'
                 style={{ background: 'var(--color-sidebar-bg)' }}
             >
                 <Link to='/' className='flex items-center gap-2'>
@@ -117,6 +125,39 @@ export default function LandingPage() {
                         </a>
                     ))}
                 </div>
+
+                <button
+                    type='button'
+                    onClick={() => setIsMobileNavOpen((open) => !open)}
+                    aria-label='Toggle navigation menu'
+                    className='md:hidden order-last ml-4 w-8 h-8 flex items-center justify-center shrink-0'
+                    style={{ color: 'var(--color-text)' }}
+                >
+                    {isMobileNavOpen ? (
+                        <X className='w-5 h-5' />
+                    ) : (
+                        <Menu className='w-5 h-5' />
+                    )}
+                </button>
+
+                {isMobileNavOpen && (
+                    <div
+                        className='md:hidden absolute top-full left-0 right-0 flex flex-col border-b border-[var(--color-glass-border)] backdrop-blur-md'
+                        style={{ background: 'var(--color-sidebar-bg)' }}
+                    >
+                        {LANDING_NAV_LINKS.map(({ label, href }) => (
+                            <a
+                                key={label}
+                                href={href}
+                                onClick={() => setIsMobileNavOpen(false)}
+                                className='px-6 py-4 text-2xs font-bold tracking-[0.25em] uppercase border-t border-[var(--color-glass-border)]'
+                                style={{ color: 'var(--color-text-muted)' }}
+                            >
+                                {label}
+                            </a>
+                        ))}
+                    </div>
+                )}
 
                 {loading ? (
                     <div
@@ -295,7 +336,7 @@ export default function LandingPage() {
                     id='features'
                     className='border-b border-[var(--color-glass-border)]'
                 >
-                    <div className='px-8 pt-16 pb-0 max-w-7xl mx-42.5'>
+                    <div className='px-8 pt-16 pb-0 max-w-7xl mx-auto'>
                         <div className='flex items-end justify-between mb-12'>
                             <div>
                                 <span
@@ -322,7 +363,7 @@ export default function LandingPage() {
                         </div>
                     </div>
 
-                    <div className='grid mx-50 grid-cols-1 md:grid-cols-3 border-t border-l border-[var(--color-glass-border)] mb-5'>
+                    <div className='grid px-8 max-w-7xl mx-auto grid-cols-1 md:grid-cols-3 border-t border-l border-[var(--color-glass-border)] mb-5'>
                         {LANDING_FEATURES.map((f) => (
                             <FeatureCard key={f.index} {...f} />
                         ))}

@@ -201,7 +201,7 @@ function TaskCard({
                             e.stopPropagation();
                             onEdit(task);
                         }}
-                        className='opacity-0 group-hover:opacity-100 flex items-center justify-center w-6 h-6 transition-all duration-150 cursor-pointer'
+                        className='opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center w-6 h-6 transition-all duration-150 cursor-pointer'
                         style={{
                             background: 'rgba(59,130,246,0.10)',
                             color: '#3b82f6',
@@ -231,7 +231,7 @@ function TaskCard({
                             e.stopPropagation();
                             onDelete(task.id);
                         }}
-                        className='opacity-0 group-hover:opacity-100 flex items-center justify-center w-6 h-6 transition-all duration-150 cursor-pointer'
+                        className='opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center w-6 h-6 transition-all duration-150 cursor-pointer'
                         style={{
                             background: 'rgba(239,68,68,0.10)',
                             color: '#ef4444',
@@ -491,7 +491,7 @@ function TaskModal({
                             onChange={set('course')}
                         />
                     </div>
-                    <div className='grid grid-cols-2 gap-4'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                         <div>
                             <label
                                 htmlFor='task-due-date'
@@ -830,7 +830,7 @@ export default function TaskCenterPage() {
                         })}
                     </div>
 
-                    <div className='grid grid-cols-3 gap-5 grow min-h-0'>
+                    <div className='flex gap-5 grow min-h-0 overflow-x-auto md:grid md:grid-cols-3'>
                         {COLUMNS.map((col) => {
                             const colTasks = tasks.filter(
                                 (t) => t.status === col.id,
@@ -839,7 +839,7 @@ export default function TaskCenterPage() {
                             return (
                                 <div
                                     key={col.id}
-                                    className='flex flex-col overflow-hidden transition-all duration-200'
+                                    className='flex flex-col overflow-hidden transition-all duration-200 min-w-[280px] shrink-0 md:min-w-0 md:shrink'
                                     style={{
                                         border: isOver
                                             ? `1px solid ${col.color}`

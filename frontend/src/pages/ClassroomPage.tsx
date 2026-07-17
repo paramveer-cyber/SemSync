@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
-const AUTO_REFRESH_MS = 5 * 60 * 1000;
+const AUTO_REFRESH_MS = 30 * 1000;
 
 const CLASSROOM_SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses.readonly',
@@ -1348,14 +1348,16 @@ export default function ClassroomPage() {
 
     return (
         <>
-            <div className='flex-1 flex flex-col min-h-screen overflow-hidden'>
+            <div className='flex-1 flex flex-col h-full overflow-hidden'>
                 {/* Top bar */}
                 <div
+                    className='flex-wrap px-4 md:px-7'
                     style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '16px 28px',
+                        paddingTop: '16px',
+                        paddingBottom: '16px',
                         borderBottom: '1px solid var(--color-glass-border)',
                         flexShrink: 0,
                         background: 'var(--color-surface)',
@@ -1407,17 +1409,17 @@ export default function ClassroomPage() {
                     </div>
 
                     <div
+                        className='flex-wrap'
                         style={{
                             display: 'flex',
                             gap: '0.5rem',
                             alignItems: 'center',
-                            flexShrink: 0,
                         }}
                     >
                         {linked && courses.length > 0 && !loading && (
                             <div
+                                className='hidden md:flex'
                                 style={{
-                                    display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.5rem',
                                 }}
@@ -2045,18 +2047,25 @@ export default function ClassroomPage() {
                                 }}
                             >
                                 <div
+                                    className='px-4 md:px-7'
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        padding: '0 28px',
+                                        overflowX: 'auto',
                                         borderBottom:
                                             '1px solid var(--color-glass-border)',
                                         flexShrink: 0,
                                         gap: '0.5rem',
                                     }}
                                 >
-                                    <div style={{ display: 'flex', gap: 0 }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            gap: 0,
+                                            flexShrink: 0,
+                                        }}
+                                    >
                                         {(
                                             [
                                                 {

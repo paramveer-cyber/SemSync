@@ -1446,10 +1446,10 @@ export default function CalendarPage() {
                     </div>
                 </header>
 
-                <div className='flex grow overflow-hidden'>
+                <div className='flex flex-col lg:flex-row grow overflow-hidden'>
                     {/* ── Calendar Grid ── */}
-                    <div className='grow flex flex-col overflow-y-auto'>
-                        <div className='grid grid-cols-7 border-b border-[var(--color-glass-border)] shrink-0'>
+                    <div className='grow flex flex-col overflow-auto'>
+                        <div className='grid grid-cols-7 border-b border-[var(--color-glass-border)] shrink-0 min-w-[640px] md:min-w-0'>
                             {DAYS.map((d, i) => (
                                 <div
                                     key={d}
@@ -1467,7 +1467,7 @@ export default function CalendarPage() {
                             ))}
                         </div>
 
-                        <div className='grid grid-cols-7 grow'>
+                        <div className='grid grid-cols-7 grow min-w-[640px] md:min-w-0'>
                             {Array.from({ length: firstDay }).map((_, i) => (
                                 <div
                                     key={`empty-${i}`}
@@ -1624,7 +1624,7 @@ export default function CalendarPage() {
 
                     {/* ── Right Sidebar ── */}
                     <aside
-                        className='w-80 border-l border-[var(--color-glass-border)] flex flex-col shrink-0'
+                        className='w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-[var(--color-glass-border)] flex flex-col shrink-0'
                         style={{ background: 'var(--color-surface-1)' }}
                     >
                         <div className='flex border-b border-[var(--color-glass-border)] shrink-0'>

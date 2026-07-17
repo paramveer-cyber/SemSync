@@ -175,7 +175,7 @@ export default function CoursePage() {
                     title={course?.name ?? 'Course'}
                     subtitle='Track_Detail'
                 />
-                <div className='p-8'>
+                <div className='p-4 sm:p-8'>
                     <div className='mb-8'>
                         <Link
                             to='/courses'
@@ -225,8 +225,8 @@ export default function CoursePage() {
                                         </span>
                                     </div>
                                 )}
-                                <div className='flex items-start justify-between mb-10 border border-[var(--color-glass-border)] p-6'>
-                                    <div className='flex items-center space-x-8'>
+                                <div className='flex flex-col sm:flex-row sm:items-center justify-between mb-10 border border-[var(--color-glass-border)] p-6 gap-6'>
+                                    <div className='flex items-center gap-8'>
                                         {course.credits && (
                                             <div>
                                                 <p className='text-4xs font-bold text-[var(--color-text-muted)] tracking-[0.2em] uppercase mb-1'>
@@ -252,7 +252,7 @@ export default function CoursePage() {
                                         </div>
                                     </div>
 
-                                    <div className='flex items-center gap-3'>
+                                    <div className='flex flex-wrap items-center gap-3'>
                                         {!course.isArchived && (
                                             <button
                                                 onClick={() =>
@@ -758,8 +758,8 @@ export default function CoursePage() {
                                         )}
                                     </div>
                                 ) : (
-                                    <div className='border border-[var(--color-glass-border)] overflow-hidden'>
-                                        <div className='grid grid-cols-13 border-b border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 px-6 py-3'>
+                                    <div className='border border-[var(--color-glass-border)] overflow-x-auto'>
+                                        <div className='grid grid-cols-13 border-b border-[var(--color-glass-border)] bg-[var(--color-surface-2)]/50 px-6 py-3 min-w-[800px] md:min-w-0'>
                                             {[
                                                 ['Title', 'col-span-3'],
                                                 [
@@ -815,7 +815,7 @@ export default function CoursePage() {
                                             return (
                                                 <div
                                                     key={e.id}
-                                                    className='grid grid-cols-13 border-b border-[var(--color-glass-border)] px-6 py-4 hover:bg-[var(--color-surface-2)]/30 transition-colors group items-center'
+                                                    className='grid grid-cols-13 border-b border-[var(--color-glass-border)] px-6 py-4 hover:bg-[var(--color-surface-2)]/30 transition-colors group items-center min-w-[800px] md:min-w-0'
                                                 >
                                                     <div className='col-span-3'>
                                                         <p className='text-sm font-bold text-[var(--color-text)] uppercase tracking-tight'>
@@ -872,7 +872,7 @@ export default function CoursePage() {
                                                         </span>
                                                     </div>
 
-                                                    <div className='col-span-1 text-right flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity'>
+                                                    <div className='col-span-1 text-right flex items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity'>
                                                         {!course.isArchived && (
                                                             <>
                                                                 <button

@@ -270,13 +270,13 @@ export default function Dashboard() {
 
     if (loading) {
         return (
-            <div className='grow p-8 space-y-14'>
+            <div className='grow p-4 sm:p-8 space-y-14'>
                 <div>
                     <div className='flex justify-between items-baseline mb-8'>
                         <div className='h-12 w-72 bg-[var(--color-surface-2)] animate-pulse' />
                         <div className='h-4 w-40 bg-[var(--color-surface-2)] animate-pulse' />
                     </div>
-                    <div className='grid grid-cols-3 gap-4'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
                         {[0, 1, 2].map((i) => (
                             <div
                                 key={i}
@@ -290,7 +290,7 @@ export default function Dashboard() {
                         <div className='h-8 w-64 bg-[var(--color-surface-2)] animate-pulse' />
                         <div className='h-9 w-32 bg-[var(--color-surface-2)] animate-pulse' />
                     </div>
-                    <div className='grid grid-cols-4 gap-4'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
                         {[0, 1, 2, 3].map((i) => (
                             <div
                                 key={i}
@@ -306,7 +306,7 @@ export default function Dashboard() {
     return (
         <>
             <div className='grow flex flex-col overflow-y-auto'>
-                <div className='p-8 space-y-14'>
+                <div className='p-4 sm:p-8 space-y-14'>
                     {error && (
                         <div className='border border-red-500/30 bg-red-500/5 px-6 py-4 flex items-center gap-3 rounded-lg'>
                             <AlertTriangle className='w-4 h-4 text-red-400 shrink-0' />
@@ -400,8 +400,8 @@ export default function Dashboard() {
                     </section>
 
                     <section>
-                        <div className='flex items-baseline justify-between mb-8'>
-                            <h2 className='text-5xl font-extrabold tracking-tighter uppercase text-[var(--color-text)]'>
+                        <div className='flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-8'>
+                            <h2 className='text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tighter uppercase text-[var(--color-text)]'>
                                 Weekly Focus
                             </h2>
                             <span
@@ -525,8 +525,8 @@ export default function Dashboard() {
                     </section>
 
                     <section>
-                        <div className='flex items-center justify-between mb-8'>
-                            <div className='flex items-baseline gap-4'>
+                        <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8'>
+                            <div className='flex flex-wrap items-baseline gap-x-4 gap-y-1'>
                                 <h2 className='text-2xl font-extrabold tracking-tight uppercase text-[var(--color-text)]'>
                                     Course Nodes
                                 </h2>
@@ -701,7 +701,7 @@ export default function Dashboard() {
                                                         />
                                                     </div>
                                                     <div
-                                                        className='flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0'
+                                                        className='flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 shrink-0'
                                                         style={{
                                                             position:
                                                                 'relative',
@@ -868,7 +868,7 @@ export default function Dashboard() {
 
                     {classroomLinked && classroomUpcoming.length > 0 && (
                         <section>
-                            <div className='flex items-center justify-between mb-5'>
+                            <div className='flex flex-wrap items-center justify-between gap-3 mb-5'>
                                 <div className='flex items-center gap-3'>
                                     <GraduationCap
                                         className='w-5 h-5'
@@ -878,7 +878,11 @@ export default function Dashboard() {
                                         className='text-xl font-extrabold tracking-tight uppercase'
                                         style={{ color: 'var(--color-text)' }}
                                     >
-                                        Classroom · Next 14 Days
+                                        Classroom
+                                        <span className='hidden sm:inline'>
+                                            {' '}
+                                            · Next 14 Days
+                                        </span>
                                     </h2>
                                     <span
                                         style={{

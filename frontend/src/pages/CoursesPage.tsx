@@ -105,8 +105,8 @@ export default function CoursesPage() {
         <>
             <div className='grow flex flex-col'>
                 <Header title='Academic Tracks' subtitle='Directory_V2.0' />
-                <div className='p-12'>
-                    <div className='flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6'>
+                <div className='p-4 sm:p-8 lg:p-12'>
+                    <div className='flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-16 gap-6'>
                         <div>
                             <span
                                 className='font-bold text-xs tracking-[0.3em] uppercase mb-2 flex items-center gap-1.5'
@@ -118,13 +118,13 @@ export default function CoursesPage() {
                                 />
                             </span>
                             <h2
-                                className='text-7xl font-extrabold tracking-tighter uppercase leading-none'
+                                className='text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tighter uppercase leading-none'
                                 style={{ color: 'var(--color-text)' }}
                             >
                                 Academic Tracks
                             </h2>
                         </div>
-                        <div className='flex items-center space-x-4'>
+                        <div className='flex flex-wrap items-center gap-4'>
                             <div
                                 className='p-4 flex items-center space-x-4 rounded-lg'
                                 style={{
@@ -383,7 +383,7 @@ export default function CoursesPage() {
                                                     })
                                                 }
                                                 title={`Delete ${course.name}`}
-                                                className='flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-0 group-hover:opacity-100'
+                                                className='flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100'
                                                 style={deleteStyle.base}
                                                 onMouseEnter={(e) =>
                                                     Object.assign(

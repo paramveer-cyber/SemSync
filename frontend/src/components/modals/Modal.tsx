@@ -79,7 +79,7 @@ export default function Modal({
             }}
         >
             <motion.div
-                className='w-full max-w-md'
+                className='w-full max-w-md max-h-[90vh] flex flex-col'
                 style={{
                     background: 'var(--color-surface)',
                     border: '1px solid var(--color-glass-border)',
@@ -95,7 +95,7 @@ export default function Modal({
             >
                 {/* Header */}
                 <div
-                    className='flex items-center justify-between px-7 py-5'
+                    className='flex items-center justify-between px-7 py-5 shrink-0'
                     style={{
                         borderBottom: '1px solid var(--color-glass-border)',
                     }}
@@ -137,7 +137,7 @@ export default function Modal({
                         <X className='w-4 h-4' />
                     </button>
                 </div>
-                <div className='p-7'>{content}</div>
+                <div className='p-7 overflow-y-auto'>{content}</div>
             </motion.div>
         </div>
     );

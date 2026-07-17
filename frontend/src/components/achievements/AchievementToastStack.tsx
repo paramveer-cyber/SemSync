@@ -79,7 +79,7 @@ function ToastItem({
                 alignItems: 'center',
                 gap: '1rem',
                 padding: '16px 24px',
-                minWidth: '21.25rem',
+                width: '100%',
                 maxWidth: '26.25rem',
                 background: `linear-gradient(135deg, rgba(14,14,20,0.98) 0%, rgba(18,18,26,0.95) 100%)`,
                 border: `1px solid ${c.border}`,
@@ -195,10 +195,8 @@ export default function AchievementToastStack() {
 
     return (
         <div
+            className='fixed top-4 right-4 left-4 sm:left-auto sm:top-8 sm:right-8'
             style={{
-                position: 'fixed',
-                top: '2rem',
-                right: '2rem',
                 zIndex: 8900,
                 display: 'flex',
                 flexDirection: 'column',

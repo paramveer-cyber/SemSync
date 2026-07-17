@@ -137,10 +137,8 @@ export default function AppearanceTab() {
 
     return (
         <div
-            className='p-6'
+            className='p-6 grid grid-cols-1 sm:grid-cols-2'
             style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
                 gap: '0.75rem',
                 maxWidth: '68.75rem',
             }}
@@ -354,7 +352,6 @@ export default function AppearanceTab() {
 
             <div
                 style={{
-                    gridColumn: 'span 1',
                     border: '1px solid var(--color-glass-border)',
                     borderRadius: '0.625rem',
                     overflow: 'hidden',
@@ -366,11 +363,9 @@ export default function AppearanceTab() {
                     color='var(--color-brand)'
                 />
                 <div
-                    className='px-5 py-4'
+                    className='px-5 py-4 grid grid-cols-1 sm:grid-cols-2'
                     style={{
                         background: 'var(--color-surface-1)',
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr ',
                         gap: '0.75rem',
                     }}
                 >
@@ -388,8 +383,8 @@ export default function AppearanceTab() {
             </div>
 
             <div
+                className='sm:col-span-2'
                 style={{
-                    gridColumn: 'span 2',
                     border: '1px solid var(--color-glass-border)',
                     borderRadius: '0.625rem',
                     overflow: 'hidden',
@@ -401,21 +396,25 @@ export default function AppearanceTab() {
                     color='var(--color-brand)'
                 />
                 <div
-                    className='px-5 py-4'
+                    className='px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3'
                     style={{
                         background: 'var(--color-surface-1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
                     }}
                 >
-                    <div style={{ display: 'flex', gap: 4, flex: 1 }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 4,
+                            flex: 1,
+                        }}
+                    >
                         {PREVIEW_TIERS.map(({ id, label, color }) => (
                             <button
                                 key={id}
                                 onClick={() => setPreviewTier(id)}
                                 style={{
-                                    flex: 1,
+                                    flex: '1 1 5rem',
                                     padding: '6px 0',
                                     borderRadius: '0.375rem',
                                     fontSize: 'var(--text-2xs)',
@@ -443,6 +442,7 @@ export default function AppearanceTab() {
                     <button
                         onClick={handleExperienceAchievement}
                         disabled={previewSending}
+                        className='w-full sm:w-auto'
                         style={{
                             padding: '8px 16px',
                             borderRadius: '0.5rem',

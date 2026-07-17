@@ -116,7 +116,7 @@ export default function AddEvalModal({
                             autoFocus
                         />
                     </div>
-                    <div className='grid grid-cols-2 gap-3'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                         <div>
                             <label
                                 htmlFor='eval-type'
@@ -161,7 +161,7 @@ export default function AddEvalModal({
                             />
                         </div>
                     </div>
-                    <div className='grid grid-cols-3 gap-3'>
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
                         <div>
                             <label
                                 htmlFor='eval-weight'

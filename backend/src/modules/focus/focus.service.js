@@ -3,21 +3,16 @@ import { insertEvent, getEarnedAchievements } from "../../db/gamification.js";
 import { getISTContext } from "../../common/utils/dates.js";
 import { computeXP } from "../../common/utils/xp.js";
 import { findUpcomingEvalsByUser } from "../../db/queries.js";
-import {
-    getStats, getStreak, getTodayGoals, countTodaySessions, getLastSessionDate,
-    upsertStats, upsertStreak, updateGoalStatus, insertGoals,
-    getRecentSessions, get7DayAvgMinutes, getGoalCompletionRate,
-    runInTransaction, getActiveTimer, insertTimer, updateTimer, deleteTimer,
-    getWeekSessionDates, getTodaySessionHours, findRecentBelowTargetEval, getTodayMinutesTotal,
-    insertSessionEvents, findFinalStreak, incrementEvalMinutesSpent,
-} from "./focus.db.js";
+import * as focusDB from "./focus.db.js";
+
+const HEATMAP_DAYS = 182;
 
 async function completeSession(userId, { actualMinutes, plannedMinutes, linkedTaskId, linkedEvalId, linkedEvalDueDate }) {
     const { today, yesterday, weekStart, hourOfDay } = getISTContext();
 
     const [todayCount, lastSessionDate] = await Promise.all([
-        countTodaySessions(userId, today),
-        getLastSessionDate(userId),
+        focusDB.countTodaySessions(userId, today),
+        focusDB.getLastSessionDate(userId),
     ]);
 
     const daysSinceLastSession = lastSessionDate
@@ -27,13 +22,13 @@ async function completeSession(userId, { actualMinutes, plannedMinutes, linkedTa
     const rawXp = computeXP({ actualMinutes, plannedMinutes });
     const isLinked = !!(linkedTaskId || linkedEvalId);
 
-    const { streakStatus, finalStats, finalStreak, goalsCompleted, allTodayGoalsCompleted } = await runInTransaction(async (tx) => {
+    const { streakStatus, finalStats, finalStreak, goalsCompleted, allTodayGoalsCompleted } = await focusDB.runInTransaction(async (tx) => {
         const [statsRow, txStreakStatus] = await Promise.all([
-            upsertStats(userId, actualMinutes, rawXp, today, weekStart, true, tx),
-            upsertStreak(userId, today, yesterday, tx),
+            focusDB.upsertStats(userId, actualMinutes, rawXp, today, weekStart, true, tx),
+            focusDB.upsertStreak(userId, today, yesterday, tx),
         ]);
 
-        if (linkedEvalId) await incrementEvalMinutesSpent(linkedEvalId, actualMinutes, tx);
+        if (linkedEvalId) await focusDB.incrementEvalMinutesSpent(linkedEvalId, actualMinutes, tx);
 
         const eventRows = [];
         if (daysSinceLastSession !== null && daysSinceLastSession >= 3) {
@@ -57,12 +52,12 @@ async function completeSession(userId, { actualMinutes, plannedMinutes, linkedTa
                 status: "completed",
             },
         });
-        await insertSessionEvents(tx, eventRows);
+        await focusDB.insertSessionEvents(tx, eventRows);
 
-        const cumulativeMinutes = await getTodayMinutesTotal(userId, today, tx);
+        const cumulativeMinutes = await focusDB.getTodayMinutesTotal(userId, today, tx);
         const { completed, allCompleted } = await checkAndCompleteGoals(userId, today, cumulativeMinutes, txStreakStatus, tx);
 
-        const txFinalStreak = await findFinalStreak(tx, userId);
+        const txFinalStreak = await focusDB.findFinalStreak(tx, userId);
 
         return {
             streakStatus: txStreakStatus,
@@ -74,9 +69,9 @@ async function completeSession(userId, { actualMinutes, plannedMinutes, linkedTa
     });
 
     const [weekDates, todayHours, hadRecentBadGrade] = await Promise.all([
-        getWeekSessionDates(userId, weekStart),
-        getTodaySessionHours(userId, today),
-        findRecentBelowTargetEval(userId, new Date(Date.now() - 24 * 3600000)),
+        focusDB.getWeekSessionDates(userId, weekStart),
+        focusDB.getTodaySessionHours(userId, today),
+        focusDB.findRecentBelowTargetEval(userId, new Date(Date.now() - 24 * 3600000)),
     ]);
 
     const distinctDaysThisWeek = new Set(weekDates).size;
@@ -122,7 +117,7 @@ async function completeSession(userId, { actualMinutes, plannedMinutes, linkedTa
 }
 
 export async function checkAndCompleteGoals(userId, today, cumulativeMinutes, streakStatus, tx) {
-    const goals = await getTodayGoals(userId, today);
+    const goals = await focusDB.getTodayGoals(userId, today);
     const completed = [];
 
     for (const g of goals) {
@@ -133,7 +128,7 @@ export async function checkAndCompleteGoals(userId, today, cumulativeMinutes, st
         if (g.type === "eval_prep" && cumulativeMinutes >= g.targetValue) done = true;
         if (g.type === "stretch" && cumulativeMinutes >= g.targetValue) done = true;
         if (done) {
-            await updateGoalStatus(g.id, "completed", tx);
+            await focusDB.updateGoalStatus(g.id, "completed", tx);
             completed.push(g);
         }
     }
@@ -148,9 +143,9 @@ export async function checkAndCompleteGoals(userId, today, cumulativeMinutes, st
 export async function generateDailyGoals(userId, stats, streak, today) {
     const isNewUser = (stats?.totalSessions ?? 0) < 5;
     const [avgMinutes, completionRate, yesterdayRate] = await Promise.all([
-        get7DayAvgMinutes(userId),
-        getGoalCompletionRate(userId, 3),
-        getGoalCompletionRate(userId, 1),
+        focusDB.get7DayAvgMinutes(userId),
+        focusDB.getGoalCompletionRate(userId, 3),
+        focusDB.getGoalCompletionRate(userId, 1),
     ]);
 
     let baseline;
@@ -184,7 +179,7 @@ export async function generateDailyGoals(userId, stats, streak, today) {
         goals.push({ userId, date: today, type: "stretch", title: `Push to ${baseline + 20} min — you've been on a roll`, targetValue: baseline + 20, xpReward: 60 });
     }
 
-    return insertGoals(goals.slice(0, maxGoals));
+    return focusDB.insertGoals(goals.slice(0, maxGoals));
 }
 
 function normalizeStreakFreshness(streak, today, yesterday) {
@@ -196,21 +191,26 @@ function normalizeStreakFreshness(streak, today, yesterday) {
 
 export async function getDashboardData(userId) {
     const { today, yesterday } = getISTContext();
-    const [stats, rawStreak, earned, recentSessions] = await Promise.all([
-        getStats(userId),
-        getStreak(userId),
+    const heatmapSince = new Date(`${today}T12:00:00Z`);
+    heatmapSince.setUTCDate(heatmapSince.getUTCDate() - HEATMAP_DAYS);
+    const heatmapSinceStr = heatmapSince.toISOString().slice(0, 10);
+
+    const [stats, rawStreak, earned, recentSessions, heatmap] = await Promise.all([
+        focusDB.getStats(userId),
+        focusDB.getStreak(userId),
         getEarnedAchievements(userId),
-        getRecentSessions(userId, 20),
+        focusDB.getRecentSessions(userId, 20),
+        focusDB.getDailyFocusMinutes(userId, heatmapSinceStr),
     ]);
 
     const streak = normalizeStreakFreshness(rawStreak, today, yesterday);
 
-    let goals = await getTodayGoals(userId, today);
+    let goals = await focusDB.getTodayGoals(userId, today);
     if (!goals.length) {
         goals = await generateDailyGoals(userId, stats, streak, today);
     }
 
-    return { stats, streak, earned, goals, recentSessions };
+    return { stats, streak, earned, goals, recentSessions, heatmap };
 }
 
 function computeElapsedSeconds(timer) {
@@ -243,12 +243,12 @@ function serializeTimer(timer) {
 }
 
 export async function getTimer(userId) {
-    const timer = await getActiveTimer(userId);
+    const timer = await focusDB.getActiveTimer(userId);
     return serializeTimer(timer);
 }
 
 export async function startTimer(userId, body) {
-    const existing = await getActiveTimer(userId);
+    const existing = await focusDB.getActiveTimer(userId);
     if (existing) {
         return { timer: serializeTimer(existing), alreadyActive: true };
     }
@@ -256,7 +256,7 @@ export async function startTimer(userId, body) {
     const plannedMinutes = body.plannedMinutes;
     const nonce = crypto.randomBytes(16).toString("hex");
 
-    const timer = await insertTimer({
+    const timer = await focusDB.insertTimer({
         userId,
         status: "running",
         plannedMinutes,
@@ -273,11 +273,11 @@ export async function startTimer(userId, body) {
 }
 
 export async function pauseTimer(userId) {
-    const timer = await getActiveTimer(userId);
+    const timer = await focusDB.getActiveTimer(userId);
     if (!timer) return { error: "no_active_timer" };
     if (timer.status === "paused") return { timer: serializeTimer(timer) };
 
-    const updated = await updateTimer(userId, {
+    const updated = await focusDB.updateTimer(userId, {
         status: "paused",
         pausedAt: new Date(),
     });
@@ -285,7 +285,7 @@ export async function pauseTimer(userId) {
 }
 
 export async function resumeTimer(userId) {
-    const timer = await getActiveTimer(userId);
+    const timer = await focusDB.getActiveTimer(userId);
     if (!timer) return { error: "no_active_timer" };
     if (timer.status === "running") return { timer: serializeTimer(timer) };
 
@@ -293,7 +293,7 @@ export async function resumeTimer(userId) {
         ? Math.floor((Date.now() - new Date(timer.pausedAt).getTime()) / 1000)
         : 0;
 
-    const updated = await updateTimer(userId, {
+    const updated = await focusDB.updateTimer(userId, {
         status: "running",
         pausedAt: null,
         pausedElapsedSeconds: (timer.pausedElapsedSeconds ?? 0) + additionalPausedSec,
@@ -302,19 +302,19 @@ export async function resumeTimer(userId) {
 }
 
 export async function extendTimer(userId, body) {
-    const timer = await getActiveTimer(userId);
+    const timer = await focusDB.getActiveTimer(userId);
     if (!timer) return { error: "no_active_timer" };
     if (timer.status !== "running") return { error: "timer_not_running" };
 
     const addMinutes = Math.min(Math.max(Math.floor(Number(body.addMinutes) || 5), 1), 30);
     const newPlanned = Math.min(timer.plannedMinutes + addMinutes, 240);
 
-    const updated = await updateTimer(userId, { plannedMinutes: newPlanned });
+    const updated = await focusDB.updateTimer(userId, { plannedMinutes: newPlanned });
     return { timer: serializeTimer(updated) };
 }
 
 export async function syncTimer(userId) {
-    const timer = await getActiveTimer(userId);
+    const timer = await focusDB.getActiveTimer(userId);
     return { timer: serializeTimer(timer) };
 }
 
@@ -322,7 +322,7 @@ async function settleIncompleteSession(userId, { actualMinutes, plannedMinutes, 
     const { today, hourOfDay } = getISTContext();
     const isLinked = !!(linkedTaskId || linkedEvalId);
 
-    if (linkedEvalId) await incrementEvalMinutesSpent(linkedEvalId, actualMinutes);
+    if (linkedEvalId) await focusDB.incrementEvalMinutesSpent(linkedEvalId, actualMinutes);
 
     await insertEvent({
         userId,
@@ -339,14 +339,14 @@ async function settleIncompleteSession(userId, { actualMinutes, plannedMinutes, 
         },
     });
 
-    const cumulativeMinutes = await getTodayMinutesTotal(userId, today);
+    const cumulativeMinutes = await focusDB.getTodayMinutesTotal(userId, today);
     await checkAndCompleteGoals(userId, today, cumulativeMinutes, { currentStreak: 0 });
 
     return { actualMinutes, plannedMinutes, linked: isLinked, hourOfDay };
 }
 
 export async function endTimer(userId, body) {
-    const timer = await getActiveTimer(userId);
+    const timer = await focusDB.getActiveTimer(userId);
     if (!timer) return { dropped: true, reason: "no_active_timer" };
     if (body.nonce !== timer.nonce) return { dropped: true, reason: "invalid_nonce" };
 
@@ -354,7 +354,7 @@ export async function endTimer(userId, body) {
     const cappedElapsedSeconds = Math.min(computeElapsedSeconds(timer), plannedMinutes * 60);
     const actualMinutes = Math.floor(cappedElapsedSeconds / 60);
 
-    await deleteTimer(userId);
+    await focusDB.deleteTimer(userId);
 
     if (actualMinutes < 1) {
         return { dropped: true, reason: "session_too_short" };

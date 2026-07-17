@@ -34,6 +34,7 @@ import {
 import SessionComplete from '../components/SessionComplete';
 import DailyGoals from '../components/DailyGoals';
 import StreakDisplay from '../components/StreakDisplay';
+import FocusHeatmap from '../components/FocusHeatMap';
 import InfoTooltip from '../components/InfoTooltip';
 import { TOOLTIP_CONTENT } from '../data/TooltipContent';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -701,7 +702,7 @@ export default function FocusTimerPage() {
             >
                 <div className='h-9 w-64 bg-[var(--color-surface-2)] animate-pulse' />
                 <div className='h-72 bg-[var(--color-surface-2)] animate-pulse border border-[var(--color-glass-border)] rounded-xl' />
-                <div className='grid grid-cols-3 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
                     {[0, 1, 2].map((i) => (
                         <div
                             key={i}
@@ -738,12 +739,12 @@ export default function FocusTimerPage() {
                     >
                         // FOCUS_PROTOCOL_V2
                     </span>
-                    <h2 className='text-7xl font-extrabold tracking-tighter uppercase leading-none text-[var(--color-text)]'>
+                    <h2 className='text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tighter uppercase leading-none text-[var(--color-text)]'>
                         Focus Timer
                     </h2>
                 </div>
 
-                <div className='grid grid-cols-[1fr_320px] gap-6'>
+                <div className='grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6'>
                     <div className='flex flex-col gap-5'>
                         <QuoteCard />
 
@@ -956,6 +957,8 @@ export default function FocusTimerPage() {
                                     )}
                             </div>
                         </div>
+
+                        <FocusHeatmap data={gamifData?.heatmap ?? []} />
                     </div>
 
                     {/* Right column */}
