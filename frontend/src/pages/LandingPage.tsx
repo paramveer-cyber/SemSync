@@ -2,16 +2,17 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import icon from '/favicon.ico';
 import Ticker from '../components/Ticker';
-import {
-    LayoutDashboard,
-    BookOpen,
-    Calendar,
-    CheckSquare,
-    Timer,
-    ArrowRight,
-    ChevronDown,
-} from 'lucide-react';
+import { LayoutDashboard, ArrowRight, ChevronDown } from 'lucide-react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import ProgressTrail from '../components/landing/ProgressTrail';
+import MascotWalker from '../components/landing/MascotWalker';
+import {
+    LANDING_FEATURES,
+    LANDING_TICKER_ITEMS,
+    LANDING_NAV_LINKS,
+    LANDING_PROTOCOL_STEPS,
+    LANDING_FOOTER_LINKS,
+} from '../data/LandingData';
 
 function FeatureCard({
     index,
@@ -72,61 +73,13 @@ export default function LandingPage() {
     useDocumentTitle('SemSync', false);
     const { user, loading } = useAuth();
 
-    const features = [
-        {
-            index: '01',
-            icon: LayoutDashboard,
-            title: 'Command Dashboard',
-            desc: 'A high-level view of your semester. See upcoming evaluations at a glance and all your active courses from a single panel.',
-        },
-        {
-            index: '02',
-            icon: BookOpen,
-            title: 'Course Management',
-            desc: "Add courses with credits and a target grade. Log evaluations — quizzes, assignments, labs, projects, midsems, endsems — and track how much weight you've covered.",
-        },
-        {
-            index: '03',
-            icon: Calendar,
-            title: 'Academic Calendar',
-            desc: 'A full monthly calendar showing all your course evaluations alongside personal tasks. Add, mark done, or remove entries without leaving the view.',
-        },
-        {
-            index: '04',
-            icon: CheckSquare,
-            title: 'Task Center',
-            desc: 'A kanban board for your tasks — queue them, mark active, push to done. Drag to reorder. Attach a course, priority, and due date.',
-        },
-        {
-            index: '05',
-            icon: Timer,
-            title: 'Focus Timer',
-            desc: 'Set a custom focus duration, link it to a task or eval, pick a category like Reading or Coding, and run timed deep-work sessions. Past sessions are saved locally.',
-        },
-    ];
-    const tickerItems = [
-        'COURSE TRACKING',
-        'EVALUATION LOGS',
-        'FOCUS TIMER',
-        'TASK MANAGEMENT',
-        'ACADEMIC CALENDAR',
-        'DEEP WORK SESSIONS',
-        'GRADE TARGETS',
-        'UPCOMING EVALS',
-    ];
-    const navLinks = [
-        { label: 'FEATURES', href: '#features' },
-        { label: 'ABOUT', href: '/about' },
-        {
-            label: 'GITHUB',
-            href: 'https://github.com/paramveer-cyber/SemSync',
-        },
-    ];
     return (
         <div
             className='min-h-screen flex flex-col'
             style={{ background: 'var(--color-surface)' }}
         >
+            <ProgressTrail />
+            <MascotWalker />
             <nav
                 className='sticky top-0 z-50 border-b border-[var(--color-glass-border)] px-6 py-4 flex justify-between items-center backdrop-blur-md'
                 style={{ background: 'var(--color-sidebar-bg)' }}
@@ -145,7 +98,7 @@ export default function LandingPage() {
                 </Link>
 
                 <div className='hidden md:flex items-center gap-8'>
-                    {navLinks.map(({ label, href }) => (
+                    {LANDING_NAV_LINKS.map(({ label, href }) => (
                         <a
                             key={label}
                             href={href}
@@ -336,7 +289,7 @@ export default function LandingPage() {
                     </div>
                 </section>
 
-                <Ticker items={tickerItems} />
+                <Ticker items={LANDING_TICKER_ITEMS} />
 
                 <section
                     id='features'
@@ -355,7 +308,7 @@ export default function LandingPage() {
                                     className='text-4xl md:text-5xl font-black uppercase tracking-tighter mt-2'
                                     style={{ color: 'var(--color-text)' }}
                                 >
-                                    Five Modules.
+                                    Six Modules.
                                     <br />
                                     One System.
                                 </h2>
@@ -369,11 +322,11 @@ export default function LandingPage() {
                         </div>
                     </div>
 
-                    <div className='grid mx-50 grid-cols-1 md:grid-cols-3 border-t border-l border-[var(--color-glass-border)]'>
-                        {features.map((f) => (
+                    <div className='grid mx-50 grid-cols-1 md:grid-cols-3 border-t border-l border-[var(--color-glass-border)] mb-5'>
+                        {LANDING_FEATURES.map((f) => (
                             <FeatureCard key={f.index} {...f} />
                         ))}
-                        <div
+                        {/* <div
                             className='p-8 border-b border-r border-[var(--color-glass-border)] flex flex-col justify-between'
                             style={{ background: 'var(--color-surface-1)' }}
                         >
@@ -391,7 +344,7 @@ export default function LandingPage() {
                             >
                                 Initialize Setup <ArrowRight size={14} />
                             </Link>
-                        </div>
+                        </div> */}
                     </div>
                 </section>
 
@@ -416,52 +369,43 @@ export default function LandingPage() {
                             className='grid md:grid-cols-3 gap-px border border-[var(--color-glass-border)]'
                             style={{ background: 'var(--color-glass-border)' }}
                         >
-                            {[
-                                {
-                                    step: '01',
-                                    title: 'Add Your Courses',
-                                    desc: "Register each course with its credit weight and the grade you're targeting. That target drives everything else.",
-                                },
-                                {
-                                    step: '02',
-                                    title: 'Log Evaluations',
-                                    desc: 'As quizzes, labs, and assignments happen, log them with their weight and your score. See how much grade is still up for grabs.',
-                                },
-                                {
-                                    step: '03',
-                                    title: 'Stay Ahead',
-                                    desc: 'The dashboard surfaces upcoming evals. The calendar keeps dates in sight. The focus timer keeps you in the chair.',
-                                },
-                            ].map(({ step, title, desc }) => (
-                                <div
-                                    key={step}
-                                    className='p-10'
-                                    style={{
-                                        background: 'var(--color-surface-1)',
-                                    }}
-                                >
-                                    <span
-                                        className='text-5xl font-black font-mono leading-none'
-                                        style={{ color: 'var(--color-brand)' }}
-                                    >
-                                        {step}
-                                    </span>
-                                    <h3
-                                        className='text-lg font-black uppercase tracking-tight mt-4 mb-3'
-                                        style={{ color: 'var(--color-text)' }}
-                                    >
-                                        {title}
-                                    </h3>
-                                    <p
-                                        className='text-sm leading-relaxed'
+                            {LANDING_PROTOCOL_STEPS.map(
+                                ({ step, title, desc }) => (
+                                    <div
+                                        key={step}
+                                        className='p-10'
                                         style={{
-                                            color: 'var(--color-text-muted)',
+                                            background:
+                                                'var(--color-surface-1)',
                                         }}
                                     >
-                                        {desc}
-                                    </p>
-                                </div>
-                            ))}
+                                        <span
+                                            className='text-5xl font-black font-mono leading-none'
+                                            style={{
+                                                color: 'var(--color-brand)',
+                                            }}
+                                        >
+                                            {step}
+                                        </span>
+                                        <h3
+                                            className='text-lg font-black uppercase tracking-tight mt-4 mb-3'
+                                            style={{
+                                                color: 'var(--color-text)',
+                                            }}
+                                        >
+                                            {title}
+                                        </h3>
+                                        <p
+                                            className='text-sm leading-relaxed'
+                                            style={{
+                                                color: 'var(--color-text-muted)',
+                                            }}
+                                        >
+                                            {desc}
+                                        </p>
+                                    </div>
+                                ),
+                            )}
                         </div>
                     </div>
                 </section>
@@ -544,12 +488,7 @@ export default function LandingPage() {
                         </span>
                     </div>
                     <div className='flex items-center gap-8'>
-                        {[
-                            { label: 'TERMS', href: '/legal' },
-                            { label: 'PRIVACY', href: '/legal' },
-                            { label: 'LEGAL', href: '/legal' },
-                            { label: 'ABOUT', href: '/about' },
-                        ].map(({ label, href }) => (
+                        {LANDING_FOOTER_LINKS.map(({ label, href }) => (
                             <a
                                 key={label}
                                 href={href}

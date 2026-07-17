@@ -11,7 +11,7 @@ function Ticker({ items }: { items: string[] }) {
                     <span
                         key={i}
                         className='flex items-center gap-3 text-3xs font-bold tracking-[0.3em] mr-12'
-                        style={{ color: 'var(--color-text-muted)' }}
+                        style={{ color: 'var(--color-text-faint)' }}
                     >
                         <span style={{ color: 'var(--color-brand)' }}>◆</span>
                         {item}
