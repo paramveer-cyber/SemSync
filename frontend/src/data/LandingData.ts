@@ -95,6 +95,52 @@ export const LANDING_PROTOCOL_STEPS: LandingProtocolStep[] = [
     },
 ];
 
+export type LandingTimelineStop = {
+    week: string;
+    title: string;
+    desc: string;
+    icon: any;
+};
+
+export const LANDING_TIMELINE_STOPS: LandingTimelineStop[] = [
+    {
+        week: 'WEEK 01',
+        title: 'Add Your Courses',
+        desc: 'Register courses with credits and a target grade, or pull them from Google Classroom.',
+        icon: BookOpen,
+    },
+    {
+        week: 'WEEK 04',
+        title: 'First Evals Logged',
+        desc: 'Quizzes and assignments start landing. Log weight and score as they happen.',
+        icon: CheckSquare,
+    },
+    {
+        week: 'WEEK 07',
+        title: 'Focus Streak Begins',
+        desc: 'Timed deep-work sessions start stacking. XP moves when you do the work.',
+        icon: Timer,
+    },
+    {
+        week: 'WEEK 10',
+        title: 'Midsem Crunch',
+        desc: 'The calendar and dashboard keep every upcoming eval in sight, no digging required.',
+        icon: Calendar,
+    },
+    {
+        week: 'WEEK 13',
+        title: 'XP Climbs',
+        desc: 'Streaks hold, achievements unlock, the grind shows up as numbers that move.',
+        icon: Trophy,
+    },
+    {
+        week: 'WEEK 16',
+        title: 'Endsem, Locked In',
+        desc: 'Full semester tracked end to end. Nothing missed, nothing forgotten.',
+        icon: LayoutDashboard,
+    },
+];
+
 export const LANDING_FOOTER_LINKS: { label: string; href: string }[] = [
     { label: 'TERMS', href: '/legal' },
     { label: 'PRIVACY', href: '/legal' },

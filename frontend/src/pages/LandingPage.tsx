@@ -13,6 +13,9 @@ import {
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import ProgressTrail from '../components/landing/ProgressTrail';
 import MascotWalker from '../components/landing/MascotWalker';
+import ParticleField from '../components/landing/ParticleField';
+import MagneticButton from '../components/landing/MagneticButton';
+// import SemesterTimeline from '../components/landing/SemesterTimeline';
 import {
     LANDING_FEATURES,
     LANDING_TICKER_ITEMS,
@@ -86,6 +89,7 @@ export default function LandingPage() {
             className='min-h-screen flex flex-col'
             style={{ background: 'var(--color-surface)' }}
         >
+            <ParticleField />
             <ProgressTrail />
             <MascotWalker />
             <nav
@@ -285,31 +289,36 @@ export default function LandingPage() {
 
                         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
                             {user ? (
-                                <Link
-                                    to='/dashboard'
-                                    className='inline-flex items-center justify-center gap-3 px-10 py-4 font-bold text-sm tracking-[0.2em] uppercase'
-                                    style={{
-                                        background: 'var(--color-brand)',
-                                        color: 'var(--color-surface)',
-                                    }}
-                                >
-                                    <LayoutDashboard size={16} />
-                                    Go to Dashboard
-                                    <ArrowRight size={16} />
-                                </Link>
-                            ) : (
-                                <>
+                                <MagneticButton>
                                     <Link
-                                        to='/login'
+                                        to='/dashboard'
                                         className='inline-flex items-center justify-center gap-3 px-10 py-4 font-bold text-sm tracking-[0.2em] uppercase'
                                         style={{
                                             background: 'var(--color-brand)',
                                             color: 'var(--color-surface)',
                                         }}
                                     >
-                                        Get Started
+                                        <LayoutDashboard size={16} />
+                                        Go to Dashboard
                                         <ArrowRight size={16} />
                                     </Link>
+                                </MagneticButton>
+                            ) : (
+                                <>
+                                    <MagneticButton>
+                                        <Link
+                                            to='/login'
+                                            className='inline-flex items-center justify-center gap-3 px-10 py-4 font-bold text-sm tracking-[0.2em] uppercase'
+                                            style={{
+                                                background:
+                                                    'var(--color-brand)',
+                                                color: 'var(--color-surface)',
+                                            }}
+                                        >
+                                            Get Started
+                                            <ArrowRight size={16} />
+                                        </Link>
+                                    </MagneticButton>
                                     <a
                                         href='#features'
                                         className='inline-flex items-center justify-center gap-2 px-10 py-4 font-bold text-sm tracking-[0.2em] uppercase border transition-colors'
@@ -451,6 +460,8 @@ export default function LandingPage() {
                     </div>
                 </section>
 
+                {/* <SemesterTimeline /> */}
+
                 <section
                     className='py-32 px-6 text-center relative overflow-hidden'
                     style={{ background: 'var(--color-brand)' }}
@@ -478,31 +489,35 @@ export default function LandingPage() {
                             synchronized. Access the system today.
                         </p>
                         {user ? (
-                            <Link
-                                to='/dashboard'
-                                className='inline-flex items-center gap-3 px-12 py-4 font-black tracking-[0.2em] uppercase border-2'
-                                style={{
-                                    background: 'var(--color-surface)',
-                                    color: 'var(--color-brand)',
-                                    borderColor: 'var(--color-surface)',
-                                }}
-                            >
-                                <LayoutDashboard size={18} />
-                                Open Dashboard
-                            </Link>
+                            <MagneticButton>
+                                <Link
+                                    to='/dashboard'
+                                    className='inline-flex items-center gap-3 px-12 py-4 font-black tracking-[0.2em] uppercase border-2'
+                                    style={{
+                                        background: 'var(--color-surface)',
+                                        color: 'var(--color-brand)',
+                                        borderColor: 'var(--color-surface)',
+                                    }}
+                                >
+                                    <LayoutDashboard size={18} />
+                                    Open Dashboard
+                                </Link>
+                            </MagneticButton>
                         ) : (
-                            <Link
-                                to='/login'
-                                className='inline-flex items-center gap-3 px-12 py-4 font-black tracking-[0.2em] uppercase border-2'
-                                style={{
-                                    background: 'var(--color-surface)',
-                                    color: 'var(--color-brand)',
-                                    borderColor: 'var(--color-surface)',
-                                }}
-                            >
-                                Initialize Setup
-                                <ArrowRight size={18} />
-                            </Link>
+                            <MagneticButton>
+                                <Link
+                                    to='/login'
+                                    className='inline-flex items-center gap-3 px-12 py-4 font-black tracking-[0.2em] uppercase border-2'
+                                    style={{
+                                        background: 'var(--color-surface)',
+                                        color: 'var(--color-brand)',
+                                        borderColor: 'var(--color-surface)',
+                                    }}
+                                >
+                                    Initialize Setup
+                                    <ArrowRight size={18} />
+                                </Link>
+                            </MagneticButton>
                         )}
                     </div>
                 </section>
